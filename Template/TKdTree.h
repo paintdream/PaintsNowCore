@@ -4,6 +4,7 @@
 
 #include "../PaintsNow.h"
 #include "../Interface/IType.h"
+#include "TTagged.h"
 #include <algorithm>
 #include <cassert>
 #include <utility>
@@ -39,10 +40,10 @@ namespace PaintsNow {
 	template <class K, class Base = Void, class P = TOverlap<K>, size_t KEY_BITS = 3>
 	class TKdTree : public Base {
 	public:
-		enum { KEY_MASK = (1 << KEY_BITS) - 1 };
 		typedef uint8_t KeyType;
 		typedef TKdTree Type;
 		TKdTree(const K& k = K(), const KeyType i = 0) : key(k), leftNode(nullptr), rightNode(nullptr), _parentNode(nullptr) {
+			const size_t KEY_MASK = (1 << KEY_BITS) - 1;
 			assert(P::size <= KEY_MASK + 1);
 			assert(i <= KEY_MASK);
 			assert(((size_t)this & KEY_MASK) == 0); // must be aligned
@@ -130,19 +131,19 @@ namespace PaintsNow {
 		}
 
 		inline KeyType GetIndex() const {
-			return (KeyType)reinterpret_cast<size_t>(_parentNode) & KEY_MASK;
+			return (KeyType)_parentNode.Tag();
 		}
 
 		inline void SetIndex(KeyType t) {
-			_parentNode = reinterpret_cast<TKdTree*>(((size_t)_parentNode & (size_t)~KEY_MASK) | t);
+			_parentNode.Tag(t);
 		}
 
 		inline TKdTree* GetParent() const {
-			return reinterpret_cast<TKdTree*>((size_t)_parentNode & (size_t)~KEY_MASK);
+			return _parentNode();
 		}
 
 		inline void SetParent(TKdTree* tree) {
-			_parentNode = reinterpret_cast<TKdTree*>(((size_t)_parentNode & (size_t)KEY_MASK) | ((size_t)tree & (size_t)~KEY_MASK));
+			_parentNode(tree);
 		}
 
 		inline void CheckCycle() {
@@ -283,12 +284,12 @@ namespace PaintsNow {
 			}
 		}
 
-		K key;						// 0	: Float3Pair => 24 Bytes
+		K key;													// 0	: Float3Pair => 24 Bytes
 		union {
 			struct {
-				TKdTree* _parentNode;		// 24	: Pointer => 4 Bytes (32bit mode), 8 Bytes (64bit mode)
-				TKdTree* leftNode;			// 28(32)
-				TKdTree* rightNode;			// 32(40)
+				TTagged<TKdTree*, KEY_BITS> _parentNode;		// 24	: Pointer => 4 Bytes (32bit mode), 8 Bytes (64bit mode)
+				TKdTree* leftNode;								// 28(32)
+				TKdTree* rightNode;								// 32(40)
 			};
 			struct {
 				TKdTree* links[3];

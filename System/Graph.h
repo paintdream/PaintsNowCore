@@ -147,22 +147,22 @@ namespace PaintsNow {
 
 		void AddNode(Node* node) {
 			node->ReferenceObject();
-			allNodes.insert(node);
+			std::binary_insert(allNodes, node);
 		}
 
 		void RemoveNode(Node* node) {
 			node->Cleanup();
-			allNodes.erase(node);
+			std::binary_erase(allNodes, node);
 			node->ReleaseObject();
 		}
 
 		bool HasNode(Node* node) {
-			return allNodes.find(node) != allNodes.end();
+			return std::binary_find(allNodes.begin(), allNodes.end(), node) != allNodes.end();
 		}
 
 		~Graph() {
-			for (typename std::set<Node*>::iterator it = allNodes.begin(); it != allNodes.end(); ++it) {
-				Node* node = *it;
+			for (size_t i = 0; i < allNodes.size(); i++) {
+				Node* node = allNodes[i];
 				node->Cleanup();
 				node->ReleaseObject();
 			}
@@ -171,28 +171,28 @@ namespace PaintsNow {
 		// removes all nodes
 		template <class F>
 		void Optimize(F f) {
-			std::set<Node*> importantNodes;
-			for (typename std::set<Node*>::const_iterator it = allNodes.begin(); it != allNodes.end(); ++it) {
-				Node* n = *it;
+			std::vector<Node*> importantNodes;
+			std::vector<Node*> finalNodes;
+
+			for (size_t i = 0; i < allNodes.size(); i++) {
+				Node* n = allNodes[i];
 				if (f(n)) {
-					importantNodes.insert(n);
+					importantNodes.push_back(n);
 				}
 			}
 
-			std::set<Node*> finalNodes = importantNodes;
-
 			while (!importantNodes.empty()) {
-				std::set<Node*> newNodes;
-				for (typename std::set<Node*>::const_iterator it = importantNodes.begin(); it != importantNodes.end(); ++it) {
-					Node* node = *it;
+				std::vector<Node*> newNodes;
+				for (size_t i = 0; i < importantNodes.size(); i++) {
+					Node* node = importantNodes[i];
 					for (typename std::map<String, Port*>::const_iterator pt = node->GetPortMap().begin(); pt != node->GetPortMap().end(); ++pt) {
 						Port* port = pt->second;
 						for (typename std::map<Port*, Tiny::FLAG>::const_iterator qt = port->GetTargetPortMap().begin(); qt != port->GetTargetPortMap().end(); ++qt) {
 							Node* p = static_cast<Node*>(qt->first->GetNode());
 
-							if (finalNodes.count(p) == 0) {
-								newNodes.insert(p);
-								finalNodes.insert(p);
+							if (std::binary_find(finalNodes.begin(), finalNodes.end(), p) == finalNodes.end()) {
+								std::binary_insert(finalNodes, p);
+								newNodes.push_back(p);
 							}
 						}
 					}
@@ -202,9 +202,10 @@ namespace PaintsNow {
 			}
 
 			// removed all unreferenced nodes, quickly!
-			for (typename std::set<Node*>::const_iterator im = allNodes.begin(); im != allNodes.end(); ++im) {
-				Node* node = *im;
-				if (finalNodes.count(node) == 0) {
+			for (size_t j = 0; j < allNodes.size(); j++) {
+				Node* node = allNodes[j];
+
+				if (std::binary_find(finalNodes.begin(), finalNodes.end(), node) == finalNodes.end()) {
 					node->Cleanup();
 					node->ReleaseObject();
 				}
@@ -215,18 +216,18 @@ namespace PaintsNow {
 
 		template <class F, class B>
 		bool IterateTopological(F& t, B& b) const {
-			std::set<Node*> preNodes = allNodes;
+			std::vector<Node*> preNodes = allNodes;
 
 			while (!preNodes.empty() && b()) {
-				std::set<Node*> lockedNodes;
-				for (typename std::set<Node*>::const_iterator it = preNodes.begin(); it != preNodes.end(); ++it) {
-					Node* node = *it;
+				std::vector<Node*> lockedNodes;
+				for (size_t i = 0; i < preNodes.size(); i++) {
+					Node* node = preNodes[i];
 					for (typename std::map<String, Port*>::const_iterator pt = node->GetPortMap().begin(); pt != node->GetPortMap().end(); ++pt) {
 						Port* port = pt->second;
 						for (typename Port::PortMap::const_iterator qt = port->GetTargetPortMap().begin(); qt != port->GetTargetPortMap().end(); ++qt) {
 							if (qt->second & Tiny::TINY_PINNED) {
 								Port* targetPort = static_cast<Port*>(qt->first);
-								lockedNodes.insert(static_cast<Node*>(targetPort->GetNode()));
+								std::binary_insert(lockedNodes, static_cast<Node*>(targetPort->GetNode()));
 							}
 						}
 					}
@@ -237,11 +238,12 @@ namespace PaintsNow {
 					return false;
 				}
 
-				for (typename std::set<Node*>::const_iterator id = preNodes.begin(); id != preNodes.end(); ++id) {
-					Node* node = *id;
-					if (lockedNodes.count(node) == 0) {
-						if (!t(node))
+				for (size_t j = 0; j < preNodes.size(); j++) {
+					Node* node = preNodes[j];
+					if (std::binary_find(lockedNodes.begin(), lockedNodes.end(), node) == lockedNodes.end()) {
+						if (!t(node)) {
 							return false;
+						}
 					}
 				}
 
@@ -252,7 +254,7 @@ namespace PaintsNow {
 		}
 
 	protected:
-		std::set<Node*> allNodes;
+		std::vector<Node*> allNodes;
 	};
 }
 
