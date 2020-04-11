@@ -20,22 +20,33 @@ namespace PaintsNow {
 	public:
 		typedef TReflected<GraphPort<P>, P> BaseClass;
 		GraphPort(Tiny* n = nullptr) : node(n) {}
+
+		struct LinkInfo {
+			bool operator < (const LinkInfo& c) const {
+				return port < c.port;
+			}
+
+			LinkInfo(GraphPort* p = nullptr, Tiny::FLAG f = 0) : port(p), flag(f) {}
+			GraphPort* port;
+			Tiny::FLAG flag;
+		};
+
 		void Link(GraphPort* p, Tiny::FLAG f = Tiny::TINY_PINNED, Tiny::FLAG t = 0) {
-			targetPorts[p] = f;
-			p->targetPorts[this] = t;
+			std::binary_insert(links, LinkInfo(p, f));
+			std::binary_insert(p->links, LinkInfo(this, t));
 		}
 
 		void UnLink(GraphPort* p) {
-			targetPorts.erase(p);
-			p->targetPorts.erase(this);
+			std::binary_erase(links, LinkInfo(p));
+			std::binary_erase(p->links, LinkInfo(this));
 		}
 
 		void Cleanup() {
-			for (typename std::map<GraphPort*, Tiny::FLAG>::iterator it = targetPorts.begin(); it != targetPorts.end(); ++it) {
-				it->first->targetPorts.erase(this);
+			for (size_t i = 0; i < links.size(); i++) {
+				std::binary_erase(links[i].port->links, LinkInfo(this));
 			}
 
-			targetPorts.clear();
+			links.clear();
 		}
 
 		TObject<IReflect>& operator () (IReflect& reflect) {
@@ -51,14 +62,13 @@ namespace PaintsNow {
 			node = n;
 		}
 
-		typedef std::map<GraphPort*, Tiny::FLAG> PortMap;
-		const std::map<GraphPort*, Tiny::FLAG>& GetTargetPortMap() const {
-			return targetPorts;
+		const std::vector<LinkInfo>& GetLinks() const {
+			return links;
 		}
 
 	protected:
 		Tiny* node;
-		std::map<GraphPort*, Tiny::FLAG> targetPorts;
+		std::vector<LinkInfo> links;
 	};
 
 	// T Must be derived from Tiny
@@ -66,10 +76,20 @@ namespace PaintsNow {
 	class GraphNode : public T {
 	public:
 		typedef P Port;
+		struct PortInfo {
+			bool operator < (const PortInfo& c) const {
+				return name < c.name;
+			}
+
+			PortInfo(const String& s = "", Port* p = nullptr) : name(s), port(p) {}
+			String name;
+			Port* port;
+		};
+
 	private:
 		class PortsReflector : public IReflect {
 		public:
-			PortsReflector(GraphNode* t, std::map<String, Port*>& ports, bool r) : IReflect(true, false), thisNode(t), nodePorts(ports), recursive(r) {}
+			PortsReflector(GraphNode* t, std::vector<PortInfo>& ports, bool r) : IReflect(true, false), thisNode(t), nodePorts(ports), recursive(r) {}
 			virtual void Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta) {
 				if (!s.IsBasicObject()) {
 					if (s.IsIterator()) {
@@ -91,7 +111,7 @@ namespace PaintsNow {
 						Port* p = s.QueryInterface(UniqueType<Port>());
 						if (p != nullptr) {
 							p->SetNode(thisNode);
-							nodePorts[path + name] = p;
+							std::binary_insert(nodePorts, PortInfo(path + name, p));
 						} else if (recursive) {
 							String orgPath = path;
 							path = path + name + ".";
@@ -105,7 +125,7 @@ namespace PaintsNow {
 			virtual void Method(Unique typeID, const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) {}
 
 		private:
-			std::map<String, Port*>& nodePorts;
+			std::vector<PortInfo>& nodePorts;
 			GraphNode* thisNode;
 			String path;
 			bool recursive;
@@ -114,29 +134,29 @@ namespace PaintsNow {
 	public:
 		void ReflectNodePorts(bool recursive = false) {
 			// use reflected tech to get node ports
-			std::map<String, Port*> newNodePorts;
+			std::vector<PortInfo> newNodePorts;
 			PortsReflector reflector(this, newNodePorts, recursive);
 			(*this)(reflector);
 			std::swap(nodePorts, newNodePorts);
 		}
 
 		void Cleanup() {
-			for (typename std::map<String, Port*>::iterator it = nodePorts.begin(); it != nodePorts.end(); ++it) {
-				it->second->Cleanup();
+			for (size_t i = 0; i < nodePorts.size(); i++) {
+				nodePorts[i].port->Cleanup();
 			}
 		}
 
 		Port* operator [] (const String& key) const {
-			typename std::map<String, Port*>::const_iterator p = nodePorts.find(key);
-			return p == nodePorts.end() ? nullptr : p->second;
+			std::vector<PortInfo>::const_iterator it = std::binary_find(nodePorts.begin(), nodePorts.end(), PortInfo(key));
+			return it == nodePorts.end() ? nullptr : it->port;
 		}
 
-		const std::map<String, Port*>& GetPortMap() const {
+		const std::vector<PortInfo>& GetPorts() const {
 			return nodePorts;
 		}
 
 	protected:
-		std::map<String, Port*> nodePorts;
+		std::vector<PortInfo> nodePorts;
 	};
 
 	template <class N>
@@ -181,14 +201,15 @@ namespace PaintsNow {
 				}
 			}
 
+
 			while (!importantNodes.empty()) {
 				std::vector<Node*> newNodes;
 				for (size_t i = 0; i < importantNodes.size(); i++) {
 					Node* node = importantNodes[i];
-					for (typename std::map<String, Port*>::const_iterator pt = node->GetPortMap().begin(); pt != node->GetPortMap().end(); ++pt) {
-						Port* port = pt->second;
-						for (typename std::map<Port*, Tiny::FLAG>::const_iterator qt = port->GetTargetPortMap().begin(); qt != port->GetTargetPortMap().end(); ++qt) {
-							Node* p = static_cast<Node*>(qt->first->GetNode());
+					for (size_t n = 0; n < node->GetPorts().size(); n++) {
+						Port* port = node->GetPorts()[n].port;
+						for (size_t m = 0; m < port->GetLinks().size(); m++) {
+							Node* p = static_cast<Node*>(port->GetLinks()[m].port->GetNode());
 
 							if (std::binary_find(finalNodes.begin(), finalNodes.end(), p) == finalNodes.end()) {
 								std::binary_insert(finalNodes, p);
@@ -222,12 +243,13 @@ namespace PaintsNow {
 				std::vector<Node*> lockedNodes;
 				for (size_t i = 0; i < preNodes.size(); i++) {
 					Node* node = preNodes[i];
-					for (typename std::map<String, Port*>::const_iterator pt = node->GetPortMap().begin(); pt != node->GetPortMap().end(); ++pt) {
-						Port* port = pt->second;
-						for (typename Port::PortMap::const_iterator qt = port->GetTargetPortMap().begin(); qt != port->GetTargetPortMap().end(); ++qt) {
-							if (qt->second & Tiny::TINY_PINNED) {
-								Port* targetPort = static_cast<Port*>(qt->first);
-								std::binary_insert(lockedNodes, static_cast<Node*>(targetPort->GetNode()));
+					for (size_t n = 0; n < node->GetPorts().size(); n++) {
+						Port* port = node->GetPorts()[n].port;
+						for (size_t m = 0; m < port->GetLinks().size(); m++) {
+							Port* q = static_cast<Port*>(port->GetLinks()[m].port);
+							Tiny::FLAG flag = port->GetLinks()[m].flag;
+							if (flag & Tiny::TINY_PINNED) {
+								std::binary_insert(lockedNodes, static_cast<Node*>(q->GetNode()));
 							}
 						}
 					}
