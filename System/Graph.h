@@ -147,7 +147,7 @@ namespace PaintsNow {
 		}
 
 		Port* operator [] (const String& key) const {
-			std::vector<PortInfo>::const_iterator it = std::binary_find(nodePorts.begin(), nodePorts.end(), PortInfo(key));
+			typename std::vector<PortInfo>::const_iterator it = std::binary_find(nodePorts.begin(), nodePorts.end(), PortInfo(key));
 			return it == nodePorts.end() ? nullptr : it->port;
 		}
 
