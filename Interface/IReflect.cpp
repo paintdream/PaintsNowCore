@@ -1,5 +1,6 @@
 #include "IReflect.h"
 #include "IStreamBase.h"
+#include "../Template/TBuffer.h"
 using namespace PaintsNow;
 
 
@@ -205,6 +206,49 @@ bool IReflectObjectComplex::IsBasicObject() const {
 	return false;
 }
 
+class ComputeMemoryUsage : public IReflect {
+public:
+	ComputeMemoryUsage(const IReflectObject& object) : size(object.GetUnique()->GetSize()) {
+		(const_cast<IReflectObject&>(object))(*this);
+	}
+
+	virtual void Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta) {
+		static Unique uniqueString = UniqueType<String>::Get();
+		static Unique uniqueBytes = UniqueType<Bytes>::Get();
+
+		if (!s.IsBasicObject()) {
+			if (s.IsIterator()) {
+				IIterator& iterator = static_cast<IIterator&>(s);
+				if (iterator.GetPrototype().IsBasicObject()) {
+					size += iterator.GetPrototypeUnique()->GetSize() * iterator.GetTotalCount();
+				} else {
+					while (iterator.Next()) {
+						IReflectObjectComplex* object = reinterpret_cast<IReflectObjectComplex*>(iterator.Get());
+						size += object->ReportMemoryUsage();
+					}
+				}
+			} else {
+				size += static_cast<IReflectObjectComplex&>(s).ReportMemoryUsage() - typeID->GetSize();
+			}
+		} else if (typeID == uniqueBytes) {
+			Bytes& bytes = *reinterpret_cast<Bytes*>(ptr);
+			if (!bytes.IsStockStorage()) {
+				size += bytes.GetSize();
+			}
+		} else if (typeID == uniqueString) {
+			size += reinterpret_cast<String*>(ptr)->size();
+		}
+
+		/* else if (typeID != refTypeID) // We do not take pointers into consideration now. */
+	}
+
+	size_t size;
+};
+
+size_t IReflectObjectComplex::ReportMemoryUsage() const {
+	ComputeMemoryUsage compute(*this);
+	return compute.size;
+}
 
 TObject<IReflect>& IReflectObjectComplex::operator () (IReflect& reflect) {
 	ReflectClass(IReflectObjectComplex);

@@ -20,10 +20,6 @@ Tiny::FLAG Tiny::Flag() const {
 	return flag.load();
 }
 
-size_t Tiny::ReportMemoryUsage() const {
-	return sizeof(*this);
-}
-
 Tiny::Tiny(FLAG fl) : flag(fl) {}
 
 #ifdef _DEBUG

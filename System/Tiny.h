@@ -27,7 +27,6 @@ namespace PaintsNow {
 		};
 
 		Tiny(FLAG flag = 0);
-		virtual size_t ReportMemoryUsage() const;
 		TAtomic<FLAG>& Flag();
 		FLAG Flag() const;
 

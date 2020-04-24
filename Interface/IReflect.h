@@ -239,6 +239,7 @@ namespace PaintsNow {
 	class IReflectObjectComplex : public IReflectObject {
 	public:
 		virtual bool IsBasicObject() const;
+		virtual size_t ReportMemoryUsage() const;
 		virtual TObject<IReflect>& operator () (IReflect& reflect) override;
 	};
 

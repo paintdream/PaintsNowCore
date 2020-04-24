@@ -167,8 +167,8 @@ namespace PaintsNow {
 			return *this;
 		}
 
-	protected:
 		inline bool IsStockStorage() const { return !!(size & STOCK_MASK); }
+	protected:
 		inline void Copy(const TBuffer& rhs) {
 			uint32_t s = rhs.GetSize();
 			Resize(s);
