@@ -240,6 +240,7 @@ namespace PaintsNow {
 	public:
 		virtual bool IsBasicObject() const;
 		virtual size_t ReportMemoryUsage() const;
+		virtual String ToString() const;
 		virtual TObject<IReflect>& operator () (IReflect& reflect) override;
 	};
 
@@ -248,6 +249,7 @@ namespace PaintsNow {
 	public:
 		IIterator();
 		virtual ~IIterator();
+		virtual String ToString() const;
 		virtual bool IsBasicObject() const;
 		virtual bool IsIterator() const;
 		virtual IIterator* New() const = 0;

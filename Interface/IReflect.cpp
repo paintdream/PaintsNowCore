@@ -1,8 +1,8 @@
 #include "IReflect.h"
 #include "IStreamBase.h"
 #include "../Template/TBuffer.h"
+#include <sstream>
 using namespace PaintsNow;
-
 
 size_t IUniqueInfo::GetSize() const {
 	return size;
@@ -245,6 +245,12 @@ public:
 	size_t size;
 };
 
+String IReflectObjectComplex::ToString() const {
+	std::stringstream ss;
+	ss << GetUnique()->typeName << " (" << std::hex << (void*)this << " )";
+	return ss.str();
+}
+
 size_t IReflectObjectComplex::ReportMemoryUsage() const {
 	ComputeMemoryUsage compute(*this);
 	return compute.size;
@@ -260,6 +266,12 @@ TObject<IReflect>& IReflectObjectComplex::operator () (IReflect& reflect) {
 // IIterator
 IIterator::IIterator() {}
 IIterator::~IIterator() {}
+
+String IIterator::ToString() const {
+	std::stringstream ss;
+	ss << "Collection<" << GetPrototypeUnique()->typeName << "> (" << std::hex << (size_t)this << " ) [" << std::dec << GetTotalCount() << "]";
+	return ss.str();
+}
 
 bool IIterator::IsBasicObject() const {
 	return false;
