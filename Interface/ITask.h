@@ -71,7 +71,7 @@ namespace PaintsNow {
 	template <class T, class A>
 	class TaskTemplateA : public TaskOnce {
 	public:
-		TaskTemplateA(T ref, A a) : callback(ref) { pa = a; }
+		TaskTemplateA(T ref, const A& a) : callback(ref) { pa = const_cast<A&>(a); }
 		virtual void Execute(void* request) override {
 			callback(request, true, pa);
 			delete this;
@@ -86,14 +86,14 @@ namespace PaintsNow {
 	};
 
 	template <class T, class A>
-	ITask* CreateTask(T ref, A a) {
+	ITask* CreateTask(T ref, const A& a) {
 		return new TaskTemplateA<T, A>(ref, a);
 	}
 
 	template <class T, class A, class B>
 	class TaskTemplateB : public TaskOnce {
 	public:
-		TaskTemplateB(T ref, A a, B b) : callback(ref) { pa = a; pb = b; }
+		TaskTemplateB(T ref, const A& a, const B& b) : callback(ref) { pa = const_cast<A&>(a); pb = const_cast<B&>(b); }
 		virtual void Execute(void* request) override {
 			callback(request, true, pa, pb);
 			delete this;
@@ -109,14 +109,14 @@ namespace PaintsNow {
 	};
 
 	template <class T, class A, class B>
-	ITask* CreateTask(T ref, A a, B b) {
+	ITask* CreateTask(T ref, const A& a, const B& b) {
 		return new TaskTemplateB<T, A, B>(ref, a, b);
 	}
 
 	template <class T, class A, class B, class C>
 	class TaskTemplateC : public TaskOnce {
 	public:
-		TaskTemplateC(T ref, A a, B b, C c) : callback(ref) { pa = a; pb = b; pc = c; }
+		TaskTemplateC(T ref, const A& a, const B& b, const C& c) : callback(ref) { pa = const_cast<A&>(a); pb = const_cast<B&>(b); pc = const_cast<C&>(c); }
 		virtual void Execute(void* request) override {
 			callback(request, true, pa, pb, pc);
 			delete this;
@@ -133,14 +133,14 @@ namespace PaintsNow {
 	};
 
 	template <class T, class A, class B, class C>
-	ITask* CreateTask(T ref, A a, B b, C c) {
+	ITask* CreateTask(T ref, const A& a, const B& b, const C& c) {
 		return new TaskTemplateC<T, A, B, C>(ref, a, b, c);
 	}
 
 	template <class T, class A, class B, class C, class D>
 	class TaskTemplateD : public TaskOnce {
 	public:
-		TaskTemplateD(T ref, A a, B b, C c, D d) : callback(ref) { pa = a; pb = b; pc = c; pd = d; }
+		TaskTemplateD(T ref, const A& a, const B& b, const C& c, const D& d) : callback(ref) { pa = const_cast<A&>(a); pb = const_cast<B&>(b); pc = const_cast<C&>(c); pd = const_cast<D&>(d); }
 		virtual void Execute(void* request) override {
 			callback(request, true, pa, pb, pc, pd);
 			delete this;
@@ -158,14 +158,14 @@ namespace PaintsNow {
 	};
 
 	template <class T, class A, class B, class C, class D>
-	ITask* CreateTask(T ref, A a, B b, C c, D d) {
+	ITask* CreateTask(T ref, const A& a, const B& b, const C& c, const D& d) {
 		return new TaskTemplateD<T, A, B, C, D>(ref, a, b, c, d);
 	}
 
 	template <class T, class A, class B, class C, class D, class E>
 	class TaskTemplateE : public TaskOnce {
 	public:
-		TaskTemplateE(T ref, A a, B b, C c, D d, E e) : callback(ref) { pa = a; pb = b; pc = c; pd = d; pe = e; }
+		TaskTemplateE(T ref, const A& a, const B& b, const C& c, const D& d, const E& e) : callback(ref) { pa = const_cast<A&>(a); pb = const_cast<B&>(b); pc = const_cast<C&>(c); pd = const_cast<D&>(d); pe = const_cast<E&>(e); }
 		virtual void Execute(void* request) override {
 			callback(request, true, pa, pb, pc, pd, pe);
 			delete this;
@@ -184,14 +184,14 @@ namespace PaintsNow {
 	};
 
 	template <class T, class A, class B, class C, class D, class E>
-	ITask* CreateTask(T ref, A a, B b, C c, D d, E e) {
+	ITask* CreateTask(T ref, const A& a, const B& b, const C& c, const D& d, const E& e) {
 		return new TaskTemplateE<T, A, B, C, D, E>(ref, a, b, c, d, e);
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F>
 	class TaskTemplateF : public TaskOnce {
 	public:
-		TaskTemplateF(T ref, A a, B b, C c, D d, E e, F f) : callback(ref) { pa = a; pb = b; pc = c; pd = d; pe = e; pf = f; }
+		TaskTemplateF(T ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f) : callback(ref) { pa = const_cast<A&>(a); pb = const_cast<B&>(b); pc = const_cast<C&>(c); pd = const_cast<D&>(d); pe = const_cast<E&>(e); pf = const_cast<F&>(f); }
 		virtual void Execute(void* request) override {
 			callback(request, true, pa, pb, pc, pd, pe, pf);
 			delete this;
@@ -211,14 +211,14 @@ namespace PaintsNow {
 	};
 
 	template <class T, class A, class B, class C, class D, class E, class F>
-	ITask* CreateTask(T ref, A a, B b, C c, D d, E e, F f) {
+	ITask* CreateTask(T ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f) {
 		return new TaskTemplateF<T, A, B, C, D, E, F>(ref, a, b, c, d, e, f);
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G>
 	class TaskTemplateG : public TaskOnce {
 	public:
-		TaskTemplateG(T ref, A a, B b, C c, D d, E e, F f, G g) : callback(ref) { pa = a; pb = b; pc = c; pd = d; pe = e; pf = f; pg = g; }
+		TaskTemplateG(T ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g) : callback(ref) { pa = const_cast<A&>(a); pb = const_cast<B&>(b); pc = const_cast<C&>(c); pd = const_cast<D&>(d); pe = const_cast<E&>(e); pf = const_cast<F&>(f); pg = const_cast<G&>(g); }
 		virtual void Execute(void* request) override {
 			callback(request, true, pa, pb, pc, pd, pe, pf, pg);
 			delete this;
@@ -239,7 +239,7 @@ namespace PaintsNow {
 	};
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G>
-	ITask* CreateTask(T ref, A a, B b, C c, D d, E e, F f, G g) {
+	ITask* CreateTask(T ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g) {
 		return new TaskTemplateG<T, A, B, C, D, E, F, G>(ref, a, b, c, d, e, f, g);
 	}
 
@@ -265,7 +265,7 @@ namespace PaintsNow {
 	template <class T, class A>
 	class ContextFreeTaskTemplateA : public TaskOnce {
 	public:
-		ContextFreeTaskTemplateA(T ref, A a) : callback(ref) { pa = a; }
+		ContextFreeTaskTemplateA(T ref, const A& a) : callback(ref) { pa = const_cast<A&>(a); }
 		virtual void Execute(void* request) override {
 			callback(pa);
 			delete this;
@@ -276,14 +276,14 @@ namespace PaintsNow {
 	};
 
 	template <class T, class A>
-	ITask* CreateTaskContextFree(T ref, A a) {
+	ITask* CreateTaskContextFree(T ref, const A& a) {
 		return new ContextFreeTaskTemplateA<T, A>(ref, a);
 	}
 
 	template <class T, class A, class B>
 	class ContextFreeTaskTemplateB : public TaskOnce {
 	public:
-		ContextFreeTaskTemplateB(T ref, A a, B b) : callback(ref) { pa = a; pb = b; }
+		ContextFreeTaskTemplateB(T ref, const A& a, const B& b) : callback(ref) { pa = const_cast<A&>(a); pb = const_cast<B&>(b); }
 		virtual void Execute(void* request) override {
 			callback(pa, pb);
 			delete this;
@@ -295,14 +295,14 @@ namespace PaintsNow {
 	};
 
 	template <class T, class A, class B>
-	ITask* CreateTaskContextFree(T ref, A a, B b) {
+	ITask* CreateTaskContextFree(T ref, const A& a, const B& b) {
 		return new ContextFreeTaskTemplateB<T, A, B>(ref, a, b);
 	}
 
 	template <class T, class A, class B, class C>
 	class ContextFreeTaskTemplateC : public TaskOnce {
 	public:
-		ContextFreeTaskTemplateC(T ref, A a, B b, C c) : callback(ref) { pa = a; pb = b; pc = c; }
+		ContextFreeTaskTemplateC(T ref, const A& a, const B& b, const C& c) : callback(ref) { pa = const_cast<A&>(a); pb = const_cast<B&>(b); pc = const_cast<C&>(c); }
 		virtual void Execute(void* request) override {
 			callback(pa, pb, pc);
 			delete this;
@@ -315,14 +315,14 @@ namespace PaintsNow {
 	};
 
 	template <class T, class A, class B, class C>
-	ITask* CreateTaskContextFree(T ref, A a, B b, C c) {
+	ITask* CreateTaskContextFree(T ref, const A& a, const B& b, const C& c) {
 		return new ContextFreeTaskTemplateC<T, A, B, C>(ref, a, b, c);
 	}
 
 	template <class T, class A, class B, class C, class D>
 	class ContextFreeTaskTemplateD : public TaskOnce {
 	public:
-		ContextFreeTaskTemplateD(T ref, A a, B b, C c, D d) : callback(ref) { pa = a; pb = b; pc = c; pd = d; }
+		ContextFreeTaskTemplateD(T ref, const A& a, const B& b, const C& c, const D& d) : callback(ref) { pa = const_cast<A&>(a); pb = const_cast<B&>(b); pc = const_cast<C&>(c); pd = const_cast<D&>(d); }
 		virtual void Execute(void* request) override {
 			callback(pa, pb, pc, pd);
 			delete this;
@@ -336,14 +336,14 @@ namespace PaintsNow {
 	};
 
 	template <class T, class A, class B, class C, class D>
-	ITask* CreateTaskContextFree(T ref, A a, B b, C c, D d) {
+	ITask* CreateTaskContextFree(T ref, const A& a, const B& b, const C& c, const D& d) {
 		return new ContextFreeTaskTemplateD<T, A, B, C, D>(ref, a, b, c, d);
 	}
 
 	template <class T, class A, class B, class C, class D, class E>
 	class ContextFreeTaskTemplateE : public TaskOnce {
 	public:
-		ContextFreeTaskTemplateE(T ref, A a, B b, C c, D d, E e) : callback(ref) { pa = a; pb = b; pc = c; pd = d; pe = e; }
+		ContextFreeTaskTemplateE(T ref, const A& a, const B& b, const C& c, const D& d, const E& e) : callback(ref) { pa = const_cast<A&>(a); pb = const_cast<B&>(b); pc = const_cast<C&>(c); pd = const_cast<D&>(d); pe = const_cast<E&>(e); }
 		virtual void Execute(void* request) override {
 			callback(pa, pb, pc, pd, pe);
 			delete this;
@@ -358,14 +358,14 @@ namespace PaintsNow {
 	};
 
 	template <class T, class A, class B, class C, class D, class E>
-	ITask* CreateTaskContextFree(T ref, A a, B b, C c, D d, E e) {
+	ITask* CreateTaskContextFree(T ref, const A& a, const B& b, const C& c, const D& d, const E& e) {
 		return new ContextFreeTaskTemplateE<T, A, B, C, D, E>(ref, a, b, c, d, e);
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F>
 	class ContextFreeTaskTemplateF : public TaskOnce {
 	public:
-		ContextFreeTaskTemplateF(T ref, A a, B b, C c, D d, E e, F f) : callback(ref) { pa = a; pb = b; pc = c; pd = d; pe = e; pf = f; }
+		ContextFreeTaskTemplateF(T ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f) : callback(ref) { pa = const_cast<A&>(a); pb = const_cast<B&>(b); pc = const_cast<C&>(c); pd = const_cast<D&>(d); pe = const_cast<E&>(e); pf = const_cast<F&>(f); }
 		virtual void Execute(void* request) override {
 			callback(pa, pb, pc, pd, pe, pf);
 			delete this;
@@ -381,14 +381,14 @@ namespace PaintsNow {
 	};
 
 	template <class T, class A, class B, class C, class D, class E, class F>
-	ITask* CreateTaskContextFree(T ref, A a, B b, C c, D d, E e, F f) {
+	ITask* CreateTaskContextFree(T ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f) {
 		return new ContextFreeTaskTemplateF<T, A, B, C, D, E, F>(ref, a, b, c, d, e, f);
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G>
 	class ContextFreeTaskTemplateG : public TaskOnce {
 	public:
-		ContextFreeTaskTemplateG(T ref, A a, B b, C c, D d, E e, F f, G g) : callback(ref) { pa = a; pb = b; pc = c; pd = d; pe = e; pf = f; pg = g; }
+		ContextFreeTaskTemplateG(T ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g) : callback(ref) { pa = const_cast<A&>(a); pb = const_cast<B&>(b); pc = const_cast<C&>(c); pd = const_cast<D&>(d); pe = const_cast<E&>(e); pf = const_cast<F&>(f); pg = const_cast<G&>(g); }
 		virtual void Execute(void* request) override {
 			callback(pa, pb, pc, pd, pe, pf, pg);
 			delete this;
@@ -405,7 +405,7 @@ namespace PaintsNow {
 	};
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G>
-	ITask* CreateTaskContextFree(T ref, A a, B b, C c, D d, E e, F f, G g) {
+	ITask* CreateTaskContextFree(T ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g) {
 		return new ContextFreeTaskTemplateG<T, A, B, C, D, E, F, G>(ref, a, b, c, d, e, f, g);
 	}
 #else
