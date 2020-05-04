@@ -171,18 +171,37 @@ namespace PaintsNow {
 	template <class T, size_t n, size_t m>
 	TMatrix<T, m, n> QuickInverse(const TMatrix<T, m, n>& mat) {
 		static_assert(m == n && m == 4, "QuickInverse only applies to 4x4 matrix");
+		Float3 scale = Float3(Float3(mat(0, 0), mat(0, 1), mat(0, 2)).Length(),
+			Float3(mat(1, 0), mat(1, 1), mat(1, 2)).Length(),
+			Float3(mat(2, 0), mat(2, 1), mat(2, 2)).Length());
 
-		TMatrix<T, n, n> inverse = mat.Transpose();
-		inverse(0, 3) = 0;
-		inverse(1, 3) = 0;
-		inverse(2, 3) = 0;
-		TType3<T> right = TType3<T>(mat(0, 0), mat(0, 1), mat(0, 2));
-		TType3<T> up = TType3<T>(mat(1, 0), mat(1, 1), mat(1, 2));
-		TType3<T> forward = TType3<T>(mat(2, 0), mat(2, 1), mat(2, 2));
+		float xx = scale.x() * scale.x();
+		float yy = scale.y() * scale.y();
+		float zz = scale.z() * scale.z();
+		float xy = scale.x() * scale.y();
+		float xz = scale.x() * scale.z();
+		float yz = scale.y() * scale.z();
+
+		TMatrix<T, n, n> inverse;
+		inverse(0, 0) = mat(0, 0) / xx;
+		inverse(0, 1) = mat(1, 0) / xy;
+		inverse(0, 2) = mat(2, 0) / xz;
+		inverse(1, 0) = mat(0, 1) / xy;
+		inverse(1, 1) = mat(1, 1) / yy;
+		inverse(1, 2) = mat(2, 1) / yz;
+		inverse(2, 0) = mat(0, 2) / xy;
+		inverse(2, 1) = mat(1, 2) / yy;
+		inverse(2, 2) = mat(2, 2) / yz;
+
+		TType3<T> right = TType3<T>(inverse(0, 0), inverse(1, 0), inverse(2, 0));
+		TType3<T> up = TType3<T>(inverse(0, 1), inverse(1, 1), inverse(2, 1));
+		TType3<T> forward = TType3<T>(inverse(0, 2), inverse(1, 2), inverse(2, 2));
 		TType3<T> position = TType3<T>(mat(3, 0), mat(3, 1), mat(3, 2));
+
 		inverse(3, 0) = -DotProduct(right, position);
 		inverse(3, 1) = -DotProduct(up, position);
 		inverse(3, 2) = -DotProduct(forward, position);
+
 		return inverse;
 	}
 
