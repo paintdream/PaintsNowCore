@@ -171,16 +171,16 @@ namespace PaintsNow {
 	template <class T, size_t n, size_t m>
 	TMatrix<T, m, n> QuickInverse(const TMatrix<T, m, n>& mat) {
 		static_assert(m == n && m == 4, "QuickInverse only applies to 4x4 matrix");
-		Float3 scale = Float3(Float3(mat(0, 0), mat(0, 1), mat(0, 2)).Length(),
-			Float3(mat(1, 0), mat(1, 1), mat(1, 2)).Length(),
-			Float3(mat(2, 0), mat(2, 1), mat(2, 2)).Length());
+		T x = TType3<T>(mat(0, 0), mat(0, 1), mat(0, 2)).Length();
+		T y = TType3<T>(mat(1, 0), mat(1, 1), mat(1, 2)).Length();
+		T z = TType3<T>(mat(2, 0), mat(2, 1), mat(2, 2)).Length();
 
-		float xx = scale.x() * scale.x();
-		float yy = scale.y() * scale.y();
-		float zz = scale.z() * scale.z();
-		float xy = scale.x() * scale.y();
-		float xz = scale.x() * scale.z();
-		float yz = scale.y() * scale.z();
+		T xx = x * x;
+		T yy = y * y;
+		T zz = z * z;
+		T xy = x * y;
+		T xz = x * z;
+		T yz = y * z;
 
 		TMatrix<T, n, n> inverse;
 		inverse(0, 0) = mat(0, 0) / xx;
