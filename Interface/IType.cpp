@@ -161,10 +161,10 @@ namespace PaintsNow {
 	String Utf8ToSystem(const String& str) {
 #if defined(_WIN32) || defined(WIN32)
 		DWORD dwMinSize;
-		dwMinSize = ::MultiByteToWideChar(CP_UTF8, 0, str.data(), str.size(), nullptr, 0);
+		dwMinSize = ::MultiByteToWideChar(CP_UTF8, 0, str.data(), (int)str.size(), nullptr, 0);
 		String ret;
 		ret.resize((size_t)dwMinSize * sizeof(WCHAR) + sizeof(WCHAR), 0);
-		::MultiByteToWideChar(CP_UTF8, 0, str.data(), str.size(), (WCHAR*)(ret.data()), dwMinSize);
+		::MultiByteToWideChar(CP_UTF8, 0, str.data(), (int)str.size(), (WCHAR*)(ret.data()), dwMinSize);
 		return ret;
 #else
 		return str;
@@ -174,10 +174,10 @@ namespace PaintsNow {
 	String SystemToUtf8(const String& str) {
 #if defined(_WIN32) || defined(WIN32)
 		DWORD dwMinSize;
-		dwMinSize = ::WideCharToMultiByte(CP_UTF8, 0, (const WCHAR*)str.data(), str.size() / sizeof(WCHAR), nullptr, 0, nullptr, nullptr);
+		dwMinSize = ::WideCharToMultiByte(CP_UTF8, 0, (const WCHAR*)str.data(), (int)str.size() / sizeof(WCHAR), nullptr, 0, nullptr, nullptr);
 		String ret;
 		ret.resize((size_t)dwMinSize, 0);
-		::WideCharToMultiByte(CP_UTF8, 0, (const WCHAR*)str.data(), str.size() / sizeof(WCHAR), (char*)(ret.data()), dwMinSize, nullptr, nullptr);
+		::WideCharToMultiByte(CP_UTF8, 0, (const WCHAR*)str.data(), (int)str.size() / sizeof(WCHAR), (char*)(ret.data()), dwMinSize, nullptr, nullptr);
 		return ret;
 #else
 		return str;
