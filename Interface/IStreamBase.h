@@ -20,6 +20,7 @@ namespace PaintsNow {
 		virtual bool WriteDummy(size_t& len) = 0;
 		enum SEEK_OPTION { BEGIN, CUR, END };
 		virtual bool Seek(SEEK_OPTION option, long offset) = 0;
+		virtual IStreamBase& GetBaseStream();
 		void SetEnvironment(IReflectObject& object);
 		IReflectObject& GetEnvironment();
 

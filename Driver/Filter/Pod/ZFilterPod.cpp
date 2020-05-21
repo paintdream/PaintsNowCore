@@ -29,7 +29,8 @@ public:
 	virtual bool Write(IReflectObject& a, Unique type, void* ptr, size_t length);
 	virtual bool Read(IReflectObject& a, Unique type, void* ptr, size_t length);
 
-	IStreamBase& GetStream() const;
+	IStreamBase& GetBaseStreamImpl();
+	virtual IStreamBase& GetBaseStream();
 
 public:
 	// IReflect
@@ -76,6 +77,10 @@ FilterPodImpl::Type::~Type() {
 	if (persister != nullptr) {
 		persister->ReleaseObject();
 	}
+}
+
+IStreamBase& FilterPodImpl::GetBaseStream() {
+	return GetBaseStreamImpl();
 }
 
 // Pod adapters
@@ -196,7 +201,7 @@ static void* StreamIterateHandler(void* locateContext, void** pointer, void* con
 static void* CustomizedLocateHandler(void* locateContext, void** iterator, PodSize* count, void* base, char* metaData, uint32_t* metaLength, const Pod** dynamicType, void* context) {
 	MetaStreamPersist* persist = reinterpret_cast<MetaStreamPersist*>(locateContext);
 	FilterPodImpl* p = (FilterPodImpl*)context;
-	StreamBaseMeasure s(p->GetStream());
+	StreamBaseMeasure s(p->GetBaseStreamImpl());
 	*iterator = nullptr;
 
 	// TODO: allow error cdoe
@@ -214,7 +219,7 @@ static void* CustomizedLocateHandler(void* locateContext, void** iterator, PodSi
 
 static int StreamWriterFile(const PodStream* stream, const void* base, PodSize size, void* context) {
 	FilterPodImpl* p = (FilterPodImpl*)context;
-	IStreamBase& s = p->GetStream();
+	IStreamBase& s = p->GetBaseStreamImpl();
 
 	size_t len = (size_t)size;
 	int ret = s.WriteBlock(base, len) ? POD_SUCCESS : POD_ERROR_STREAM;
@@ -225,7 +230,7 @@ static int StreamWriterFile(const PodStream* stream, const void* base, PodSize s
 
 static int StreamReaderFile(const PodStream* stream, void* base, PodSize size, void* context) {
 	FilterPodImpl* p = (FilterPodImpl*)context;
-	IStreamBase& s = p->GetStream();
+	IStreamBase& s = p->GetBaseStreamImpl();
 	size_t len = (size_t)size;
 	int ret = s.ReadBlock(base, len) ? POD_SUCCESS : POD_ERROR_STREAM;
 
@@ -236,14 +241,14 @@ static int StreamReaderFile(const PodStream* stream, void* base, PodSize size, v
 
 static PodSize StreamLocaterFile(const PodStream* stream, void* context) {
 	FilterPodImpl* p = (FilterPodImpl*)context;
-	// IStreamBase* s = p->GetStream();
+	// IStreamBase* s = p->GetBaseStreamImpl();
 
 	return (PodSize)p->GetPointer();
 }
 
 static int StreamSeekerFile(const PodStream* stream, uint8_t direct, PodSize step, void* context) {
 	FilterPodImpl* p = (FilterPodImpl*)context;
-	IStreamBase& s = p->GetStream();
+	IStreamBase& s = p->GetBaseStreamImpl();
 
 	long t = direct ? (long)step : (long)-(int64_t)step;
 	p->MovePointer(t);
@@ -265,7 +270,7 @@ void FilterPodImpl::MovePointer(int64_t delta) {
 	offset += delta;
 }
 
-IStreamBase& FilterPodImpl::GetStream() const {
+IStreamBase& FilterPodImpl::GetBaseStreamImpl() {
 	return stream;
 }
 

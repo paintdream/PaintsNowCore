@@ -267,6 +267,10 @@ private:
 IStreamBase::IStreamBase() : environment(nullptr) {}
 IStreamBase::~IStreamBase() {}
 
+IStreamBase& IStreamBase::GetBaseStream() {
+	return *this;
+}
+
 bool IStreamBase::WriteForward(const IReflectObject& a, Unique type, Unique refTypeID, void* ptr, size_t length) {
 	if (a.IsBasicObject()) {
 		return WriteBaseObject(*this, type, refTypeID, ptr, length);
