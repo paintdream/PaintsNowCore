@@ -1059,9 +1059,9 @@ namespace PaintsNow {
 			}
 #else
 			template <typename... Args>
-			struct Dispatcher : public TWrapper<std::pair<Request::Ref, long>, Request&, bool> {
+			struct Dispatcher : public TWrapper<std::pair<Request::Ref, uint32_t>, Request&, bool> {
 				void Invoke(const Request::AutoWrapperBase& wrapper, Request& request, Args&&... args) {
-					std::pair<IScript::Request::Ref, long> r = (*this)(request, true);
+					std::pair<IScript::Request::Ref, uint32_t> r = (*this)(request, true);
 					request.Call(wrapper, r.first, r.second, std::forward<Args>(args)...);
 					(*this)(request, false);
 				}
