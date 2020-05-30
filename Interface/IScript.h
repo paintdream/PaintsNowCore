@@ -911,93 +911,93 @@ namespace PaintsNow {
 
 #if defined(_MSC_VER) && _MSC_VER <= 1200
 			template <class A = Void, class B = Void, class C = Void, class D = Void, class E = Void, class F = Void, class G = Void, class H = Void, class I = Void, class J = Void, class K = Void, class L = Void, class M = Void>
-			struct Dispatcher : public TWrapper<std::pair<Request::Ref, long>, Request&, bool> {
+			struct Dispatcher : public TWrapper<std::pair<Request::Ref, uint32_t>, Request&, bool> {
 				void Invoke0(const Request::AutoWrapperBase& wrapper, Request& request) {
-					std::pair<Request::Ref, long> ref = (*this)(request, true);
+					std::pair<Request::Ref, uint32_t> ref = (*this)(request, true);
 					request.Call(wrapper, ref.first, ref.second);
 					(*this)(request, false);
 				}
 
 				void Invoke1(const Request::AutoWrapperBase& wrapper, Request& request, A a) {
-					std::pair<Request::Ref, long> ref = (*this)(request, true);
+					std::pair<Request::Ref, uint32_t> ref = (*this)(request, true);
 					request.Call(wrapper, ref.first, ref.second, a);
 					(*this)(request, false);
 				}
 
 				void Invoke2(const Request::AutoWrapperBase& wrapper, Request& request, A a, B b) {
-					std::pair<Request::Ref, long> ref = (*this)(request, true);
+					std::pair<Request::Ref, uint32_t> ref = (*this)(request, true);
 					request.Call(wrapper, ref.first, ref.second, a, b);
 					(*this)(request, false);
 				}
 
 				void Invoke3(const Request::AutoWrapperBase& wrapper, Request& request, A a, B b, C c) {
-					std::pair<Request::Ref, long> ref = (*this)(request, true);
+					std::pair<Request::Ref, uint32_t> ref = (*this)(request, true);
 					request.Call(wrapper, ref.first, ref.second, a, b, c);
 					(*this)(request, false);
 				}
 
 				void Invoke4(const Request::AutoWrapperBase& wrapper, Request& request, A a, B b, C c, D d) {
-					std::pair<Request::Ref, long> ref = (*this)(request, true);
+					std::pair<Request::Ref, uint32_t> ref = (*this)(request, true);
 					request.Call(wrapper, ref.first, ref.second, a, b, c, d);
 					(*this)(request, false);
 				}
 
 				void Invoke5(const Request::AutoWrapperBase& wrapper, Request& request, A a, B b, C c, D d, E e) {
-					std::pair<Request::Ref, long> ref = (*this)(request, true);
+					std::pair<Request::Ref, uint32_t> ref = (*this)(request, true);
 					request.Call(wrapper, ref.first, ref.second, a, b, c, d, e);
 					(*this)(request, false);
 				}
 
 				void Invoke6(const Request::AutoWrapperBase& wrapper, Request& request, A a, B b, C c, D d, E e, F f) {
-					std::pair<Request::Ref, long> ref = (*this)(request, true);
+					std::pair<Request::Ref, uint32_t> ref = (*this)(request, true);
 					request.Call(wrapper, ref.first, ref.second, a, b, c, d, e, f);
 					(*this)(request, false);
 				}
 
 				void Invoke7(const Request::AutoWrapperBase& wrapper, Request& request, A a, B b, C c, D d, E e, F f, G g) {
-					std::pair<Request::Ref, long> ref = (*this)(request, true);
+					std::pair<Request::Ref, uint32_t> ref = (*this)(request, true);
 					request.Call(wrapper, ref.first, ref.second, a, b, c, d, e, f, g);
 					(*this)(request, false);
 				}
 
 				void Invoke8(const Request::AutoWrapperBase& wrapper, Request& request, A a, B b, C c, D d, E e, F f, G g, H h) {
-					std::pair<Request::Ref, long> ref = (*this)(request, true);
+					std::pair<Request::Ref, uint32_t> ref = (*this)(request, true);
 					request.Call(wrapper, ref.first, ref.second, a, b, c, d, e, f, g, h);
 					(*this)(request, false);
 				}
 
 				void Invoke9(const Request::AutoWrapperBase& wrapper, Request& request, A a, B b, C c, D d, E e, F f, G g, H h, I i) {
-					std::pair<Request::Ref, long> ref = (*this)(request, true);
+					std::pair<Request::Ref, uint32_t> ref = (*this)(request, true);
 					request.Call(wrapper, ref.first, ref.second, a, b, c, d, e, f, g, h, i);
 					(*this)(request, false);
 				}
 
 				void Invoke10(const Request::AutoWrapperBase& wrapper, Request& request, A a, B b, C c, D d, E e, F f, G g, H h, I i, J j) {
-					std::pair<Request::Ref, long> ref = (*this)(request, true);
+					std::pair<Request::Ref, uint32_t> ref = (*this)(request, true);
 					request.Call(wrapper, ref.first, ref.second, a, b, c, d, e, f, g, h, i, j);
 					(*this)(request, false);
 				}
 
 				void Invoke11(const Request::AutoWrapperBase& wrapper, Request& request, A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k) {
-					std::pair<Request::Ref, long> ref = (*this)(request, true);
+					std::pair<Request::Ref, uint32_t> ref = (*this)(request, true);
 					request.Call(wrapper, ref.first, ref.second, a, b, c, d, e, f, g, h, i, j, k);
 					(*this)(request, false);
 				}
 
 				void Invoke12(const Request::AutoWrapperBase& wrapper, Request& request, A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l) {
-					std::pair<Request::Ref, long> ref = (*this)(request, true);
+					std::pair<Request::Ref, uint32_t> ref = (*this)(request, true);
 					request.Call(wrapper, ref.first, ref.second, a, b, c, d, e, f, g, h, i, j, k, l);
 					(*this)(request, false);
 				}
 
 				void Invoke13(const Request::AutoWrapperBase& wrapper, Request& request, A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m) {
-					std::pair<Request::Ref, long> ref = (*this)(request, true);
+					std::pair<Request::Ref, uint32_t> ref = (*this)(request, true);
 					request.Call(wrapper, ref.first, ref.second, a, b, c, d, e, f, g, h, i, j, k, l);
 					(*this)(request, false);
 				}
 
 				void Invoke14(const Request::AutoWrapperBase& wrapper, Request& request, A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m) {
-					std::pair<Request::Ref, long> ref = (*this)(request, true);
+					std::pair<Request::Ref, uint32_t> ref = (*this)(request, true);
 					request.Call(wrapper, ref.first, ref.second, a, b, c, d, e, f, g, h, i, j, k, l, m);
 					(*this)(request, false);
 				}
