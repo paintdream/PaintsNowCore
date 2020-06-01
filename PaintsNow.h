@@ -126,17 +126,6 @@ private:
 };
 #pragma pack(pop)
 
-namespace std {
-	template <class T>
-	inline rvalue<T> move(T& t) {
-		return rvalue<T>(t);
-	}
-
-	template <class T>
-	inline T& forward(T& t) {
-		return t;
-	}
-}
 #else
 #include <utility>
 template <class T>
@@ -227,7 +216,7 @@ namespace std {
 
 		template <class T> T(*is_vector_helper1(wrap<T>))(wrap<T>);
 		char is_vector_helper1(...);
-		template <class T> false_type is_vector_helper2(PaintsNow::TShared<T>(*)(wrap<T>));
+		template <class T> false_type is_vector_helper2(vector<T>(*)(wrap<T>));
 		true_type is_vector_helper2(...);
 
 		template <typename T>
@@ -388,7 +377,8 @@ namespace std {
 	template <typename T>
 	struct is_reference {
 		typedef typename detail::remove_reference_impl_typeof<std::detail::is_reference_impl<T>::value>::template inner<T, remove_reference<T> >::type S;
-		typedef typename S::selector type;
+		typedef typename remove_rvalue<S>::type T;
+		typedef typename T::selector type;
 	};
 
 	template <typename T>
@@ -458,6 +448,16 @@ namespace std {
 	template <class T>
 	reference_wrapper<T> ref(T& object) {
 		return reference_wrapper<T>(object);
+	}
+
+	template <class T>
+	inline rvalue<T> move(T& t) {
+		return rvalue<T>(t);
+	}
+
+	template <class T>
+	inline T& forward(T& t) {
+		return t;
 	}
 }
 

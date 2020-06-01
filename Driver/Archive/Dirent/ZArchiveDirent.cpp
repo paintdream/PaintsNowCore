@@ -16,10 +16,19 @@ using namespace PaintsNow;
 
 class FileStream : public IStreamBase {
 public:
-	FileStream(FILE* p) : fp(p) {
+	FileStream(FILE* p, const String& path) : fp(p), filePath(path) {
 
 	}
 	virtual ~FileStream() { fclose(fp);}
+
+	virtual IReflectObject* Clone() const {
+		FILE* fp = fopen(filePath.c_str(), "rb");
+		if (fp != nullptr) {
+			return new FileStream(fp, filePath);
+		} else {
+			return nullptr;
+		}
+	}
 
 	virtual bool Read(void* p, size_t& len) {
 		return (len = fread(p, 1, len, fp)) != 0;
@@ -73,6 +82,7 @@ public:
 
 private:
 	FILE* fp;
+	String filePath;
 };
 
 const String& ZArchiveDirent::GetRootPath() const {
@@ -239,7 +249,7 @@ IStreamBase* ZArchiveDirent::Open(const String& uri, bool write, size_t& length,
 	}
 #endif
 
-	return new FileStream(fp);
+	return new FileStream(fp, path);
 }
 
 
