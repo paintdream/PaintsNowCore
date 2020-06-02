@@ -114,9 +114,9 @@ namespace PaintsNow {
 #pragma pack(push, 1)
 template <class T>
 struct rvalue {
-	explicit rvalue(T& object) : pointer(&object) {}
-	explicit rvalue(const rvalue& v) : pointer(v.pointer) {}
-	operator T () const {
+	rvalue(T& object) : pointer(&object) {}
+	rvalue(const rvalue& v) : pointer(v.pointer) {}
+	operator T& () const {
 		return *pointer;
 	}
 	T* pointer;
@@ -452,7 +452,12 @@ namespace std {
 
 	template <class T>
 	inline rvalue<T> move(T& t) {
-		return rvalue<T>(t);
+		return t;
+	}
+
+	template <class T>
+	inline T& move_forward(T& t) {
+		return t;
 	}
 
 	template <class T>
@@ -464,6 +469,11 @@ namespace std {
 #else
 
 namespace std {
+	template <class T>
+	typename std::remove_reference<T>::type&& move_forward(T& t) {
+		return (typename std::remove_reference<T>::type&&)t;
+	}
+
 	template <class T>
 	struct remove_shared {
 		typedef T type;
