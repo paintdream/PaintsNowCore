@@ -30,6 +30,7 @@ namespace PaintsNow {
 	private:
 		String root;
 		bool sandBoxEnabled;
+		bool reserved[3];
 	};
 }
 

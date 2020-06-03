@@ -114,15 +114,12 @@ namespace PaintsNow {
 #pragma pack(push, 1)
 template <class T>
 struct rvalue {
-	rvalue(T& object) : pointer(&object) {}
+	rvalue(T& t) : pointer(&t) {}
 	rvalue(const rvalue& v) : pointer(v.pointer) {}
 	operator T& () const {
 		return *pointer;
 	}
 	T* pointer;
-
-private:
-	char dummy;
 };
 #pragma pack(pop)
 
@@ -226,15 +223,17 @@ namespace std {
 
 		template <> struct is_vector_impl<void> { enum { value = false }; };
 
+		template <class T> T(*is_rvalue_helper1(wrap<T>))(wrap<T>);
+		char is_rvalue_helper1(...);
+		template <class T> false_type is_rvalue_helper2(rvalue<T>(*)(wrap<T>));
+		true_type is_rvalue_helper2(...);
+
 		template <typename T>
 		struct is_rvalue_impl {
-			enum { value = sizeof(T) == sizeof(rvalue<size_t>) };
+			enum { value = sizeof(::std::detail::is_rvalue_helper2(::std::detail::is_rvalue_helper1(::std::wrap<T>()))) == 1 };
 		};
 
-		template <>
-		struct is_rvalue_impl<void> {
-			enum { value = false };
-		};
+		template <> struct is_rvalue_impl<void> { enum { value = false }; };
 
 		// impl
 
@@ -280,24 +279,6 @@ namespace std {
 				static msvc_register_type<U,ID, true_type> test(U const(*)());
 				static msvc_register_type<T,ID, false_type> test(...);
 				enum { register_test = sizeof(test( (T(*)())(nullptr) ) ) };
-				typedef typename msvc_extract_type<ID>::id2type::type type;
-				typedef typename msvc_extract_type<ID>::id2type::selector selector;
-			};
-		};
-
-		template <bool IsRvalue>
-		struct remove_rvalue_impl_typeof {
-			template<typename T, typename ID>
-			struct inner { typedef T type; };
-		};
-		template <>
-		struct remove_rvalue_impl_typeof<true> {
-			template<typename T, typename ID>
-			struct inner {
-				template <typename U>
-				static msvc_register_type<U, ID, true_type> test(rvalue<U>(*)());
-				static msvc_register_type<T, ID, false_type> test(...);
-				enum { register_test = sizeof(test((T(*)())(nullptr))) };
 				typedef typename msvc_extract_type<ID>::id2type::type type;
 				typedef typename msvc_extract_type<ID>::id2type::selector selector;
 			};
@@ -356,6 +337,24 @@ namespace std {
 				typedef typename msvc_extract_type<ID>::id2type::selector selector;
 			};
 		};
+
+		template <bool IsRvalue>
+		struct remove_rvalue_impl_typeof {
+			template<typename T, typename ID>
+			struct inner { typedef T type; };
+		};
+		template <>
+		struct remove_rvalue_impl_typeof<true> {
+			template<typename T, typename ID>
+			struct inner {
+				template <typename U>
+				static msvc_register_type<U, ID, true_type> test(rvalue<U>(*)());
+				static msvc_register_type<T, ID, false_type> test(...);
+				enum { register_test = sizeof(test((T(*)())(0))) };
+				typedef typename msvc_extract_type<ID>::id2type::type type;
+				typedef typename msvc_extract_type<ID>::id2type::selector selector;
+			};
+		};
 	}
 
 	template <typename T>
@@ -370,8 +369,7 @@ namespace std {
 
 	template <typename T>
 	struct remove_reference {
-		typedef typename detail::remove_reference_impl_typeof<std::detail::is_reference_impl<T>::value>::template inner<T, remove_reference<T> >::type S;
-		typedef typename remove_rvalue<S>::type type;
+		typedef typename detail::remove_reference_impl_typeof<std::detail::is_reference_impl<T>::value>::template inner<T, remove_reference<T> >::type type;
 	};
 
 	template <typename T>
@@ -425,7 +423,8 @@ namespace std {
 
 	template <typename T>
 	struct decay {
-		typedef typename remove_reference<T>::type noreftype;
+		typedef typename remove_rvalue<T>::type norvaluetype;
+		typedef typename remove_reference<norvaluetype>::type noreftype;
 		typedef typename remove_const<noreftype>::type type;
 	};
 
@@ -451,17 +450,7 @@ namespace std {
 	}
 
 	template <class T>
-	inline rvalue<T> move(T& t) {
-		return t;
-	}
-
-	template <class T>
-	inline T& move_forward(T& t) {
-		return t;
-	}
-
-	template <class T>
-	inline T& forward(T& t) {
+	inline rvalue<remove_rvalue<T>::type> move(T& t) {
 		return t;
 	}
 }
@@ -469,11 +458,6 @@ namespace std {
 #else
 
 namespace std {
-	template <class T>
-	typename std::remove_reference<T>::type&& move_forward(T& t) {
-		return (typename std::remove_reference<T>::type&&)t;
-	}
-
 	template <class T>
 	struct remove_shared {
 		typedef T type;

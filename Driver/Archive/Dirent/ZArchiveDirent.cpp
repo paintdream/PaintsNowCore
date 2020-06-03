@@ -16,7 +16,7 @@ using namespace PaintsNow;
 
 class FileStream : public IStreamBase {
 public:
-	FileStream(FILE* p, rvalue<String> path) : fp(p), filePath(std::move_forward(path)) {
+	FileStream(FILE* p, rvalue<String> path) : fp(p), filePath(std::move(path)) {
 
 	}
 	virtual ~FileStream() { fclose(fp);}
