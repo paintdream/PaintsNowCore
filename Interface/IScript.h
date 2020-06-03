@@ -516,6 +516,15 @@ namespace PaintsNow {
 			virtual Request& operator >> (double& value) = 0;
 			virtual Request& operator << (const String& str) = 0;
 			virtual Request& operator >> (String& str) = 0;
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+			Request& operator << (const std::string& str) {
+				return *this << *reinterpret_cast<const String*>(&str);
+			}
+
+			Request& operator >> (std::string& str) {
+				return *this << *reinterpret_cast<String*>(&str);
+			}
+#endif
 			virtual Request& operator << (const char* str) = 0;
 			virtual Request& operator >> (const char*& str) = 0;
 			virtual Request& operator << (bool b) = 0;

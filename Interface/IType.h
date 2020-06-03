@@ -41,7 +41,33 @@ typedef __int64 int64_t;
 #endif
 
 namespace PaintsNow {
+#if 1 // defined(_MSC_VER) && _MSC_VER <= 1200
+	class String : public std::string {
+	public:
+		String() {}
+		typedef std::string Base;
+		String(const char* s) : Base(s) {}
+		String(const char* s, size_t length) : Base(s, length) {}
+		String(const std::string& s) : Base(s) {}
+		String(rvalue<String> s) { std::swap(*this, *s.pointer); }
+		String& operator = (const char* s) {
+			this->Base::operator = (s);
+			return *this;
+		}
+
+		String& operator = (const std::string& s) {
+			this->Base::operator = (s);
+			return *this;
+		}
+
+		String& operator = (rvalue<String> s) {
+			std::swap(*this, *s.pointer);
+			return *this;
+		}
+	};
+#else
 	typedef std::string String;
+#endif
 	uint32_t HashBuffer(const void* buffer, size_t length);
 }
 
