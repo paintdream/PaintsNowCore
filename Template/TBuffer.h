@@ -52,6 +52,9 @@ namespace PaintsNow {
 			return *this;
 		}
 
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+		explicit
+#endif
 		TBuffer(rvalue<TBuffer> rv) {
 			TBuffer& rhs = rv;
 			memcpy(this, &rhs, sizeof(*this));

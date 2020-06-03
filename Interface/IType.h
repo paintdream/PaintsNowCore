@@ -41,7 +41,7 @@ typedef __int64 int64_t;
 #endif
 
 namespace PaintsNow {
-#if 1 // defined(_MSC_VER) && _MSC_VER <= 1200
+#if defined(_MSC_VER) && _MSC_VER <= 1200
 	class String : public std::string {
 	public:
 		String() {}
@@ -49,7 +49,12 @@ namespace PaintsNow {
 		String(const char* s) : Base(s) {}
 		String(const char* s, size_t length) : Base(s, length) {}
 		String(const std::string& s) : Base(s) {}
-		String(rvalue<String> s) { std::swap(*this, *s.pointer); }
+		String(const String& s, size_t pos, size_t len = std::string::npos) : Base(s, pos, len) {}
+		String(size_t n, char c) : Base(n, c) {}
+		template <class It>
+		String(It begin, It end) : Base(begin, end) {}
+
+		explicit String(rvalue<String>& s) { std::swap(*this, *s.pointer); }
 		String& operator = (const char* s) {
 			this->Base::operator = (s);
 			return *this;
