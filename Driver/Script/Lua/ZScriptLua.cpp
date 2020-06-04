@@ -33,8 +33,7 @@ static int g_localKey = 7;
 std::map<String, std::pair<const char*, size_t> > ZScriptLua::builtinModules;
 
 inline ZScriptLua* GetScript(lua_State* L) {
-	lua_pushlightuserdata(L, (void*)&g_scriptKey);
-	lua_rawget(L, LUA_REGISTRYINDEX);
+	lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)&g_scriptKey);
 	ZScriptLua* pRet = reinterpret_cast<ZScriptLua*>(lua_touserdata(L, -1));
 	lua_pop(L, 1);
 
@@ -187,12 +186,14 @@ static int SetIndexer(lua_State* L) {
 	// const char* s = lua_tostring(L, 1);
 	luaL_checktype(L, 1, LUA_TSTRING);
 	lua_newtable(L);
-	lua_pushvalue(L, -2);
-	lua_setfield(L, -2, "__index");
+	lua_pushliteral(L, "__index");
+	lua_pushvalue(L, -3);
+	lua_rawset(L, -3);
+	lua_pushliteral(L, "__gc");
 	lua_pushcfunction(L, FreeMem);
-	lua_setfield(L, -2, "__gc");
+	lua_rawset(L, -3);
 	lua_replace(L, -2);
-	lua_settable(L, LUA_REGISTRYINDEX);
+	lua_rawset(L, LUA_REGISTRYINDEX);
 
 	return 0;
 }
@@ -241,53 +242,48 @@ void ZScriptLua::Init() {
 	luaL_openlibs(state);
 	callCounter = 0;
 
-	lua_pushlightuserdata(state, &g_scriptKey);
 	lua_pushlightuserdata(state, this);
-	lua_settable(state, LUA_REGISTRYINDEX);
+	lua_rawsetp(state, LUA_REGISTRYINDEX, &g_scriptKey);
 
 	// make __gc metatable for default values
-	lua_pushlightuserdata(state, &g_bindKey);
 	lua_newtable(state);
 	lua_pushliteral(state, "__gc");
 	lua_pushcfunction(state, FreeMem);
-	lua_settable(state, -3);
-	lua_settable(state, LUA_REGISTRYINDEX);
+	lua_rawset(state, -3);
+	lua_rawsetp(state, LUA_REGISTRYINDEX, (void*)&g_bindKey);
 
 	// make a dummy node for empty table accesses
-	lua_pushlightuserdata(state, &g_dummyKey);
 	lua_newtable(state);
-	lua_settable(state, LUA_REGISTRYINDEX);
+	lua_rawsetp(state, LUA_REGISTRYINDEX, (void*)&g_dummyKey);
 
 	// make a reference table for references
-	lua_pushlightuserdata(state, &g_refKey);
 	lua_newtable(state);
-	lua_settable(state, LUA_REGISTRYINDEX);
+	lua_rawsetp(state, LUA_REGISTRYINDEX, (void*)&g_refKey);
 
 	// make a table for delegates
-	lua_pushlightuserdata(state, &g_objKey);
 	lua_newtable(state);
+	lua_pushliteral(state, "__mode");
 	lua_pushliteral(state, "v");
-	lua_setfield(state, -2, "__mode");
+	lua_rawset(state, -3);
 	lua_pushvalue(state, -1);
 	lua_setmetatable(state, -2);
-	lua_settable(state, LUA_REGISTRYINDEX);
+	lua_rawsetp(state, LUA_REGISTRYINDEX, (void*)&g_objKey);
 
 	// make a table for local storage
-	lua_pushlightuserdata(state, &g_localKey);
 	lua_newtable(state);
+	lua_pushliteral(state, "__mode");
 	lua_pushliteral(state, "k");
-	lua_setfield(state, -2, "__mode");
+	lua_rawset(state, -3);
 	lua_pushvalue(state, -1);
 	lua_setmetatable(state, -2);
-	lua_settable(state, LUA_REGISTRYINDEX);
+	lua_rawsetp(state, LUA_REGISTRYINDEX, (void*)&g_localKey);
 
 	// make a table for wrappers
-	lua_pushlightuserdata(state, &g_wrapKey);
 	lua_newtable(state);
 	lua_pushliteral(state, "__gc");
 	lua_pushcfunction(state, FreeWrapper);
-	lua_settable(state, -3);
-	lua_settable(state, LUA_REGISTRYINDEX);
+	lua_rawset(state, -3);
+	lua_rawsetp(state, LUA_REGISTRYINDEX, (void*)&g_wrapKey);
 
 	// load lpeg lib
 	luaL_requiref(state, "lpeg", luaopen_lpeg, 0);
@@ -482,8 +478,7 @@ static int IncreaseTableIndex(lua_State* L, int count = 1) {
 }
 
 inline void refget(lua_State* L, const IScript::Request::Ref& ref) {
-	lua_pushlightuserdata(L, &g_refKey);
-	lua_rawget(L, LUA_REGISTRYINDEX);
+	lua_rawgetp(L, LUA_REGISTRYINDEX, &g_refKey);
 	lua_rawgeti(L, -1, ref.value);
 	lua_replace(L, -2);
 }
@@ -557,8 +552,7 @@ IScript::Request& ZScriptLua::Request::operator >> (const Skip& skip) {
 
 
 IScript::Request& ZScriptLua::Request::operator << (const IScript::Request::Local&) {
-	lua_pushlightuserdata(L, &g_localKey);
-	lua_rawget(L, LUA_REGISTRYINDEX);
+	lua_rawgetp(L, LUA_REGISTRYINDEX, &g_localKey);
 	lua_pushthread(L);
 	assert(lua_istable(L, -2));
 	if (lua_rawget(L, -2) == LUA_TNIL) {
@@ -568,7 +562,7 @@ IScript::Request& ZScriptLua::Request::operator << (const IScript::Request::Loca
 		lua_newtable(L);
 		lua_pushthread(L);
 		lua_pushvalue(L, -2); // make a copy
-		lua_settable(L, -4);
+		lua_rawset(L, -4);
 		lua_replace(L, -2);
 	}
 
@@ -595,8 +589,7 @@ IScript::Request& ZScriptLua::Request::operator << (const IScript::Request::Glob
 void ZScriptLua::Request::Dereference(IScript::Request::Ref& ref) {
 	assert(GetScript()->GetLockCount() == 1);
 	if (ref.value != 0) {
-		lua_pushlightuserdata(L, &g_refKey);
-		lua_rawget(L, LUA_REGISTRYINDEX);
+		lua_rawgetp(L, LUA_REGISTRYINDEX, &g_refKey);
 		// refget(L, ref);
 		// printf("UNREF: %s\n", lua_typename(L, lua_type(L, -1)));
 		// lua_pop(L, 1);
@@ -613,8 +606,7 @@ inline IScript::Request::Ref refadd(lua_State* L, int index) {
 		return IScript::Request::Ref(0);
 	}
 
-	lua_pushlightuserdata(L, &g_refKey);
-	lua_rawget(L, LUA_REGISTRYINDEX);
+	lua_rawgetp(L, LUA_REGISTRYINDEX, &g_refKey);
 	lua_pushvalue(L, index > 0 ? index : index - 1);
 	// printf("Val type: %s\n", lua_typename(L, lua_type(L, -1)));
 	int ref = luaL_ref(L, -2);
@@ -627,8 +619,7 @@ inline void wrapget(lua_State* L, const IScript::Request::AutoWrapperBase& wrapp
 	IScript::Request::AutoWrapperBase** ptr = reinterpret_cast<IScript::Request::AutoWrapperBase**>(lua_newuserdata(L, sizeof(IScript::Request::AutoWrapperBase*)));
 	*ptr = wrapper.Clone();
 
-	lua_pushlightuserdata(L, &g_wrapKey);
-	lua_rawget(L, LUA_REGISTRYINDEX);
+	lua_rawgetp(L, LUA_REGISTRYINDEX, &g_wrapKey);
 	lua_setmetatable(L, -2);
 
 	lua_pushcclosure(L, FunctionProxy, 1);
@@ -728,8 +719,7 @@ IScript::Request& ZScriptLua::Request::operator >> (IScript::Request::TableStart
 
 	if (!lua_istable(L, -1)) {
 		lua_pop(L, 1);
-		lua_pushlightuserdata(L, &g_dummyKey);
-		lua_rawget(L, LUA_REGISTRYINDEX);
+		lua_rawgetp(L, LUA_REGISTRYINDEX, &g_dummyKey);
 	}
 
 	start.count = (size_t)lua_rawlen(L, -1);
@@ -989,10 +979,8 @@ inline void PushUserdata(lua_State* L, const IScript::BaseDelegate& b) {
 	IScript::Object* ptr = d.GetRaw();
 	int t = lua_gettop(L);
 	// check if already exists
-	lua_pushlightuserdata(L, &g_objKey);
-	lua_rawget(L, LUA_REGISTRYINDEX);
-	lua_pushlightuserdata(L, ptr);
-	lua_gettable(L, -2);
+	lua_rawgetp(L, LUA_REGISTRYINDEX, &g_objKey);
+	lua_rawgetp(L, -1, ptr);
 	lua_replace(L, -2);
 
 	if (lua_isnil(L, -1)) {
@@ -1004,16 +992,13 @@ inline void PushUserdata(lua_State* L, const IScript::BaseDelegate& b) {
 
 		if (lua_rawget(L, LUA_REGISTRYINDEX) == LUA_TNIL) {
 			lua_pop(L, 1);
-			lua_pushlightuserdata(L, &g_bindKey);
-			lua_rawget(L, LUA_REGISTRYINDEX);
+			lua_rawgetp(L, LUA_REGISTRYINDEX, &g_bindKey);
 		}
 		
 		lua_setmetatable(L, -2);
-		lua_pushlightuserdata(L, &g_objKey);
-		lua_rawget(L, LUA_REGISTRYINDEX);
-		lua_pushlightuserdata(L, ptr);
-		lua_pushvalue(L, -3);
-		lua_settable(L, -3);
+		lua_rawgetp(L, LUA_REGISTRYINDEX, &g_objKey);
+		lua_pushvalue(L, -2);
+		lua_rawsetp(L, -2, ptr);
 		lua_pop(L, 1);
 	}
 
