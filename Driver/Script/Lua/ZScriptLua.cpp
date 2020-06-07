@@ -1033,18 +1033,25 @@ IScript::Request::Ref ZScriptLua::Request::Reference(const IScript::Request::Ref
 	return ref;
 }
 
+inline void fake_pushnil(lua_State* L, const IScript::Request::Nil&) {
+	lua_pushnil(L);
+}
+
 IScript::Request& ZScriptLua::Request::operator << (const IScript::BaseDelegate& d) {
 	assert(GetScript()->GetLockCount() == 1);
-	assert(d.GetRaw() != nullptr);
-	// write
-	IScript::BaseDelegate& m = const_cast<IScript::BaseDelegate&>(d);
-	IScript::Object* ptr = m.GetRaw();
-	Write(L, tableLevel, idx, key, PushUserdata, m);
+	if (d.GetRaw() != nullptr) {
+		// write
+		IScript::BaseDelegate& m = const_cast<IScript::BaseDelegate&>(d);
+		IScript::Object* ptr = m.GetRaw();
+		Write(L, tableLevel, idx, key, PushUserdata, m);
 
-	if (m.GetRaw() == nullptr) {
-		UnLock();
-		ptr->ScriptInitialize(*this);
-		DoLock();
+		if (m.GetRaw() == nullptr) {
+			UnLock();
+			ptr->ScriptInitialize(*this);
+			DoLock();
+		}
+	} else {
+		Write(L, tableLevel, idx, key, fake_pushnil, Nil());
 	}
 
 	return *this;
@@ -1059,9 +1066,6 @@ IScript::Request& ZScriptLua::Request::operator >> (IScript::BaseDelegate& d) {
 	return *this;
 }
 
-inline void fake_pushnil(lua_State* L, const IScript::Request::Nil&) {
-	lua_pushnil(L);
-}
 
 IScript::Request& ZScriptLua::Request::operator << (const Nil& n) {
 	assert(GetScript()->GetLockCount() == 1);

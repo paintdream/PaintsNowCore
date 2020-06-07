@@ -1933,7 +1933,7 @@ namespace PaintsNow {
 		static void Destroy(TFunction& input) {}
 
 		TFunction(FUNC func = nullptr) : tablePointer(nullptr), host(nullptr), p(func) {
-	    Assign(ReturnType<R>());
+			Assign(ReturnType<R>());
 		}
 
 		template <class T>

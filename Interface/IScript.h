@@ -166,10 +166,10 @@ namespace PaintsNow {
 			};
 
 #if (defined(_MSC_VER) && _MSC_VER < 1800) || defined(COMPATIBLE_PROXY)
-			template <class A = Void, class B = Void, class C = Void, class D = Void, class E = Void, class F = Void, class G = Void, class H = Void, class I = Void, class J = Void, class K = Void, class L = Void, class M = Void, class N = Void, class O = Void>
-			class AutoWrapper : public AutoWrapperBase, public TWrapper<void, Request&, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> {
+			template <class R = Void, class A = Void, class B = Void, class C = Void, class D = Void, class E = Void, class F = Void, class G = Void, class H = Void, class I = Void, class J = Void, class K = Void, class L = Void, class M = Void, class N = Void, class O = Void>
+			class AutoWrapper : public AutoWrapperBase, public TWrapper<R, Request&, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> {
 			public:
-				AutoWrapper(const TWrapper<void, Request&, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>& m) : TWrapper<void, Request&, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(m) {}
+				AutoWrapper(const TWrapper<R, Request&, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>& m) : TWrapper<R, Request&, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(m) {}
 
 				virtual AutoWrapperBase* Clone() const {
 					return new AutoWrapper(*this);
@@ -180,6 +180,7 @@ namespace PaintsNow {
 					std::decay<F>::type f; std::decay<G>::type g; std::decay<H>::type h; std::decay<I>::type i; std::decay<J>::type j;
 					std::decay<K>::type k; std::decay<L>::type l; std::decay<M>::type m; std::decay<N>::type n; std::decay<O>::type o;
 
+					ReturnType<R>::type ret;
 				//	request.AssertUnlocked();
 					switch (GetCount()) {
 					case 0:
@@ -187,103 +188,104 @@ namespace PaintsNow {
 						break;
 					case 1:
 						request.UnLock();
-						(*this)(request);
+						ret = (*this)(request);
 						request.DoLock();
 						break;
 					case 2:
 						request >> a;
 						request.UnLock();
-						(*this)(request, a);
+						ret = (*this)(request, a);
 						request.DoLock();
 						break;
 					case 3:
 						request >> a >> b;
 						request.UnLock();
-						(*this)(request, a, b);
+						ret = (*this)(request, a, b);
 						request.DoLock();
 						break;
 					case 4:
 						request >> a >> b >> c;
 						request.UnLock();
-						(*this)(request, a, b, c);
+						ret = (*this)(request, a, b, c);
 						request.DoLock();
 						break;
 					case 5:
 						request >> a >> b >> c >> d;
 						request.UnLock();
-						(*this)(request, a, b, c, d);
+						ret = (*this)(request, a, b, c, d);
 						request.DoLock();
 						break;
 					case 6:
 						request >> a >> b >> c >> d >> e;
 						request.UnLock();
-						(*this)(request, a, b, c, d, e);
+						ret = (*this)(request, a, b, c, d, e);
 						request.DoLock();
 						break;
 					case 7:
 						request >> a >> b >> c >> d >> e >> f;
 						request.UnLock();
-						(*this)(request, a, b, c, d, e, f);
+						ret = (*this)(request, a, b, c, d, e, f);
 						request.DoLock();
 						break;
 					case 8:
 						request >> a >> b >> c >> d >> e >> f >> g;
 						request.UnLock();
-						(*this)(request, a, b, c, d, e, f, g);
+						ret = (*this)(request, a, b, c, d, e, f, g);
 						request.DoLock();
 						break;
 					case 9:
 						request >> a >> b >> c >> d >> e >> f >> g >> h;
 						request.UnLock();
-						(*this)(request, a, b, c, d, e, f, g, h);
+						ret = (*this)(request, a, b, c, d, e, f, g, h);
 						request.DoLock();
 						break;
 					case 10:
 						request >> a >> b >> c >> d >> e >> f >> g >> h >> i;
 						request.UnLock();
-						(*this)(request, a, b, c, d, e, f, g, h, i);
+						ret = (*this)(request, a, b, c, d, e, f, g, h, i);
 						request.DoLock();
 						break;
 					case 11:
 						request >> a >> b >> c >> d >> e >> f >> g >> h >> i >> j;
 						request.UnLock();
-						(*this)(request, a, b, c, d, e, f, g, h, i, j);
+						ret = (*this)(request, a, b, c, d, e, f, g, h, i, j);
 						request.DoLock();
 						break;
 					case 12:
 						request >> a >> b >> c >> d >> e >> f >> g >> h >> i >> j >> k;
 						request.UnLock();
-						(*this)(request, a, b, c, d, e, f, g, h, i, j, k);
+						ret = (*this)(request, a, b, c, d, e, f, g, h, i, j, k);
 						request.DoLock();
 						break;
 					case 13:
 						request >> a >> b >> c >> d >> e >> f >> g >> h >> i >> j >> k >> l;
 						request.UnLock();
-						(*this)(request, a, b, c, d, e, f, g, h, i, j, k, l);
+						ret = (*this)(request, a, b, c, d, e, f, g, h, i, j, k, l);
 						request.DoLock();
 						break;
 					case 14:
 						request >> a >> b >> c >> d >> e >> f >> g >> h >> i >> j >> k >> l >> m;
 						request.UnLock();
-						(*this)(request, a, b, c, d, e, f, g, h, i, j, k, l, m);
+						ret = (*this)(request, a, b, c, d, e, f, g, h, i, j, k, l, m);
 						request.DoLock();
 						break;
 					case 15:
 						request >> a >> b >> c >> d >> e >> f >> g >> h >> i >> j >> k >> l >> m >> n;
 						request.UnLock();
-						(*this)(request, a, b, c, d, e, f, g, h, i, j, k, l, m, n);
+						ret = (*this)(request, a, b, c, d, e, f, g, h, i, j, k, l, m, n);
 						request.DoLock();
 						break;
 					case 16:
 						request >> a >> b >> c >> d >> e >> f >> g >> h >> i >> j >> k >> l >> m >> n >> o;
 						request.UnLock();
-						(*this)(request, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o);
+						ret = (*this)(request, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o);
 						request.DoLock();
 						break;
 					default:
 						break;
 					}
 
+					request << ret;
 				//	request.AssertUnlocked();
 				}
 
@@ -297,9 +299,9 @@ namespace PaintsNow {
 				}
 			};
 
-			template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N, class O>
-			static AutoWrapper<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> Adapt(const TWrapper<void, Request&, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>& wrapper) {
-				return AutoWrapper<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(wrapper);
+			template <class R, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N, class O>
+			static AutoWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> Adapt(const TWrapper<R, Request&, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>& wrapper) {
+				return AutoWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(wrapper);
 			}
 
 			template <class A>
@@ -399,18 +401,28 @@ namespace PaintsNow {
 			}
 
 #else
-			template <typename... Args>
-			class AutoWrapper : public AutoWrapperBase, public TWrapper<void, Request&, Args...> {
+			template <typename R, typename... Args>
+			class AutoWrapper : public AutoWrapperBase, public TWrapper<R, Request&, Args...> {
 			public:
-				AutoWrapper(const TWrapper<void, Request&, Args...>& m) : TWrapper<void, Request&, Args...>(m) {}
+				AutoWrapper(const TWrapper<R, Request&, Args...>& m) : TWrapper<R, Request&, Args...>(m) {}
 				virtual AutoWrapperBase* Clone() const {
 					return new AutoWrapper(*this);
 				}
 
-				template <typename T, size_t... I>
-				void Apply(Request& request, T& arg, seq<I...>) const {
+				template <typename R, typename T, size_t... I>
+				typename std::enable_if<!std::is_void<R>::value>::type Apply(Request& request, T& arg, seq<I...>) const {
+					// request.AssertUnlocked();
+					R ret = (*this)(request, (Args)std::get<I>(arg)...);
+					request.DoLock();
+					request << ret;
+					// request.AssertUnlocked();
+				}
+
+				template <typename R, typename T, size_t... I>
+				typename std::enable_if<std::is_void<R>::value>::type Apply(Request& request, T& arg, seq<I...>) const {
 					// request.AssertUnlocked();
 					(*this)(request, (Args)std::get<I>(arg)...);
+					request.DoLock();
 					// request.AssertUnlocked();
 				}
 
@@ -431,8 +443,7 @@ namespace PaintsNow {
 					std::tuple<typename std::decay<Args>::type...> arg;
 					Reader<decltype(arg), sizeof...(Args)>()(request, arg);
 					request.UnLock();
-					Apply(request, arg, gen_seq<sizeof...(Args)>());
-					request.DoLock();
+					Apply<R>(request, arg, gen_seq<sizeof...(Args)>());
 				}
 
 				virtual void Execute(Request& request) const {
@@ -440,7 +451,7 @@ namespace PaintsNow {
 					if (script != nullptr) { // hook
 						const TWrapper<void, Request&, IHost*, size_t, const TWrapper<void, Request&>& >& dispatcher = script->GetDispatcher();
 						if (dispatcher) {
-							dispatcher(request, TWrapper<void, Request&, Args...>::GetHost(), TWrapper<void, Request&, Args...>::GetCount(), Wrap(this, &AutoWrapper::InvokeRoutine));
+							dispatcher(request, TWrapper<R, Request&, Args...>::GetHost(), TWrapper<R, Request&, Args...>::GetCount(), Wrap(this, &AutoWrapper::InvokeRoutine));
 							return;
 						}
 					}
@@ -449,9 +460,9 @@ namespace PaintsNow {
 				}
 			};
 
-			template <typename... Args>
-			static AutoWrapper<Args...> Adapt(const TWrapper<void, Request&, Args...>& wrapper) {
-				return AutoWrapper<Args...>(wrapper);
+			template <typename R, typename... Args>
+			static AutoWrapper<R, Args...> Adapt(const TWrapper<R, Request&, Args...>& wrapper) {
+				return AutoWrapper<R, Args...>(wrapper);
 			}
 
 			template <typename First, typename... Args>
@@ -1112,7 +1123,6 @@ namespace PaintsNow {
 				static const String _methodName = __func__; \
 				request.Error(_methodName + ": Invalid <" + d.GetTypeName() + "> " + #d); \
 				assert(false); \
-				return; \
 			}
 #define CHECK_REFERENCES_NONE() \
 			const int MUST_CHECK_REFERENCE_ONCE = 0;
@@ -1136,7 +1146,6 @@ namespace PaintsNow {
 						} \
 						request.UnLock(); \
 						assert(false); \
-						return; \
 					} \
 				} \
 			}
@@ -1166,7 +1175,7 @@ namespace PaintsNow {
 							} \
 						} \
 						request.UnLock(); \
-						return; \
+						assert(false);\
 					} \
 				} \
 				request.UnLock(); \

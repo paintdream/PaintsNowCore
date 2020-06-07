@@ -87,7 +87,6 @@ namespace PaintsNow {
 	class Void : public One, public Zero {};
 }
 
-
 #ifdef _MSC_VER
 #if _MSC_VER <= 1200
 #pragma warning(disable:4355)
