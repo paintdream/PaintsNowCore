@@ -76,7 +76,7 @@ static unsigned int luai_makeseed (lua_State *L) {
   addbuff(buff, p, &h);  /* local variable */
   addbuff(buff, p, &lua_newstate);  /* public function */
   lua_assert(p == sizeof(buff));
-  return luaS_hash(buff, p, h);
+  return luaS_hash(buff, p, h, 1);
 }
 
 #endif
@@ -190,14 +190,15 @@ void luaE_freeCI (lua_State *L) {
 */
 void luaE_shrinkCI (lua_State *L) {
   CallInfo *ci = L->ci;
+  CallInfo *next;
   CallInfo *next2;  /* next's next */
   L->nCcalls += L->nci;  /* add removed elements back to 'nCcalls' */
   /* while there are two nexts */
-  while (ci->next != NULL && (next2 = ci->next->next) != NULL) {
-    luaM_free(L, ci->next);  /* free next */
-    L->nci--;
-    ci->next = next2;  /* remove 'next' from the list */
+  while ((next = ci->next) != NULL && (next2 = next->next) != NULL) {
+    ci->next = next2;  /* remove next from the list */
     next2->previous = ci;
+    luaM_free(L, next);  /* free next */
+    L->nci--;
     ci = next2;  /* keep next's next */
   }
   L->nCcalls -= L->nci;  /* adjust result */
@@ -286,7 +287,6 @@ static void preinit_thread (lua_State *L, global_State *g) {
   L->stacksize = 0;
   L->twups = L;  /* thread has no upvalues */
   L->errorJmp = NULL;
-  L->nCcalls = CSTACKTHREAD;
   L->hook = NULL;
   L->hookmask = 0;
   L->basehookcount = 0;
@@ -319,7 +319,7 @@ LUA_API lua_State *lua_newthread (lua_State *L) {
   /* create new thread */
   L1 = &cast(LX *, luaM_newobject(L, LUA_TTHREAD, sizeof(LX)))->l;
   L1->marked = luaC_white(g);
-  L1->tt = LUA_TTHREAD;
+  L1->tt = LUA_VTHREAD;
   /* link it on list 'allgc' */
   L1->next = g->allgc;
   g->allgc = obj2gco(L1);
@@ -327,6 +327,7 @@ LUA_API lua_State *lua_newthread (lua_State *L) {
   setthvalue2s(L, L->top, L1);
   api_incr_top(L);
   preinit_thread(L1, g);
+  L1->nCcalls = getCcalls(L);
   L1->hookmask = L->hookmask;
   L1->basehookcount = L->basehookcount;
   L1->hook = L->hook;
@@ -382,7 +383,7 @@ LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud) {
   if (l == NULL) return NULL;
   L = &l->l.l;
   g = &l->g;
-  L->tt = LUA_TTHREAD;
+  L->tt = LUA_VTHREAD;
   g->currentwhite = bitmask(WHITE0BIT);
   L->marked = luaC_white(g);
   preinit_thread(L, g);

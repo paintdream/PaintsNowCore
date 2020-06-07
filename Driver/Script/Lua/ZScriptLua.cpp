@@ -11,8 +11,6 @@ extern "C" {
 	#include "Core/lualib.h"
 	#include "Core/lauxlib.h"
 	#include "Core/lobject.h"
-	#include "Core/lstate.h"
-	extern int luaopen_lpeg(lua_State *L);
 }
 
 #ifdef _MSC_VER
@@ -31,6 +29,15 @@ static int g_wrapKey = 6;
 static int g_localKey = 7;
 
 std::map<String, std::pair<const char*, size_t> > ZScriptLua::builtinModules;
+
+static int lua_typex(lua_State* L, int index) {
+	int type = lua_type(L, index); // maybe faster ? ttypetag()
+	if (type == LUA_TNUMBER) {
+		type = lua_isinteger(L, index) ? LUA_VNUMINT : LUA_VNUMFLT;
+	}
+
+	return type;
+}
 
 inline ZScriptLua* GetScript(lua_State* L) {
 	lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)&g_scriptKey);
@@ -285,9 +292,7 @@ void ZScriptLua::Init() {
 	lua_rawset(state, -3);
 	lua_rawsetp(state, LUA_REGISTRYINDEX, (void*)&g_wrapKey);
 
-	// load lpeg lib
-	luaL_requiref(state, "lpeg", luaopen_lpeg, 0);
-	// const char* type = lua_typename(state, lua_type(state, -1));
+	// const char* type = lua_typename(state, lua_typex(state, -1));
 
 	/*
 	luaL_loadbuffer(state, (const char*)Core_lua, Core_lua_len, "Core");
@@ -339,7 +344,7 @@ ZScriptLua::~ZScriptLua() {
 
 IScript::Request::TYPE ZScriptLua::Request::GetReferenceType(const IScript::Request::Ref& g) {
 	*this << g;
-	int t = lua_type(L, -1);
+	int t = lua_typex(L, -1);
 	lua_pop(L, 1);
 
 	return ZScriptLua::Request::ConvertType(t);
@@ -358,7 +363,7 @@ bool ZScriptLua::Request::Call(const AutoWrapperBase& defer, const IScript::Requ
 	// lua_State* s = state->GetState();
 	if (defer.IsSync()) {
 		*this << g;
-		// printf("Type : %s\n", lua_typename(L, lua_type(L, -1)));
+		// printf("Type : %s\n", lua_typename(L, lua_typex(L, -1)));
 		if (!lua_isfunction(L, -1)) {
 			state->AfterCall();
 			return false;
@@ -591,7 +596,7 @@ void ZScriptLua::Request::Dereference(IScript::Request::Ref& ref) {
 	if (ref.value != 0) {
 		lua_rawgetp(L, LUA_REGISTRYINDEX, &g_refKey);
 		// refget(L, ref);
-		// printf("UNREF: %s\n", lua_typename(L, lua_type(L, -1)));
+		// printf("UNREF: %s\n", lua_typename(L, lua_typex(L, -1)));
 		// lua_pop(L, 1);
 
 		luaL_unref(L, -1, (int)ref.value);
@@ -608,7 +613,7 @@ inline IScript::Request::Ref refadd(lua_State* L, int index) {
 
 	lua_rawgetp(L, LUA_REGISTRYINDEX, &g_refKey);
 	lua_pushvalue(L, index > 0 ? index : index - 1);
-	// printf("Val type: %s\n", lua_typename(L, lua_type(L, -1)));
+	// printf("Val type: %s\n", lua_typename(L, lua_typex(L, -1)));
 	int ref = luaL_ref(L, -2);
 	lua_pop(L, 1);
 	return IScript::Request::Ref(ref == -1 ? 0 : ref);
@@ -919,10 +924,10 @@ IScript::Request::TYPE ZScriptLua::Request::ConvertType(int type) {
 	case LUA_TBOOLEAN:
 		target = BOOLEAN;
 		break;
-	case LUA_TNUMBER:
+	case LUA_VNUMFLT:
 		target = NUMBER;
 		break;
-	case LUA_TNUMINT:
+	case LUA_VNUMINT:
 		target = INTEGER;
 		break;
 	case LUA_TSTRING:
@@ -962,11 +967,11 @@ IScript::Request& ZScriptLua::Request::operator >> (const IScript::Request::Key&
 			lua_rawget(L, -3);
 		}
 
-		type = lua_type(L, -1);
+		type = lua_typex(L, -1);
 		lua_pop(L, 1);
 		key = k.GetKey();
 	} else {
-		type = lua_type(L, idx); // read the current one
+		type = lua_typex(L, idx); // read the current one
 	}
 
 	k.SetType(ConvertType(type));
@@ -1002,7 +1007,7 @@ inline void PushUserdata(lua_State* L, const IScript::BaseDelegate& b) {
 		lua_pop(L, 1);
 	}
 
-	assert(lua_type(L, -1) == LUA_TUSERDATA);
+	assert(lua_typex(L, -1) == LUA_TUSERDATA);
 	int m = lua_gettop(L);
 	assert(m == t + 1);
 }
@@ -1079,15 +1084,11 @@ IScript::Request::TYPE ZScriptLua::Request::GetCurrentType() {
 			lua_rawget(L, -3);
 		}
 		if (!lua_isnil(L, -1)) {
-			type = lua_type(L, -1);
-			if (type == LUA_TNUMBER)
-				type = lua_isinteger(L, -1) ? LUA_TNUMINT : LUA_TNUMBER;
+			type = lua_typex(L, -1);
 		}
 		lua_pop(L, 1);
 	} else {
-		type = lua_type(L, idx);
-		if (type == LUA_TNUMBER)
-			type = lua_isinteger(L, -1) ? LUA_TNUMINT : LUA_TNUMBER;
+		type = lua_typex(L, idx);
 	}
 
 	return ConvertType(type);
@@ -1099,9 +1100,9 @@ std::vector<IScript::Request::Key> ZScriptLua::Request::Enumerate() {
 	// from lua document
 	lua_pushnil(L);  // first key
 	while (lua_next(L, -3) != 0) { // it's -3, [table, index, frontKey]
-		int type = lua_type(L, -2);
+		int type = lua_typex(L, -2);
 		if (type == LUA_TSTRING) {
-			keys.emplace_back(std::move(Key(lua_tostring(L, -2), ConvertType(lua_type(L, -1)))));
+			keys.emplace_back(std::move(Key(lua_tostring(L, -2), ConvertType(lua_typex(L, -1)))));
 		}
 		lua_pop(L, 1);
 	}
