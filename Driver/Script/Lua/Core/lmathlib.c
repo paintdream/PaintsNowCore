@@ -266,7 +266,7 @@ static int math_type (lua_State *L) {
 
 /* try to find an integer type with at least 64 bits */
 
-#if (ULONG_MAX >> 31 >> 31) >= 3
+#if ((ULONG_MAX >> 31) >> 31) >= 3
 
 /* 'long' has at least 64 bits */
 #define Rand64		unsigned long
@@ -276,7 +276,7 @@ static int math_type (lua_State *L) {
 /* there is a 'long long' type (which must have at least 64 bits) */
 #define Rand64		unsigned long long
 
-#elif (LUA_MAXUNSIGNED >> 31 >> 31) >= 3
+#elif ((LUA_MAXUNSIGNED >> 31) >> 31) >= 3
 
 /* 'lua_Integer' has at least 64 bits */
 #define Rand64		lua_Unsigned

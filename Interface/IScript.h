@@ -409,17 +409,17 @@ namespace PaintsNow {
 					return new AutoWrapper(*this);
 				}
 
-				template <typename R, typename T, size_t... I>
-				typename std::enable_if<!std::is_void<R>::value>::type Apply(Request& request, T& arg, seq<I...>) const {
+				template <typename Ret, typename T, size_t... I>
+				typename std::enable_if<!std::is_void<Ret>::value>::type Apply(Request& request, T& arg, seq<I...>) const {
 					// request.AssertUnlocked();
-					R ret = (*this)(request, (Args)std::get<I>(arg)...);
+					Ret ret = (*this)(request, (Args)std::get<I>(arg)...);
 					request.DoLock();
 					request << ret;
 					// request.AssertUnlocked();
 				}
 
-				template <typename R, typename T, size_t... I>
-				typename std::enable_if<std::is_void<R>::value>::type Apply(Request& request, T& arg, seq<I...>) const {
+				template <typename Ret, typename T, size_t... I>
+				typename std::enable_if<std::is_void<Ret>::value>::type Apply(Request& request, T& arg, seq<I...>) const {
 					// request.AssertUnlocked();
 					(*this)(request, (Args)std::get<I>(arg)...);
 					request.DoLock();
