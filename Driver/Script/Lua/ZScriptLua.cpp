@@ -727,7 +727,13 @@ IScript::Request& ZScriptLua::Request::operator >> (IScript::Request::TableStart
 		lua_rawgetp(L, LUA_REGISTRYINDEX, &g_dummyKey);
 	}
 
-	start.count = (size_t)lua_rawlen(L, -1);
+	lua_pushliteral(L, "n");
+	if (lua_rawget(L, -2) == LUA_TNUMBER) {
+		start.count = lua_tointeger(L, -1);
+	} else {
+		start.count = (size_t)lua_rawlen(L, -2);
+	}
+	lua_pop(L, 1);
 
 	lua_pushlightuserdata(L, (void*)0); // index
 	tableLevel++;
