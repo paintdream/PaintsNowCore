@@ -573,6 +573,7 @@ IScript::Request* IScript::RequestPool::AllocateRequest() {
 	SpinLock(requestCritical);
 	if (!requests.empty()) {
 		request = requests.top();
+		assert(request->GetRequestPool() == this);
 		requests.pop();
 	}
 	SpinUnLock(requestCritical);

@@ -36,6 +36,7 @@ namespace PaintsNow {
 			virtual Request::Ref Load(const String& script, const String& pathname) override;
 			virtual IScript::Request& Push() override;
 			virtual IScript::Request& Pop() override;
+			virtual IScript::Request& operator >> (IScript::Request::Arguments&) override;
 			virtual IScript::Request& operator >> (IScript::Request::Ref&) override;
 			virtual IScript::Request& operator << (const IScript::Request::Ref&) override;
 			virtual IScript::Request& operator << (const IScript::Request::Nil&) override;

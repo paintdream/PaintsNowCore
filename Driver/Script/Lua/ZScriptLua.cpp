@@ -30,6 +30,8 @@ static int g_localKey = 7;
 
 std::map<String, std::pair<const char*, size_t> > ZScriptLua::builtinModules;
 
+static thread_local IScript::RequestPool* _CurrentRequestPool = nullptr;
+
 static int lua_typex(lua_State* L, int index) {
 	int type = lua_type(L, index); // maybe faster ? ttypetag()
 	if (type == LUA_TNUMBER) {
@@ -50,6 +52,9 @@ inline ZScriptLua* GetScript(lua_State* L) {
 static void DebugHandler(lua_State* L, lua_Debug* ar) {
 	ZScriptLua* pRet = GetScript(L);
 	ZScriptLua::Request s(pRet, L);
+	assert(_CurrentRequestPool != nullptr);
+	s.SetRequestPool(_CurrentRequestPool);
+
 	TWrapper<void, IScript::Request&, int, int> handler = pRet->GetDebugHandler();
 	if (handler) {
 		int m = 0;
@@ -83,6 +88,9 @@ static void DebugHandler(lua_State* L, lua_Debug* ar) {
 static void HandleError(ZScriptLua* script, lua_State* L) {
 	// error
 	ZScriptLua::Request s(script, L);
+	assert(_CurrentRequestPool != nullptr);
+	s.SetRequestPool(_CurrentRequestPool);
+
 	const char* errMsg = lua_tostring(L, -1);
 	assert(script->GetLockCount() == 1);
 	script->UnLock();
@@ -99,6 +107,9 @@ static int ContinueProxy(lua_State* L, int status, lua_KContext ctx);
 static int FunctionProxyEx(ZScriptLua* pRet, const IScript::Request::AutoWrapperBase* wrapper, lua_State* L) {
 	int valsize = 0;
 	ZScriptLua::Request s(pRet, L);
+	assert(_CurrentRequestPool != nullptr);
+	s.SetRequestPool(_CurrentRequestPool);
+
 	int ptr = lua_gettop(L);
 	// popup all locks
 	assert(pRet->GetLockCount() == 1);
@@ -167,6 +178,8 @@ static int FreeMem(lua_State* L) {
 
 	IScript::Object* obj = *(IScript::Object**)mem;
 	ZScriptLua::Request s(GetScript(L), L);
+	assert(_CurrentRequestPool != nullptr);
+	s.SetRequestPool(_CurrentRequestPool);
 
 	IScript* script = s.GetScript();
 	assert(script->GetLockCount() == 1);
@@ -374,6 +387,8 @@ bool ZScriptLua::Request::Call(const AutoWrapperBase& defer, const IScript::Requ
 		// lua_KContext context = (lua_KContext)defer.Clone();
 		// dispatch deferred calls after the next sync call.
 		// int status = lua_pcallk(L, in, LUA_MULTRET, 0, nullptr, ContinueProxy);
+		_CurrentRequestPool = GetRequestPool();
+		assert(_CurrentRequestPool != nullptr);
 		int status = lua_pcall(L, in, LUA_MULTRET, 0);
 		if (status != LUA_OK && status != LUA_YIELD) {
 			HandleError(static_cast<ZScriptLua*>(GetScript()), L);
@@ -537,6 +552,12 @@ inline void Read(lua_State* L, int& tableLevel, int& idx, String& key, F f, C& v
 	} else {
 		value = f(L, idx++);
 	}
+}
+
+IScript::Request& ZScriptLua::Request::operator >> (Arguments& args) {
+	args.count = initCount - idx + 1;
+	assert(args.count >= 0);
+	return *this;
 }
 
 IScript::Request& ZScriptLua::Request::operator >> (const Skip& skip) {

@@ -132,7 +132,10 @@ namespace PaintsNow {
 				Skip operator () (int k);
 			};
 
-			struct PlaceHolder {};
+			struct Arguments {
+				Arguments() : count(0) {}
+				int count;
+			};
 
 			enum TYPE { NIL, BOOLEAN, NUMBER, INTEGER, STRING, TABLE, ARRAY, FUNCTION, OBJECT, ANY };
 			struct Ref {
@@ -515,7 +518,7 @@ namespace PaintsNow {
 			virtual Request::Ref Load(const String& script, const String& pathname = String()) = 0;
 			virtual Request& Push() = 0;
 			virtual Request& Pop() = 0;
-			inline Request& operator >> (PlaceHolder ph) { return *this; }
+			virtual Request& operator >> (Arguments& ph) = 0;
 			virtual Request& operator >> (Ref&) = 0;
 			virtual Request& operator << (const Ref&) = 0;
 			virtual Request& operator << (const Nil&) = 0;
