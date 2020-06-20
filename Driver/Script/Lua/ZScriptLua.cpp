@@ -52,8 +52,6 @@ inline ZScriptLua* GetScript(lua_State* L) {
 static void DebugHandler(lua_State* L, lua_Debug* ar) {
 	ZScriptLua* pRet = GetScript(L);
 	ZScriptLua::Request s(pRet, L);
-	assert(_CurrentRequestPool != nullptr);
-	s.SetRequestPool(_CurrentRequestPool);
 
 	TWrapper<void, IScript::Request&, int, int> handler = pRet->GetDebugHandler();
 	if (handler) {
@@ -88,8 +86,6 @@ static void DebugHandler(lua_State* L, lua_Debug* ar) {
 static void HandleError(ZScriptLua* script, lua_State* L) {
 	// error
 	ZScriptLua::Request s(script, L);
-	assert(_CurrentRequestPool != nullptr);
-	s.SetRequestPool(_CurrentRequestPool);
 
 	const char* errMsg = lua_tostring(L, -1);
 	assert(script->GetLockCount() == 1);
@@ -178,8 +174,6 @@ static int FreeMem(lua_State* L) {
 
 	IScript::Object* obj = *(IScript::Object**)mem;
 	ZScriptLua::Request s(GetScript(L), L);
-	assert(_CurrentRequestPool != nullptr);
-	s.SetRequestPool(_CurrentRequestPool);
 
 	IScript* script = s.GetScript();
 	assert(script->GetLockCount() == 1);
