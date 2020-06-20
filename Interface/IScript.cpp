@@ -229,7 +229,10 @@ IScript::~IScript() {
 IScript::Request::Request() : requestPool(nullptr) {}
 
 void IScript::Request::SetRequestPool(IScript::RequestPool* p) {
-	assert(requestPool == nullptr);
+	if (p != nullptr) {
+		assert(GetScript() == &p->GetScript());
+	}
+
 	requestPool = p;
 }
 
@@ -559,13 +562,15 @@ void IScript::RequestPool::Clear() {
 	std::swap(s, requests);
 	SpinUnLock(requestCritical);
 
-	script.DoLock();
-	while (!s.empty()) {
-		IScript::Request* request = s.top();
-		request->ReleaseObject();
-		s.pop();
+	if (!s.empty()) {
+		script.DoLock();
+		while (!s.empty()) {
+			IScript::Request* request = s.top();
+			request->ReleaseObject();
+			s.pop();
+		}
+		script.UnLock();
 	}
-	script.UnLock();
 }
 
 IScript::Request* IScript::RequestPool::AllocateRequest() {

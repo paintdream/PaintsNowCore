@@ -265,10 +265,12 @@ bool ZThreadPthread::UnLock(Lock* l) {
 	LockImpl* lock = static_cast<LockImpl*>(l);
 	lock->lockCount--;
 
+	/*
 #if defined(_WIN32) && defined(_DEBUG)
 	assert(lock->threadID == 0 || lock->threadID == ::GetCurrentThreadId());
 	lock->threadID = 0;
 #endif
+*/
 
 #if defined(PREFER_NATIVE_THREAD) && defined(_WIN32) && defined(_MSC_VER) && _MSC_VER > 1200
 	::LeaveCriticalSection(&lock->cs);
