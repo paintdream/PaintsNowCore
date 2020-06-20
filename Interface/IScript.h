@@ -10,11 +10,13 @@
 #include "../Interface/IType.h"
 #include "../Interface/IReflect.h"
 #include "../Template/TVector.h"
+#include "../Template/TAtomic.h"
 #include "../Template/TProxy.h"
 #include "../Template/TAlgorithm.h"
 #include "IThread.h"
 #include <vector>
 #include <list>
+#include <stack>
 #include <string>
 #include <cassert>
 #include <utility>
@@ -110,11 +112,19 @@ namespace PaintsNow {
 		IScript(IThread& api);
 		virtual ~IScript();
 
+		class RequestPool;
 		class Request : public TReflected<Request, IReflectObjectComplex> {
+		protected:
+			RequestPool* requestPool;
+
 		public:
+			Request();
 			virtual ~Request();
 			virtual void DoLock();
 			virtual void UnLock();
+
+			RequestPool* GetRequestPool();
+			void SetRequestPool(RequestPool* pool);
 
 			struct Skip {
 				int count;
@@ -1201,6 +1211,22 @@ namespace PaintsNow {
 		const TWrapper<void, Request&, int, int>& GetDebugHandler() const;
 		// virtual void DoLock();
 		// virtual void UnLock();
+
+		class RequestPool {
+		public:
+			RequestPool(IScript& script, uint32_t size);
+			~RequestPool();
+			Request* AllocateRequest();
+			void FreeRequest(Request* request);
+			IScript& GetScript();
+			void Clear();
+
+		protected:
+			IScript& script;
+			std::stack<Request*> requests;
+			uint32_t size;
+			TAtomic<int32_t> requestCritical;
+		};
 
 	protected:
 		TWrapper<void, Request&, IHost*, size_t, const TWrapper<void, Request&>& > dispatcher;

@@ -226,6 +226,17 @@ IScript::IScript(IThread& api) : ISyncObject(api), debugMask(DEBUG_LINE) {}
 IScript::~IScript() {
 }
 
+IScript::Request::Request() : requestPool(nullptr) {}
+
+void IScript::Request::SetRequestPool(IScript::RequestPool* p) {
+	assert(requestPool == nullptr);
+	requestPool = p;
+}
+
+IScript::RequestPool* IScript::Request::GetRequestPool() {
+	return requestPool;
+}
+
 IScript::Request::~Request() {}
 
 void IScript::Request::DoLock() {
@@ -528,4 +539,65 @@ IScript::MetaMethod::~MetaMethod() {}
 
 IScript::MetaMethod IScript::MetaMethod::operator = (const String& key) {
 	return MetaMethod(key);
+}
+
+IScript::RequestPool::RequestPool(IScript& pscript, uint32_t psize) : script(pscript), size(psize) {
+	requestCritical.store(0, std::memory_order_relaxed);
+}
+
+IScript::RequestPool::~RequestPool() {
+	Clear();
+}
+
+IScript& IScript::RequestPool::GetScript() {
+	return script;
+}
+
+void IScript::RequestPool::Clear() {
+	SpinLock(requestCritical);
+	std::stack<IScript::Request*> s;
+	std::swap(s, requests);
+	SpinUnLock(requestCritical);
+
+	script.DoLock();
+	while (!s.empty()) {
+		IScript::Request* request = s.top();
+		request->ReleaseObject();
+		s.pop();
+	}
+	script.UnLock();
+}
+
+IScript::Request* IScript::RequestPool::AllocateRequest() {
+	IScript::Request* request = nullptr;
+	SpinLock(requestCritical);
+	if (!requests.empty()) {
+		request = requests.top();
+		requests.pop();
+	}
+	SpinUnLock(requestCritical);
+
+	if (request == nullptr) {
+		script.DoLock();
+		request = script.NewRequest();
+		request->SetRequestPool(this);
+		script.UnLock();
+	}
+
+	return request;
+}
+
+void IScript::RequestPool::FreeRequest(IScript::Request* request) {
+	SpinLock(requestCritical);
+	if (requests.size() < size) {
+		requests.push(request);
+		request = nullptr;
+	}
+	SpinUnLock(requestCritical);
+
+	if (request != nullptr) {
+		script.DoLock();
+		request->ReleaseObject();
+		script.UnLock();
+	}
 }
