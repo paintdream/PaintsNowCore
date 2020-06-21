@@ -388,17 +388,18 @@ bool ZScriptLua::Request::Call(const AutoWrapperBase& defer, const IScript::Requ
 		_CurrentRequestPool = GetRequestPool();
 		assert(_CurrentRequestPool != nullptr);
 		int status = lua_pcall(L, in, LUA_MULTRET, 0);
-		_CurrentRequestPool = p;
 
 		if (status != LUA_OK && status != LUA_YIELD) {
 			HandleError(static_cast<ZScriptLua*>(GetScript()), L);
 			state->AfterCall();
+			_CurrentRequestPool = p;
 			return false;
 		} else {
 			assert(lua_gettop(L) >= initCount);
 			// important!
 			SetIndex(initCount + 1);
 			state->AfterCall();
+			_CurrentRequestPool = p;
 			return true;
 		}
 	} else {
