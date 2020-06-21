@@ -120,7 +120,7 @@ namespace PaintsNow {
 		static std::map<String, std::pair<const char*, size_t> > builtinModules;
 	private:
 #ifdef _DEBUG
-		std::map<size_t, String> debugReferences;
+		std::map<size_t, std::pair<uint32_t, String>> debugReferences;
 #endif
 	};
 }

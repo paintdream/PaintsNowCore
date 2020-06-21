@@ -242,8 +242,8 @@ void ZScriptLua::Clear() {
 
 #ifdef _DEBUG
 	if (totalReference != 0) {
-		for (std::map<size_t, String>::iterator it = debugReferences.begin(); it != debugReferences.end(); ++it) {
-			printf("Leak lua object where: %s\n", (*it).second.c_str());
+		for (std::map<size_t, std::pair<uint32_t, String> >::iterator it = debugReferences.begin(); it != debugReferences.end(); ++it) {
+			printf("Leak lua object where: %s\n", (*it).second.second.c_str());
 		}
 	}
 #endif
@@ -681,6 +681,14 @@ void ZScriptLua::Request::AddReference(IScript::Request::Ref ref) {
 		return;
 
 	state->totalReference++;
+#ifdef _DEBUG
+	if (state->debugReferences[ref.value].first++ == 0) {
+		refget(L, ref);
+		int type = lua_typex(L, -1);
+		lua_pop(L, 1);
+		state->debugReferences[ref.value].second = lua_typename(L, type);
+	}
+#endif
 }
 
 void ZScriptLua::Request::DelReference(IScript::Request::Ref ref) {
@@ -689,7 +697,9 @@ void ZScriptLua::Request::DelReference(IScript::Request::Ref ref) {
 
 	state->totalReference--;
 #ifdef _DEBUG
-	state->debugReferences.erase(ref.value);
+	if (--state->debugReferences[ref.value].first == 0) {
+		state->debugReferences.erase(ref.value);
+	}
 #endif
 }
 
