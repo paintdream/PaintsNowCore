@@ -177,7 +177,7 @@ namespace PaintsNow {
 				release = true;
 			}
 
-			p->bitmap[id / BITS] &= ~((size_t)1 << (id & MASK));
+			p->bitmap[id / BITS].fetch_and(~((size_t)1 << (id & MASK)));
 			if (p->referenced.exchange(1, std::memory_order_relaxed) == 0) {
 				SpinLock(critical);
 				recycledBlocks.emplace_back(p);

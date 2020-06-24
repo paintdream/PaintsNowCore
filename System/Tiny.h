@@ -58,12 +58,12 @@ namespace PaintsNow {
 			if (extReferCount.load(std::memory_order_relaxed) == 0) {
 				Tiny::ReleaseObject();
 			} else {
-				--extReferCount;
+				extReferCount.fetch_sub(1, std::memory_order_release);
 			}
 		}
 
 		virtual void ReferenceObject() {
-			++extReferCount;
+			extReferCount.fetch_add(1, std::memory_order_acq_rel);
 		}
 
 		uint32_t GetExtReferCount() const {

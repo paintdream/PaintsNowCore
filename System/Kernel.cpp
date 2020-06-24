@@ -177,11 +177,12 @@ Kernel::SubTaskQueue::SubTaskQueue(const SubTaskQueue& rhs) : TaskQueue(safe_cas
 }
 
 inline void Kernel::SubTaskQueue::Suspend() {
-	++suspendCount;
+	suspendCount.fetch_add(1, std::memory_order_acquire);
 }
 
 inline bool Kernel::SubTaskQueue::Resume() {
-	bool ret = --suspendCount == 0;
+	bool ret = suspendCount.fetch_sub(1, std::memory_order_release) == 1;
+
 	if (ret) {
 		queueing.store(0, std::memory_order_relaxed);
 		Flush(kernel->threadPool);

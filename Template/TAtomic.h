@@ -48,31 +48,15 @@ namespace PaintsNow {
 	public:
 		TAtomic(int32_t v = 0) : value(v) {}
 
-		void operator ++ (int) {
-			InterlockedIncrement(&value);
+		int32_t fetch_add(T arg, std::memory_order order = std::memory_order_seq_cst) {
+			return InterlockedExchangeAdd(&value, (int32_t)arg);
 		}
 
-		int32_t operator ++ () {
-			return InterlockedIncrement(&value);
+		int32_t fetch_sub(T arg, std::memory_order order = std::memory_order_seq_cst) {
+			return InterlockedExchangeAdd(&value, -(int32_t)arg);
 		}
 
-		void operator -- (int) {
-			InterlockedDecrement(&value);
-		}
-
-		int32_t operator -- () {
-			return InterlockedDecrement(&value);
-		}
-
-		void operator += (T arg) {
-			InterlockedExchangeAdd(&value, (int32_t)arg);
-		}
-
-		void operator -= (T arg) {
-			InterlockedExchangeAdd(&value, -(int32_t)arg);
-		}
-
-		void operator |= (T arg) {
+		int32_t fetch_or(T arg, std::memory_order order = std::memory_order_seq_cst) {
 			LONG Old;
 
 			do {
@@ -80,9 +64,11 @@ namespace PaintsNow {
 			} while (InterlockedCompareExchange(&value,
 				Old | (int32_t)arg,
 				Old) != Old);
+
+			return Old;
 		}
 
-		void operator &= (T arg) {
+		int32_t fetch_and(T arg, std::memory_order order = std::memory_order_seq_cst) {
 			LONG Old;
 
 			do {
@@ -90,9 +76,11 @@ namespace PaintsNow {
 			} while (InterlockedCompareExchange(&value,
 				Old & (int32_t)arg,
 				Old) != Old);
+
+			return Old;
 		}
 
-		void operator ^= (T arg) {
+		int32_t fetch_xor(T arg, std::memory_order order = std::memory_order_seq_cst) {
 			LONG Old;
 
 			do {
@@ -100,14 +88,8 @@ namespace PaintsNow {
 			} while (InterlockedCompareExchange(&value,
 				Old ^ (int32_t)arg,
 				Old) != Old);
-		}
 
-		T fetch_add(T v, std::memory_order order = std::memory_order_release) {
-			return (T)InterlockedExchangeAdd(&value, (int32_t)v);
-		}
-
-		T fetch_sub(T v, std::memory_order order = std::memory_order_release) {
-			return (T)InterlockedExchangeAdd(&value, -(int32_t)v);
+			return Old;
 		}
 
 		T load(std::memory_order order = std::memory_order_acquire) const {

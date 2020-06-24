@@ -126,7 +126,7 @@ bool ThreadPool::Push(ITask* task) {
 			SpinLock(writeCritical);
 			threadInfo.stockNode = taskQueue.QuickPush(task, threadInfo.stockNode);
 			SpinUnLock(writeCritical);
-			++queuedTaskCount;
+			queuedTaskCount.fetch_add(1, std::memory_order_acquire);
 
 			if (threadInfo.stockNode == nullptr) {
 				threadInfo.stockNode = new ThreadTaskQueue::Node();
@@ -135,7 +135,7 @@ bool ThreadPool::Push(ITask* task) {
 			SpinLock(writeCritical);
 			taskQueue.Push(task);
 			SpinUnLock(writeCritical);
-			++queuedTaskCount;
+			queuedTaskCount.fetch_add(1, std::memory_order_acquire);
 		}
 
 		if (waitEventCounter > threadCount / 4) {
@@ -164,7 +164,7 @@ bool ThreadPool::PollRoutine(uint32_t index, bool realtime) {
 	if (queuedTaskCount.load(std::memory_order_acquire) != 0) {
 		p = taskQueue.Top();
 		deleted = taskQueue.QuickPop();
-		--queuedTaskCount;
+		queuedTaskCount.fetch_sub(1, std::memory_order_release);
 	}
 	SpinUnLock(readCritical);
 
@@ -178,7 +178,7 @@ bool ThreadPool::PollRoutine(uint32_t index, bool realtime) {
 			Push(p);
 		} else {
 			if (!realtime) {
-				++activeThreadCount;
+				activeThreadCount.fetch_add(1, std::memory_order_acquire);
 			}
 
 			void* context = threadInfos[index].context;
@@ -190,7 +190,7 @@ bool ThreadPool::PollRoutine(uint32_t index, bool realtime) {
 			}
 
 			if (!realtime) {
-				--activeThreadCount;
+				activeThreadCount.fetch_sub(1, std::memory_order_release);
 			}
 		}
 
@@ -204,7 +204,7 @@ bool ThreadPool::Run(IThread::Thread* thread, size_t index) {
 	// set thread local
 	localThreadIndex = safe_cast<uint32_t>(index);
 	// fetch one and execute
-	++liveThreadCount;
+	liveThreadCount.fetch_add(1, std::memory_order_acquire);
 	while (runningToken.load(std::memory_order_acquire) != 0) {
 		if (!PollRoutine(safe_cast<uint32_t>(index), false) && runningToken.load(std::memory_order_acquire) != 0) {
 			threadApi.DoLock(mutex);
@@ -214,6 +214,7 @@ bool ThreadPool::Run(IThread::Thread* thread, size_t index) {
 			threadApi.UnLock(mutex);
 		}
 	}
-	--liveThreadCount;
+
+	liveThreadCount.fetch_sub(1, std::memory_order_release);
 	return false; // manages IThread::Thread* by ourself
 }
