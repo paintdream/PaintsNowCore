@@ -90,10 +90,16 @@ void ThreadPool::Uninitialize() {
 		}
 
 		// abort remaining tasks
+		ThreadTaskQueue::Node* deleted = nullptr;
 		while (!taskQueue.Empty()) {
 			ITask* task = taskQueue.Top();
-			taskQueue.Pop();
+			deleted = taskQueue.QuickPop();
+			queuedTaskCount.fetch_sub(1, std::memory_order_release);
 			task->Abort(nullptr);
+
+			if (deleted != nullptr) {
+				delete deleted;
+			}
 		}
 
 		for (size_t k = 0; k < threadCount; k++) {
@@ -126,7 +132,7 @@ bool ThreadPool::Push(ITask* task) {
 			SpinLock(writeCritical);
 			threadInfo.stockNode = taskQueue.QuickPush(task, threadInfo.stockNode);
 			SpinUnLock(writeCritical);
-			queuedTaskCount.fetch_add(1, std::memory_order_acquire);
+			queuedTaskCount.fetch_add(1, std::memory_order_release);
 
 			if (threadInfo.stockNode == nullptr) {
 				threadInfo.stockNode = new ThreadTaskQueue::Node();
@@ -135,7 +141,7 @@ bool ThreadPool::Push(ITask* task) {
 			SpinLock(writeCritical);
 			taskQueue.Push(task);
 			SpinUnLock(writeCritical);
-			queuedTaskCount.fetch_add(1, std::memory_order_acquire);
+			queuedTaskCount.fetch_add(1, std::memory_order_release);
 		}
 
 		if (waitEventCounter > threadCount / 4) {
