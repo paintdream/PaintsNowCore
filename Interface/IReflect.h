@@ -93,7 +93,7 @@ namespace PaintsNow {
 		virtual IUniqueInfo* Get(const String& name);
 
 	private:
-		TAtomic<int32_t> critical;
+		std::atomic<int32_t> critical;
 		std::map<String, IUniqueInfo> mapType;
 	};
 

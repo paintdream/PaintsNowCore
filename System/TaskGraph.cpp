@@ -7,7 +7,7 @@ void TaskGraph::TaskNode::Execute(void* context) {
 
 	for (size_t i = 0; i < nextNodes.size(); i++) {
 		TaskNode* node = nextNodes[i];
-		TAtomic<uint32_t>& refCount = (TAtomic<uint32_t>&)node->refCount;
+		std::atomic<uint32_t>& refCount = (std::atomic<uint32_t>&)node->refCount;
 		if (refCount.fetch_sub(1, std::memory_order_relaxed) == 1) {
 			taskGraph->kernel.QueueRoutine(host, node);
 		}
@@ -29,7 +29,7 @@ void TaskGraph::TaskNode::Abort(void* context) {
 
 	for (size_t i = 0; i < nextNodes.size(); i++) {
 		TaskNode* node = nextNodes[i];
-		TAtomic<uint32_t>& refCount = (TAtomic<uint32_t>&)node->refCount;
+		std::atomic<uint32_t>& refCount = (std::atomic<uint32_t>&)node->refCount;
 		if (refCount.fetch_sub(1, std::memory_order_relaxed) == 1) {
 			node->task->Abort(context);
 		}

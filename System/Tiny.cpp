@@ -12,7 +12,7 @@ TObject<IReflect>& Tiny::operator () (IReflect& reflect) {
 	return *this;
 }
 
-TAtomic<Tiny::FLAG>& Tiny::Flag() {
+std::atomic<Tiny::FLAG>& Tiny::Flag() {
 	return flag;
 }
 
@@ -26,7 +26,7 @@ Tiny::Tiny(FLAG fl) : flag(fl) {}
 #include "../Template/TMap.h"
 
 static std::map<SharedTiny*, SharedTiny*> TinyTree;
-static TAtomic<int32_t> TinyCritical;
+static std::atomic<int32_t> TinyCritical;
 
 static inline SharedTiny*& TinyFind(SharedTiny* tiny) {
 	SharedTiny*& t = TinyTree[tiny];

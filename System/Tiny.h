@@ -27,13 +27,13 @@ namespace PaintsNow {
 		};
 
 		Tiny(FLAG flag = 0);
-		TAtomic<FLAG>& Flag();
+		std::atomic<FLAG>& Flag();
 		FLAG Flag() const;
 
 		virtual TObject<IReflect>& operator () (IReflect& reflect) override;
 
 	protected:
-		TAtomic<FLAG> flag;
+		std::atomic<FLAG> flag;
 	};
 
 	class SharedTiny : public TReflected<SharedTiny, Tiny> {
@@ -71,7 +71,7 @@ namespace PaintsNow {
 		}
 
 	protected:
-		TAtomic<int32_t> extReferCount;
+		std::atomic<int32_t> extReferCount;
 	};
 
 	template <class T>
@@ -214,7 +214,7 @@ namespace PaintsNow {
 		}
 
 	private:
-		TAtomic<int32_t> section;
+		std::atomic<int32_t> section;
 		TShared<T> ptr;
 	};
 

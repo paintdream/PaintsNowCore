@@ -28,9 +28,9 @@ namespace PaintsNow {
 
 		struct ControlBlock {
 			TAllocator* allocator;
-			TAtomic<uint32_t> referenced;
-			TAtomic<uint32_t> allocCount;
-			TAtomic<size_t> bitmap[BITMAPSIZE];
+			std::atomic<uint32_t> referenced;
+			std::atomic<uint32_t> allocCount;
+			std::atomic<size_t> bitmap[BITMAPSIZE];
 		};
 
 		enum {
@@ -106,7 +106,7 @@ namespace PaintsNow {
 				}
 
 				for (size_t k = 0; k < BITMAPSIZE; k++) {
-					TAtomic<size_t>& s = p->bitmap[k];
+					std::atomic<size_t>& s = p->bitmap[k];
 					size_t mask = s.load(std::memory_order_relaxed);
 					if (mask != ~(size_t)0) {
 						size_t bit = Alignment(mask + 1);
@@ -190,8 +190,8 @@ namespace PaintsNow {
 		}
 
 	protected:
-		TAtomic<ControlBlock*> controlBlock;
-		TAtomic<uint32_t> critical;
+		std::atomic<ControlBlock*> controlBlock;
+		std::atomic<uint32_t> critical;
 		std::vector<ControlBlock*> recycledBlocks;
 #ifdef _DEBUG
 		std::set<ControlBlock*> marked;

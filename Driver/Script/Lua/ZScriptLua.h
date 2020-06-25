@@ -111,7 +111,7 @@ namespace PaintsNow {
 
 		lua_State* state;
 		lua_State* deferState;
-		TAtomic<uint32_t> closing;
+		std::atomic<uint32_t> closing;
 		ZScriptLua::Request* defaultRequest;
 		size_t totalReference;
 		int initCountDefer;

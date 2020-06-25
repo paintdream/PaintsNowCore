@@ -42,13 +42,13 @@ namespace PaintsNow {
 	protected:
 		typedef TQueueList<ITask*> ThreadTaskQueue;
 		ThreadTaskQueue taskQueue;
-		TAtomic<int32_t> queuedTaskCount;
-		TAtomic<int32_t> readCritical;
-		TAtomic<int32_t> writeCritical;
+		std::atomic<int32_t> queuedTaskCount;
+		std::atomic<int32_t> readCritical;
+		std::atomic<int32_t> writeCritical;
 
-		TAtomic<int32_t> liveThreadCount;
-		TAtomic<int32_t> runningToken;
-		TAtomic<int32_t> activeThreadCount;
+		std::atomic<int32_t> liveThreadCount;
+		std::atomic<int32_t> runningToken;
+		std::atomic<int32_t> activeThreadCount;
 		uint32_t waitEventCounter;
 		uint32_t threadCount;
 		IThread::Event* eventPump;

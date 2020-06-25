@@ -40,7 +40,7 @@ namespace PaintsNow {
 
 		Kernel& kernel;
 		std::vector<TaskNode> taskNodes;
-		TAtomic<uint32_t> completedCount;
+		std::atomic<uint32_t> completedCount;
 		TWrapper<void> completion;
 	};
 }

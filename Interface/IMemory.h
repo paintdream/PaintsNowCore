@@ -23,12 +23,12 @@ namespace PaintsNow {
 		struct ObjectLeakGuard {
 #ifdef _DEBUG
 			struct Finalizer {
-				Finalizer(TAtomic<int32_t>& c) : counter(c) {}
+				Finalizer(std::atomic<int32_t>& c) : counter(c) {}
 				~Finalizer() {
 					assert(counter.load(std::memory_order_relaxed) == 0);
 				}
 
-				TAtomic<int32_t>& counter;
+				std::atomic<int32_t>& counter;
 			};
 
 			ObjectLeakGuard() {
@@ -39,8 +39,8 @@ namespace PaintsNow {
 				--GetCounter();
 			}
 
-			static TAtomic<int32_t>& GetCounter() {
-				static TAtomic<int32_t> counter;
+			static std::atomic<int32_t>& GetCounter() {
+				static std::atomic<int32_t> counter;
 				static Finalizer finalizer(counter);
 				return counter;
 			}

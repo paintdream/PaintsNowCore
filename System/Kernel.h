@@ -93,9 +93,9 @@ namespace PaintsNow {
 			virtual void Abort(void* context) override;
 
 			Kernel* kernel;
-			TAtomic<uint32_t*> threadWarp;
-			TAtomic<int32_t> suspendCount;
-			TAtomic<int32_t> queueing;
+			std::atomic<uint32_t*> threadWarp;
+			std::atomic<int32_t> suspendCount;
+			std::atomic<int32_t> queueing;
 		};
 
 		friend class SubTaskQueue;
@@ -103,7 +103,7 @@ namespace PaintsNow {
 		ThreadPool& threadPool;
 		std::vector<SubTaskQueue> taskQueueGrid;
 #ifdef _DEBUG
-		TAtomic<int32_t> activeTaskCount;
+		std::atomic<int32_t> activeTaskCount;
 #endif
 	};
 

@@ -1228,7 +1228,7 @@ namespace PaintsNow {
 			IScript& script;
 			std::stack<Request*> requests;
 			uint32_t size;
-			TAtomic<int32_t> requestCritical;
+			std::atomic<int32_t> requestCritical;
 		};
 
 	protected:

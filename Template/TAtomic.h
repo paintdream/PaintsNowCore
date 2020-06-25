@@ -37,16 +37,15 @@ __forceinline void MemoryBarrier() {
 #include <thread>
 #endif
 
-namespace PaintsNow {
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+namespace std {
 	// From Microsoft Visual C++ Header file.
 	// implement std::atomic<> for Visual C++ 6.0
-#if defined(_MSC_VER) && _MSC_VER <= 1200
-
 	// only support 32 bit atomic operations ..
 	template <class T>
-	class TAtomic {
+	class atomic {
 	public:
-		TAtomic(int32_t v = 0) : value(v) {}
+		atomic(int32_t v = 0) : value(v) {}
 
 		int32_t fetch_add(T arg, std::memory_order order = std::memory_order_seq_cst) {
 			return InterlockedExchangeAdd(&value, (int32_t)arg);
@@ -120,6 +119,7 @@ namespace PaintsNow {
 		}
 
 		int32_t operator ^ (T t) const {
+
 			return value ^ (int32_t)t;
 		}
 
@@ -140,19 +140,12 @@ namespace PaintsNow {
 	private:
 		volatile LONG value;
 	};
-
-#else
-	template <class T>
-	using TAtomic = std::atomic<T>;
+}
 #endif
 
-	template <class T, class D>
-	bool Verify(TAtomic<T>& var, D bits) {
-		return (var & bits) == bits;
-	}
-
+namespace PaintsNow {
 	template <class T>
-	inline T SpinLock(TAtomic<T>& section, T newValue = 1) {
+	inline T SpinLock(std::atomic<T>& section, T newValue = 1) {
 		T ret;
 		while (true) {
 			while (section.load(std::memory_order_relaxed) == newValue) {
@@ -168,7 +161,7 @@ namespace PaintsNow {
 	}
 
 	template <class T>
-	inline void SpinUnLock(TAtomic<T>& section, T newValue = 0) {
+	inline void SpinUnLock(std::atomic<T>& section, T newValue = 0) {
 		section.store(newValue, std::memory_order_release);
 	}
 
@@ -177,7 +170,7 @@ namespace PaintsNow {
 	class TStaticInitializer {
 	public:
 		TStaticInitializer() {
-			static TAtomic<uint32_t> critical;
+			static std::atomic<uint32_t> critical;
 			SpinLock(critical);
 			static T object;
 			SpinUnLock(critical);
