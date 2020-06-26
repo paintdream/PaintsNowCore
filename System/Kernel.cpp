@@ -273,7 +273,7 @@ bool Kernel::SubTaskQueue::InvokeOperation(std::pair<ITask*, void*>& task, void 
 	}
 
 	// recheck suspend and yield status
-	return operation == &ITask::Abort || suspendCount.load(std::memory_order_acquire) == 0 && (uint32_t*)threadWarp.load(std::memory_order_relaxed) == &WarpIndex;
+	return operation == &ITask::Abort || (suspendCount.load(std::memory_order_acquire) == 0 && (uint32_t*)threadWarp.load(std::memory_order_relaxed) == &WarpIndex && WarpIndex == thisWarpIndex);
 }
 
 void Kernel::SubTaskQueue::Push(uint32_t fromThreadIndex, ITask* task, WarpTiny* warpTiny) {
