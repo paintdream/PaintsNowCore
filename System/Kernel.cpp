@@ -130,7 +130,7 @@ void Kernel::QueueRoutine(WarpTiny* warpTiny, ITask* task) {
 		warpTiny->ReferenceObject();
 		threadPool.Push(new ForwardRoutine<Kernel>(*this, warpTiny, task));
 		threadPool.UnLock();
-	} else if (WarpIndex == toWarpIndex && (size_t)q.threadWarp.load(std::memory_order_relaxed) == (size_t)&WarpIndex && q.suspendCount.load(std::memory_order_acquire) != 0) {
+	} else if (WarpIndex == toWarpIndex && (size_t)q.threadWarp.load(std::memory_order_relaxed) == (size_t)&WarpIndex && q.suspendCount.load(std::memory_order_acquire) == 0) {
 		// Just the same warp? Execute at once.
 		task->Execute(threadPool.GetThreadContext(fromThreadIndex));
 	} else {
