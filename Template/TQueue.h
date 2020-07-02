@@ -74,7 +74,7 @@ namespace PaintsNow {
 			}
 
 			ringBuffer[pushIndex] = std::forward<D>(t);
-			atomic_thread_fence(std::memory_order_release);
+			std::atomic_thread_fence(std::memory_order_release);
 			pushIndex = nextIndex;
 			return true;
 		}
@@ -84,7 +84,7 @@ namespace PaintsNow {
 #if defined(_MSC_VER) && _MSC_VER <= 1200
 			MemoryBarrier();
 #else
-			atomic_thread_fence(std::memory_order_acquire);
+			std::atomic_thread_fence(std::memory_order_acquire);
 #endif
 			assert(!Empty());
 			return ringBuffer[popIndex];
@@ -94,7 +94,7 @@ namespace PaintsNow {
 #if defined(_MSC_VER) && _MSC_VER <= 1200
 			MemoryBarrier();
 #else
-			atomic_thread_fence(std::memory_order_acquire);
+			std::atomic_thread_fence(std::memory_order_acquire);
 #endif
 			assert(!Empty());
 			return ringBuffer[popIndex];
