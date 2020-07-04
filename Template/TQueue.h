@@ -242,10 +242,15 @@ namespace PaintsNow {
 #endif
 			if (!pushHead->Push(t)) { // full
 				Node* p = new Node();
+#if defined(_MSC_VER) && _MSC_VER <= 1200
 				bool success = p->Push(t); // Must success
+#else
+				bool success = p->Push(std::forward<D>(t)); // Must success
+#endif
 				assert(success);
 
 				pushHead->next = p;
+				std::atomic_thread_fence(std::memory_order_release);
 				pushHead = p;
 			}
 		}
@@ -259,10 +264,15 @@ namespace PaintsNow {
 #endif
 			if (!pushHead->Push(t)) { // full
 				Node* p = storage;
+#if defined(_MSC_VER) && _MSC_VER <= 1200
 				bool success = p->Push(t); // Must success
+#else
+				bool success = p->Push(std::forward<D>(t)); // Must success
+#endif
 				assert(success);
 
 				pushHead->next = p;
+				std::atomic_thread_fence(std::memory_order_release);
 				pushHead = p;
 				return nullptr;
 			} else {
