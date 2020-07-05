@@ -51,6 +51,7 @@ namespace PaintsNow {
 
 		// Current-Warp corelated functions, will be effected by current warp state
 		void QueueRoutine(WarpTiny* warpTiny, ITask* task);
+		void QueueRoutinePost(WarpTiny* warpTiny, ITask* task);
 		uint32_t GetCurrentWarpIndex() const;
 		void YieldCurrentWarp();
 

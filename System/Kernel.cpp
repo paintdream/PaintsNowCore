@@ -143,6 +143,17 @@ void Kernel::QueueRoutine(WarpTiny* warpTiny, ITask* task) {
 	}
 }
 
+void Kernel::QueueRoutinePost(WarpTiny* warpTiny, ITask* task) {
+	assert(warpTiny != nullptr);
+	uint32_t fromThreadIndex = threadPool.GetCurrentThreadIndex();
+	uint32_t toWarpIndex = warpTiny->GetWarpIndex();
+#ifdef _DEBUG
+		++activeTaskCount;
+#endif
+	warpTiny->ReferenceObject(); // hold reference in case of invalid memory access.
+	QueueRoutineInternal(toWarpIndex, fromThreadIndex, warpTiny, task);
+}
+
 void Kernel::YieldCurrentWarp() {
 	taskQueueGrid[WarpIndex].YieldExecution();
 }
