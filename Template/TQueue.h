@@ -48,7 +48,7 @@ namespace PaintsNow {
 			}
 
 			ringBuffer[pushIndex] = t;
-			MemoryBarrier();
+			std::atomic_thread_fence(std::memory_order_release);
 			pushIndex = nextIndex;
 			return true;
 		}
@@ -61,7 +61,7 @@ namespace PaintsNow {
 			}
 
 			ringBuffer[pushIndex] = std::move(t);
-			MemoryBarrier();
+			std::atomic_thread_fence(std::memory_order_release);
 			pushIndex = nextIndex;
 			return true;
 		}
@@ -81,21 +81,13 @@ namespace PaintsNow {
 #endif
 
 		inline T& Top() {
-#if defined(_MSC_VER) && _MSC_VER <= 1200
-			MemoryBarrier();
-#else
 			std::atomic_thread_fence(std::memory_order_acquire);
-#endif
 			assert(!Empty());
 			return ringBuffer[popIndex];
 		}
 
 		inline const T& Top() const {
-#if defined(_MSC_VER) && _MSC_VER <= 1200
-			MemoryBarrier();
-#else
 			std::atomic_thread_fence(std::memory_order_acquire);
-#endif
 			assert(!Empty());
 			return ringBuffer[popIndex];
 		}

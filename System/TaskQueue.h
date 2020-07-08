@@ -23,7 +23,7 @@ namespace PaintsNow {
 		virtual ~TaskQueue();
 		void Push(uint32_t id, ITask* task, void* tag);
 		void Flush(ThreadPool& threadPool);
-		typedef TQueueList<std::pair<ITask*, void*>, 12> RingBuffer;
+		typedef TQueueList<std::pair<ITask*, void*>, 8> RingBuffer;
 		const std::vector<RingBuffer>& GetRingBuffers() const;
 
 	protected:

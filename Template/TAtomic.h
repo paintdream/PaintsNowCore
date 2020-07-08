@@ -140,6 +140,10 @@ namespace std {
 	private:
 		volatile LONG value;
 	};
+
+	inline void atomic_thread_fence(std::memory_order) {
+		MemoryBarrier();
+	}
 }
 #endif
 
