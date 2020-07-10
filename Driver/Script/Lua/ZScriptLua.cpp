@@ -21,12 +21,14 @@ using namespace PaintsNow;
 
 // static int g_global = 0;
 // static int g_scriptKey = 1;
-static int g_bindKey = 2;
-static int g_dummyKey = 3;
-static int g_refKey = 4;
-static int g_objKey = 5;
-static int g_wrapKey = 6;
-static int g_localKey = 7;
+enum {
+	LUA_RIDX_BIND_KEY = LUA_RIDX_LAST + 1,
+	LUA_RIDX_DUMMY_KEY,
+	LUA_RIDX_REFERENCE_KEY,
+	LUA_RIDX_OBJECT_KEY,
+	LUA_RIDX_LOCAL_KEY,
+	LUA_RIDX_WRAP_KEY,
+};
 
 std::map<String, std::pair<const char*, size_t> > ZScriptLua::builtinModules;
 
@@ -267,15 +269,15 @@ void ZScriptLua::Init() {
 	lua_pushliteral(state, "__gc");
 	lua_pushcfunction(state, FreeMem);
 	lua_rawset(state, -3);
-	lua_rawsetp(state, LUA_REGISTRYINDEX, (void*)&g_bindKey);
+	lua_rawseti(state, LUA_REGISTRYINDEX, LUA_RIDX_BIND_KEY);
 
 	// make a dummy node for empty table accesses
 	lua_newtable(state);
-	lua_rawsetp(state, LUA_REGISTRYINDEX, (void*)&g_dummyKey);
+	lua_rawseti(state, LUA_REGISTRYINDEX, LUA_RIDX_DUMMY_KEY);
 
 	// make a reference table for references
 	lua_newtable(state);
-	lua_rawsetp(state, LUA_REGISTRYINDEX, (void*)&g_refKey);
+	lua_rawseti(state, LUA_REGISTRYINDEX, LUA_RIDX_REFERENCE_KEY);
 
 	// make a table for delegates
 	lua_newtable(state);
@@ -284,7 +286,7 @@ void ZScriptLua::Init() {
 	lua_rawset(state, -3);
 	lua_pushvalue(state, -1);
 	lua_setmetatable(state, -2);
-	lua_rawsetp(state, LUA_REGISTRYINDEX, (void*)&g_objKey);
+	lua_rawseti(state, LUA_REGISTRYINDEX, LUA_RIDX_OBJECT_KEY);
 
 	// make a table for local storage
 	lua_newtable(state);
@@ -293,14 +295,14 @@ void ZScriptLua::Init() {
 	lua_rawset(state, -3);
 	lua_pushvalue(state, -1);
 	lua_setmetatable(state, -2);
-	lua_rawsetp(state, LUA_REGISTRYINDEX, (void*)&g_localKey);
+	lua_rawseti(state, LUA_REGISTRYINDEX, LUA_RIDX_LOCAL_KEY);
 
 	// make a table for wrappers
 	lua_newtable(state);
 	lua_pushliteral(state, "__gc");
 	lua_pushcfunction(state, FreeWrapper);
 	lua_rawset(state, -3);
-	lua_rawsetp(state, LUA_REGISTRYINDEX, (void*)&g_wrapKey);
+	lua_rawseti(state, LUA_REGISTRYINDEX, LUA_RIDX_WRAP_KEY);
 
 	// const char* type = lua_typename(state, lua_typex(state, -1));
 
@@ -499,7 +501,7 @@ static int IncreaseTableIndex(lua_State* L, int count = 1) {
 }
 
 inline void refget(lua_State* L, const IScript::Request::Ref& ref) {
-	lua_rawgetp(L, LUA_REGISTRYINDEX, &g_refKey);
+	lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_REFERENCE_KEY);
 	lua_rawgeti(L, -1, ref.value);
 	lua_replace(L, -2);
 }
@@ -579,7 +581,7 @@ IScript::Request& ZScriptLua::Request::operator >> (const Skip& skip) {
 
 
 IScript::Request& ZScriptLua::Request::operator << (const IScript::Request::Local&) {
-	lua_rawgetp(L, LUA_REGISTRYINDEX, &g_localKey);
+	lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_LOCAL_KEY);
 	lua_pushthread(L);
 	assert(lua_istable(L, -2));
 	if (lua_rawget(L, -2) == LUA_TNIL) {
@@ -616,7 +618,7 @@ IScript::Request& ZScriptLua::Request::operator << (const IScript::Request::Glob
 void ZScriptLua::Request::Dereference(IScript::Request::Ref& ref) {
 	assert(GetScript()->GetLockCount() == 1);
 	if (ref.value != 0) {
-		lua_rawgetp(L, LUA_REGISTRYINDEX, &g_refKey);
+		lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_REFERENCE_KEY);
 		// refget(L, ref);
 		// printf("UNREF: %s\n", lua_typename(L, lua_typex(L, -1)));
 		// lua_pop(L, 1);
@@ -633,7 +635,7 @@ inline IScript::Request::Ref refadd(lua_State* L, int index) {
 		return IScript::Request::Ref(0);
 	}
 
-	lua_rawgetp(L, LUA_REGISTRYINDEX, &g_refKey);
+	lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_REFERENCE_KEY);
 	lua_pushvalue(L, index > 0 ? index : index - 1);
 	// printf("Val type: %s\n", lua_typename(L, lua_typex(L, -1)));
 	int ref = luaL_ref(L, -2);
@@ -646,7 +648,7 @@ inline void wrapget(lua_State* L, const IScript::Request::AutoWrapperBase& wrapp
 	IScript::Request::AutoWrapperBase** ptr = reinterpret_cast<IScript::Request::AutoWrapperBase**>(lua_newuserdata(L, sizeof(IScript::Request::AutoWrapperBase*)));
 	*ptr = wrapper.Clone();
 
-	lua_rawgetp(L, LUA_REGISTRYINDEX, &g_wrapKey);
+	lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_WRAP_KEY);
 	lua_setmetatable(L, -2);
 
 	lua_pushcclosure(L, FunctionProxy, 1);
@@ -756,7 +758,7 @@ IScript::Request& ZScriptLua::Request::operator >> (IScript::Request::TableStart
 
 	if (!lua_istable(L, -1)) {
 		lua_pop(L, 1);
-		lua_rawgetp(L, LUA_REGISTRYINDEX, &g_dummyKey);
+		lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_DUMMY_KEY);
 	}
 
 	lua_pushliteral(L, "n");
@@ -1022,7 +1024,7 @@ inline void PushUserdata(lua_State* L, const IScript::BaseDelegate& b) {
 	IScript::Object* ptr = d.GetRaw();
 	int t = lua_gettop(L);
 	// check if already exists
-	lua_rawgetp(L, LUA_REGISTRYINDEX, &g_objKey);
+	lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_OBJECT_KEY);
 	lua_rawgetp(L, -1, ptr);
 	lua_replace(L, -2);
 
@@ -1035,11 +1037,11 @@ inline void PushUserdata(lua_State* L, const IScript::BaseDelegate& b) {
 
 		if (lua_rawget(L, LUA_REGISTRYINDEX) == LUA_TNIL) {
 			lua_pop(L, 1);
-			lua_rawgetp(L, LUA_REGISTRYINDEX, &g_bindKey);
+			lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_BIND_KEY);
 		}
 		
 		lua_setmetatable(L, -2);
-		lua_rawgetp(L, LUA_REGISTRYINDEX, &g_objKey);
+		lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_OBJECT_KEY);
 		lua_pushvalue(L, -2);
 		lua_rawsetp(L, -2, ptr);
 		lua_pop(L, 1);
@@ -1203,7 +1205,7 @@ inline ZScriptLua::IndexState ZScriptLua::Request::ExchangeState(const IndexStat
 
 IScript::Request::Ref ZScriptLua::Request::Load(const String& script, const String& path) {
 	assert(GetScript()->GetLockCount() == 1);
-	// lua_pushlightuserdata(L, &g_refKey);
+	// lua_pushlightuserdata(L, LUA_RIDX_REFERENCE_KEY);
 	// lua_rawget(L, LUA_REGISTRYINDEX);
 	// assert(lua_istable(L, -1));
 	IScript::Request::Ref ref;
