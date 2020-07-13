@@ -12,9 +12,7 @@ namespace PaintsNow {
 	IScript::Request::Key key("");
 	IScript::Request::Nil nil;
 	IScript::Request::Global global;
-	IScript::Request::Local local;
 	IScript::Request::Ref ref;
-	IScript::Request::Skip skip(1);
 	IScript::Request::Sync sync;
 	IScript::Request::Deferred deferred;
 }
@@ -221,7 +219,7 @@ public:
 	size_t itemCount;
 };
 
-IScript::IScript(IThread& api) : ISyncObject(api), debugMask(DEBUG_LINE) {}
+IScript::IScript(IThread& api) : ISyncObject(api) {}
 
 IScript::~IScript() {
 }
@@ -248,11 +246,6 @@ void IScript::Request::DoLock() {
 
 void IScript::Request::UnLock() {
 	GetScript()->UnLock();
-}
-
-IScript::Request::Skip::Skip(int k) : count(k) {}
-IScript::Request::Skip IScript::Request::Skip::operator () (int k) {
-	return IScript::Request::Skip(k);
 }
 
 IScript::Request::Ref::Ref(size_t i) : value(i) {}
@@ -433,15 +426,6 @@ IScript::Request& IScript::Request::operator << (const IReflectObject& object) {
 	return *this;
 }
 
-IScript::Request& IScript::Request::operator << (const Skip& skip) {
-	return *this >> skip;
-}
-
-void IScript::SetDebugHandler(const TWrapper<void, Request&, int, int>& handler, int mask) {
-	debugHandler = handler;
-	debugMask = mask;
-}
-
 bool IScript::IsTypeCompatible(Request::TYPE target, Request::TYPE source) const {
 	return target == source;
 }
@@ -454,16 +438,8 @@ void IScript::SetDispatcher(const TWrapper<void, Request&, IHost*, size_t, const
 	dispatcher = disp;
 }
 
-const char* IScript::QueryUniformResource(const String & path, size_t & length) {
-	return nullptr;
-}
-
 const TWrapper<void, IScript::Request&, IHost*, size_t, const TWrapper<void, IScript::Request&>&>& IScript::GetDispatcher() const {
 	return dispatcher;
-}
-
-const TWrapper<void, IScript::Request&, int, int>& IScript::GetDebugHandler() const {
-	return debugHandler;
 }
 
 void IScript::Request::Error(const String& msg) {

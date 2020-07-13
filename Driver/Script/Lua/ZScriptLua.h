@@ -43,7 +43,6 @@ namespace PaintsNow {
 			virtual IScript::Request& operator << (const IScript::BaseDelegate&) override;
 			virtual IScript::Request& operator >> (IScript::BaseDelegate&) override;
 			virtual IScript::Request& operator << (const IScript::Request::Global&) override;
-			virtual IScript::Request& operator << (const IScript::Request::Local&) override;
 			virtual IScript::Request& operator << (const IScript::Request::TableStart&) override;
 			virtual IScript::Request& operator >> (IScript::Request::TableStart&) override;
 			virtual IScript::Request& operator << (const IScript::Request::TableEnd&) override;
@@ -65,7 +64,6 @@ namespace PaintsNow {
 			virtual IScript::Request& operator << (bool b) override;
 			virtual IScript::Request& operator >> (bool& b) override;
 			virtual IScript::Request& operator << (const AutoWrapperBase& wrapper) override;
-			virtual IScript::Request& operator >> (const Skip& skip) override;
 			virtual IScript::Request& MoveVariables(IScript::Request& target, size_t count) override;
 			virtual void Dereference(IScript::Request::Ref& ref) override;
 			virtual IScript::Request::Ref Reference(const IScript::Request::Ref& d) override;
@@ -98,8 +96,6 @@ namespace PaintsNow {
 		virtual IScript* NewScript() const;
 		virtual IScript::Request* NewRequest(const String& entry);
 		virtual const char* GetFileExt() const;
-		virtual void SetDebugHandler(const TWrapper<void, IScript::Request&, int, int>& handler, int mask);
-		virtual const char* QueryUniformResource(const String& path, size_t& length);
 
 		int GetInitDeferCount() const;
 		void SetInitDeferCount(int count);
@@ -114,9 +110,9 @@ namespace PaintsNow {
 		std::atomic<uint32_t> closing;
 		ZScriptLua::Request* defaultRequest;
 		size_t totalReference;
-		int initCountDefer;
 		size_t callCounter;
 		IThread::Event* runningEvent;
+		int initCountDefer;
 		static std::map<String, std::pair<const char*, size_t> > builtinModules;
 	private:
 #ifdef _DEBUG

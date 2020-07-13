@@ -26,11 +26,8 @@ enum {
 	LUA_RIDX_DUMMY_KEY,
 	LUA_RIDX_REFERENCE_KEY,
 	LUA_RIDX_OBJECT_KEY,
-	LUA_RIDX_LOCAL_KEY,
 	LUA_RIDX_WRAP_KEY,
 };
-
-std::map<String, std::pair<const char*, size_t> > ZScriptLua::builtinModules;
 
 static thread_local IScript::RequestPool* _CurrentRequestPool = nullptr;
 
@@ -45,45 +42,6 @@ static int lua_typex(lua_State* L, int index) {
 
 inline ZScriptLua* GetScript(lua_State* L) {
 	return *reinterpret_cast<ZScriptLua**>(lua_getextraspace(L));
-	/*
-	lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)&g_scriptKey);
-	ZScriptLua* pRet = reinterpret_cast<ZScriptLua*>(lua_touserdata(L, -1));
-	lua_pop(L, 1);*/
-}
-
-static void DebugHandler(lua_State* L, lua_Debug* ar) {
-	ZScriptLua* pRet = GetScript(L);
-	ZScriptLua::Request s(pRet, L);
-	s.SetRequestPool(_CurrentRequestPool);
-
-	TWrapper<void, IScript::Request&, int, int> handler = pRet->GetDebugHandler();
-	if (handler) {
-		int m = 0;
-		switch (ar->event) {
-			case LUA_HOOKCALL:
-				m = IScript::DEBUG_CALL;
-				break;
-			case LUA_HOOKTAILCALL:
-				m = IScript::DEBUG_TAILCALL;
-				break;
-			case LUA_HOOKRET:
-				m = IScript::DEBUG_RETURN;
-				break;
-			case LUA_HOOKLINE:
-				m = IScript::DEBUG_LINE;
-				break;
-		}
-
-		assert(pRet->GetLockCount() == 1);
-		// pRet->UnLock(); // currently not unlock it by now
-
-		if (handler) {
-			handler(s, m, ar->currentline);
-		}
-		assert(pRet->GetLockCount() == 1);
-
-		// pRet->DoLock();
-	}
 }
 
 static void HandleError(ZScriptLua* script, lua_State* L) {
@@ -288,15 +246,6 @@ void ZScriptLua::Init() {
 	lua_setmetatable(state, -2);
 	lua_rawseti(state, LUA_REGISTRYINDEX, LUA_RIDX_OBJECT_KEY);
 
-	// make a table for local storage
-	lua_newtable(state);
-	lua_pushliteral(state, "__mode");
-	lua_pushliteral(state, "k");
-	lua_rawset(state, -3);
-	lua_pushvalue(state, -1);
-	lua_setmetatable(state, -2);
-	lua_rawseti(state, LUA_REGISTRYINDEX, LUA_RIDX_LOCAL_KEY);
-
 	// make a table for wrappers
 	lua_newtable(state);
 	lua_pushliteral(state, "__gc");
@@ -319,11 +268,6 @@ void ZScriptLua::Init() {
 	initCountDefer = 0;
 
 	deferState = lua_newthread(state); // don't pop it from stack unless the state was closed.
-
-	if (debugHandler) {
-		// set hook
-		SetDebugHandler(debugHandler, debugMask);
-	}
 
 	UnLock();
 }
@@ -424,32 +368,6 @@ bool ZScriptLua::Request::Call(const AutoWrapperBase& defer, const IScript::Requ
 const char* ZScriptLua::GetFileExt() const {
 	static const String ext = "lua";
 	return ext.c_str();
-}
-
-void ZScriptLua::SetDebugHandler(const TWrapper<void, IScript::Request&, int, int>& handler, int mask) {
-	assert(GetLockCount() != 0);
-	if (handler) {
-		int m = 0;
-		if ((mask & IScript::DEBUG_CALL) == IScript::DEBUG_CALL) m |= LUA_MASKCALL;
-		if ((mask & IScript::DEBUG_RETURN) == IScript::DEBUG_RETURN) m |= LUA_MASKRET;
-		if ((mask & IScript::DEBUG_LINE) == IScript::DEBUG_LINE) m |= LUA_MASKLINE;
-
-		lua_sethook(state, DebugHandler, m, 1);
-	} else {
-		lua_sethook(state, nullptr, 0, 0);
-	}
-
-	IScript::SetDebugHandler(handler, mask);
-}
-
-const char* ZScriptLua::QueryUniformResource(const String& path, size_t& length) {
-	std::map<String, std::pair<const char*, size_t> >::const_iterator it = builtinModules.find(path);
-	if (it != builtinModules.end()) {
-		length = it->second.second;
-		return it->second.first;
-	} else {
-		return nullptr;
-	}
 }
 
 IScript::Request* ZScriptLua::NewRequest(const String& entry) {
@@ -562,46 +480,6 @@ IScript::Request& ZScriptLua::Request::operator >> (Arguments& args) {
 	assert(args.count >= 0);
 	return *this;
 }
-
-IScript::Request& ZScriptLua::Request::operator >> (const Skip& skip) {
-	assert(GetScript()->GetLockCount() == 1);
-	if (tableLevel != 0) {
-		assert(lua_isuserdata(L, -1));
-		assert(lua_istable(L, -2));
-		if (key.empty()) {
-			IncreaseTableIndex(L, skip.count);
-		}
-	} else {
-		idx += skip.count;
-		assert(idx <= lua_gettop(L));
-	}
-
-	return *this;
-}
-
-
-IScript::Request& ZScriptLua::Request::operator << (const IScript::Request::Local&) {
-	lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_LOCAL_KEY);
-	lua_pushthread(L);
-	assert(lua_istable(L, -2));
-	if (lua_rawget(L, -2) == LUA_TNIL) {
-		assert(lua_isnil(L, -1));
-		lua_pop(L, 1);
-		assert(lua_istable(L, -1));
-		lua_newtable(L);
-		lua_pushthread(L);
-		lua_pushvalue(L, -2); // make a copy
-		lua_rawset(L, -4);
-		lua_replace(L, -2);
-	}
-
-	lua_remove(L, -2);
-	lua_pushlightuserdata(L, (void*)0);
-	tableLevel++;
-
-	return *this;
-}
-
 
 IScript::Request& ZScriptLua::Request::operator << (const IScript::Request::Global&) {
 	assert(GetScript()->GetLockCount() == 1);

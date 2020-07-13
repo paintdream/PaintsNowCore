@@ -12,7 +12,7 @@
 
 namespace PaintsNow {
 	// Single-read-single-write
-	template <class T, size_t K = 12>
+	template <class T, size_t K = 8>
 	class TQueue {
 	public:
 		TQueue() : pushIndex(0), popIndex(0) {}
@@ -153,7 +153,7 @@ namespace PaintsNow {
 	};
 
 	// Still single-read-single-write
-	template <class T, size_t K = 10>
+	template <class T, size_t K = 8>
 	class TQueueList {
 	public:
 		typedef TQueue<T, K> SubQueue;

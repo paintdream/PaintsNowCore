@@ -12,11 +12,13 @@
 #include "../Template/TVector.h"
 #include "../Template/TAtomic.h"
 #include "../Template/TProxy.h"
+#include "../Template/TMap.h"
 #include "../Template/TAlgorithm.h"
 #include "IThread.h"
 #include <vector>
 #include <list>
 #include <stack>
+#include <map>
 #include <string>
 #include <cassert>
 #include <utility>
@@ -125,12 +127,6 @@ namespace PaintsNow {
 
 			RequestPool* GetRequestPool();
 			void SetRequestPool(RequestPool* pool);
-
-			struct Skip {
-				int count;
-				explicit Skip(int k);
-				Skip operator () (int k);
-			};
 
 			struct Arguments {
 				Arguments() : count(0) {}
@@ -487,7 +483,6 @@ namespace PaintsNow {
 
 			struct Nil {};
 			struct Global {};
-			struct Local {};
 			struct ArrayStart { size_t count; };
 			struct ArrayEnd {};
 			struct TableStart { size_t count; };
@@ -525,7 +520,6 @@ namespace PaintsNow {
 			virtual Request& operator << (const BaseDelegate&) = 0;
 			virtual Request& operator >> (BaseDelegate&) = 0;
 			virtual Request& operator << (const Global&) = 0;
-			virtual Request& operator << (const Local&) = 0;
 			virtual Request& operator << (const TableStart&) = 0;
 			virtual Request& operator >> (TableStart&) = 0;
 			virtual Request& operator << (const TableEnd&) = 0;
@@ -540,6 +534,7 @@ namespace PaintsNow {
 			virtual Request& operator >> (double& value) = 0;
 			virtual Request& operator << (const String& str) = 0;
 			virtual Request& operator >> (String& str) = 0;
+
 #if defined(_MSC_VER) && _MSC_VER <= 1200
 			Request& operator << (const std::string& str) {
 				return *this << *reinterpret_cast<const String*>(&str);
@@ -556,7 +551,6 @@ namespace PaintsNow {
 			virtual Request& operator << (const AutoWrapperBase& wrapper) = 0;
 			virtual Request& operator << (int64_t u) = 0;
 			virtual Request& operator >> (int64_t& u) = 0;
-			virtual Request& operator >> (const Skip& skip) = 0;
 
 			virtual Ref Reference(const Ref& d) = 0;
 			virtual TYPE GetReferenceType(const Ref& d) = 0;
@@ -593,7 +587,6 @@ namespace PaintsNow {
 
 			virtual Request& operator >> (IReflectObject& reflectObject);
 			virtual Request& operator << (const IReflectObject& reflectObject);
-			virtual Request& operator << (const Skip& skip);
 
 			Request& operator >> (Void&);
 			Request& operator << (const Void&);
@@ -619,6 +612,40 @@ namespace PaintsNow {
 					request >> vec[i];
 				}
 				request >> endarray;
+				return request;
+			}
+
+			template <class K, class V>
+			Request& operator >> (std::map<K, V>& m) {
+				Request& request = *this;
+				TableStart begintable;
+				TableEnd endtable;
+
+				request >> begintable;
+				std::vector<Key> keys = Enumerate();
+				for (size_t i = 0; i < keys.size(); i++) {
+					V value;
+					request >> keys[i] >> value;
+					m.emplace(std::move(keys[i]), std::move(value));
+				}
+				request >> endtable;
+				return request;
+			}
+
+			template <class K, class V>
+			Request& operator >> (unordered_map<K, V>& m) {
+				Request& request = *this;
+				TableStart begintable;
+				TableEnd endtable;
+
+				request >> begintable;
+				std::vector<Key> keys = Enumerate();
+				for (size_t i = 0; i < keys.size(); i++) {
+					V value;
+					request >> keys[i] >> value;
+					m.emplace(std::move(keys[i]), std::move(value));
+				}
+				request >> endtable;
 				return request;
 			}
 
@@ -696,6 +723,34 @@ namespace PaintsNow {
 					request << *it;
 				}
 				request << endarray;
+				return request;
+			}
+
+			template <class K, class V>
+			Request& operator << (std::map<K, V>& m) {
+				Request& request = *this;
+				TableStart begintable;
+				TableEnd endtable;
+
+				request << begintable;
+				for (typename std::map<K, V>::iterator it = m.begin(); it != m.end(); ++it) {
+					request << key((*it).first) << (*it).second;
+				}
+				request << endtable;
+				return request;
+			}
+
+			template <class K, class V>
+			Request& operator << (unordered_map<K, V>& m) {
+				Request& request = *this;
+				TableStart begintable;
+				TableEnd endtable;
+
+				request << begintable;
+				for (typename unordered_map<K, V>::iterator it = m.begin(); it != m.end(); ++it) {
+					request << key((*it).first) << (*it).second;
+				}
+				request << endtable;
 				return request;
 			}
 
@@ -1036,7 +1091,7 @@ namespace PaintsNow {
 				}
 			};
 
-			template <typename RR, typename FF, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M>
+			template <class RR, class FF, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M>
 			static TWrapper<void> Make(const TWrapper<RR, FF, A, B, C, D, E, F, G, H, I, J, K, L, M>& wp) {
 				Dispatcher<A, B, C, D, E, F, G, H, I, J, K, L, M>* ptr = nullptr;
 				switch (wp.GetCount()) {
@@ -1204,14 +1259,9 @@ namespace PaintsNow {
 		virtual Request* NewRequest(const String& entry = "") = 0;
 		virtual Request& GetDefaultRequest() = 0;
 		virtual bool IsTypeCompatible(Request::TYPE target, Request::TYPE source) const;
-
-		enum { DEBUG_LINE = 1, DEBUG_CALL = 2, DEBUG_TAILCALL = 4, DEBUG_RETURN = 8};
-		virtual void SetDebugHandler(const TWrapper<void, Request&, int, int>& handler, int mask = DEBUG_LINE);
 		virtual void SetErrorHandler(const TWrapper<void, Request&, const String&>& errorHandler);
 		virtual void SetDispatcher(const TWrapper<void, Request&, IHost*, size_t, const TWrapper<void, Request&>& >& disp);
-		virtual const char* QueryUniformResource(const String& path, size_t& length);
 		const TWrapper<void, Request&, IHost*, size_t, const TWrapper<void, Request&>& >& GetDispatcher() const;
-		const TWrapper<void, Request&, int, int>& GetDebugHandler() const;
 		// virtual void DoLock();
 		// virtual void UnLock();
 
@@ -1234,8 +1284,6 @@ namespace PaintsNow {
 	protected:
 		TWrapper<void, Request&, IHost*, size_t, const TWrapper<void, Request&>& > dispatcher;
 		TWrapper<void, Request&, const String&> errorHandler;
-		TWrapper<void, Request&, int, int> debugHandler;
-		int debugMask;
 		friend class Request;
 	};
 
@@ -1332,9 +1380,7 @@ namespace PaintsNow {
 	extern IScript::Request::Key key;
 	extern IScript::Request::Nil nil;
 	extern IScript::Request::Global global;
-	extern IScript::Request::Local local;
 	extern IScript::Request::Ref ref;
-	extern IScript::Request::Skip skip;
 	extern IScript::Request::Sync sync;
 	extern IScript::Request::Deferred deferred;
 }
