@@ -641,7 +641,7 @@ IScript::Request& ZScriptLua::Request::operator >> (IScript::Request::TableStart
 
 	lua_pushliteral(L, "n");
 	if (lua_rawget(L, -2) == LUA_TNUMBER) {
-		start.count = lua_tointeger(L, -1);
+		start.count = (size_t)lua_tointeger(L, -1);
 	} else {
 		start.count = (size_t)lua_rawlen(L, -2);
 	}
