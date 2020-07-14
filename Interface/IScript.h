@@ -488,31 +488,33 @@ namespace PaintsNow {
 			struct TableStart { size_t count; };
 			struct TableEnd {};
 
-			class Key : public TReflected<Key, IReflectObjectComplex> {
+			class Key {
 			public:
-				virtual TYPE GetType() const;
-				virtual void SetType(TYPE type);
-				virtual const char* GetKey() const;
-				virtual void SetKey(const char* k);
+				Key(const String& n, TYPE t = NIL);
 				Key operator () (const String& k);
-				Key(const String& k = "", TYPE t = NIL);
 
-			private:
+				String name;
 				TYPE type;
-				String key;
 			};
 
-			// IScript* operator -> ();
+			// Interfaces
 			virtual int GetCount() = 0;
 			virtual IScript* GetScript() = 0;
 			virtual void QueryInterface(const TWrapper<void, Request&, IReflectObject&, const Ref&>& callback, IReflectObject& target, const Ref& g);
 			virtual bool Call(const AutoWrapperBase& defer, const Request::Ref& g) = 0;
-
 			virtual std::vector<Key> Enumerate() = 0;
 			virtual TYPE GetCurrentType() = 0;
 			virtual Request::Ref Load(const String& script, const String& pathname = String()) = 0;
 			virtual Request& Push() = 0;
 			virtual Request& Pop() = 0;
+			virtual Ref Reference(const Ref& d) = 0;
+			virtual TYPE GetReferenceType(const Ref& d) = 0;
+			virtual void Dereference(Ref& ref) = 0;
+			virtual void Error(const String& msg);
+			virtual Request& MoveVariables(Request& target, size_t count) = 0;
+
+
+			// Special nodes
 			virtual Request& operator >> (Arguments& ph) = 0;
 			virtual Request& operator >> (Ref&) = 0;
 			virtual Request& operator << (const Ref&) = 0;
@@ -530,33 +532,25 @@ namespace PaintsNow {
 			virtual Request& operator >> (const ArrayEnd&) = 0;
 			virtual Request& operator << (const Key&) = 0;
 			virtual Request& operator >> (const Key&) = 0;
+			virtual Request& operator << (const AutoWrapperBase& wrapper) = 0;
+
+			virtual Request& operator << (Library& module);
+			virtual Request& operator >> (IReflectObject& reflectObject);
+			virtual Request& operator << (const IReflectObject& reflectObject);
+
+			// Basic types
 			virtual Request& operator << (double value) = 0;
 			virtual Request& operator >> (double& value) = 0;
+			virtual Request& operator << (float value);
+			virtual Request& operator >> (float& value);
 			virtual Request& operator << (const String& str) = 0;
 			virtual Request& operator >> (String& str) = 0;
-
-#if defined(_MSC_VER) && _MSC_VER <= 1200
-			Request& operator << (const std::string& str) {
-				return *this << *reinterpret_cast<const String*>(&str);
-			}
-
-			Request& operator >> (std::string& str) {
-				return *this << *reinterpret_cast<String*>(&str);
-			}
-#endif
 			virtual Request& operator << (const char* str) = 0;
 			virtual Request& operator >> (const char*& str) = 0;
-			virtual Request& operator << (bool b) = 0;
-			virtual Request& operator >> (bool& b) = 0;
-			virtual Request& operator << (const AutoWrapperBase& wrapper) = 0;
+			virtual Request& operator << (bool value) = 0;
+			virtual Request& operator >> (bool& value) = 0;
 			virtual Request& operator << (int64_t u) = 0;
 			virtual Request& operator >> (int64_t& u) = 0;
-
-			virtual Ref Reference(const Ref& d) = 0;
-			virtual TYPE GetReferenceType(const Ref& d) = 0;
-			virtual void Dereference(Ref& ref) = 0;
-			virtual void Error(const String& msg);
-			virtual Request& MoveVariables(Request& target, size_t count) = 0;
 
 			virtual Request& operator >> (int8_t& t);
 			virtual Request& operator << (int8_t t);
@@ -579,18 +573,12 @@ namespace PaintsNow {
 			virtual Request& operator >> (unsigned long& t);
 			virtual Request& operator << (unsigned long t);
 #endif
-
 			virtual Request& operator >> (Void*& t);
 			virtual Request& operator << (Void* t);
-			virtual Request& operator << (Library& module);
-			virtual Request& operator >> (float& value);
-
-			virtual Request& operator >> (IReflectObject& reflectObject);
-			virtual Request& operator << (const IReflectObject& reflectObject);
-
 			Request& operator >> (Void&);
 			Request& operator << (const Void&);
 
+			// Template types
 			template <class T>
 			Request& operator << (const safe_cast<T>& v) {
 				return *this << (T)v;
@@ -858,7 +846,7 @@ namespace PaintsNow {
 				}
 
 				virtual Request& Register(Request& request, const String& defName) const {
-					request << Request::Key(name.empty() ? defName : name) << Request::Adapt(Wrap(pointer, *member));
+					request << IScript::Request::Key(name.empty() ? defName : name) << Request::Adapt(Wrap(pointer, *member));
 
 					return request;
 				}

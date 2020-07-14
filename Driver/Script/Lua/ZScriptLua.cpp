@@ -828,7 +828,7 @@ IScript::Request& ZScriptLua::Request::operator >> (const char*& value) {
 
 IScript::Request& ZScriptLua::Request::operator << (const IScript::Request::Key& k) {
 	assert(GetScript()->GetLockCount() == 1);
-	key = k.GetKey();
+	key = k.name;
 	return *this;
 }
 
@@ -879,20 +879,20 @@ IScript::Request& ZScriptLua::Request::operator >> (const IScript::Request::Key&
 		lua_pop(L, 1);
 
 		if (isGlobal) {
-			lua_getglobal(L, k.GetKey());
+			lua_getglobal(L, k.name.c_str());
 		} else {
-			lua_pushstring(L, k.GetKey());
+			lua_pushstring(L, k.name.c_str());
 			lua_rawget(L, -3);
 		}
 
 		type = lua_typex(L, -1);
 		lua_pop(L, 1);
-		key = k.GetKey();
+		key = k.name.c_str();
 	} else {
 		type = lua_typex(L, idx); // read the current one
 	}
 
-	k.SetType(ConvertType(type));
+	k.type = ConvertType(type);
 
 	return *this;
 }

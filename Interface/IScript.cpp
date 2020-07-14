@@ -250,7 +250,7 @@ void IScript::Request::UnLock() {
 
 IScript::Request::Ref::Ref(size_t i) : value(i) {}
 
-IScript::Request::Key::Key(const String& k, IScript::Request::TYPE t) : type(t), key(k) {}
+IScript::Request::Key::Key(const String& k, IScript::Request::TYPE t) : type(t), name(k) {}
 IScript::Request::Key IScript::Request::Key::operator () (const String& k) {
 	return Key(k);
 }
@@ -399,6 +399,11 @@ IScript::Request& IScript::Request::operator << (const Void&) {
 	return *this;
 }
 
+IScript::Request& IScript::Request::operator << (float value) {
+	*this << (double)value;
+	return *this;
+}
+
 IScript::Request& IScript::Request::operator >> (float& value) {
 	double db = 0;
 	*this >> db;
@@ -468,23 +473,6 @@ void IScript::UnLock() {
 
 void IScript::Reset() {
 }
-
-void IScript::Request::Key::SetKey(const char* k) {
-	key = k;
-}
-
-const char* IScript::Request::Key::GetKey() const {
-	return key.c_str();
-}
-
-IScript::Request::TYPE IScript::Request::Key::GetType() const {
-	return type;
-}
-
-void IScript::Request::Key::SetType(IScript::Request::TYPE t) {
-	type = t;
-}
-
 
 bool IScript::Request::AutoWrapperBase::IsSync() const {
 	return false;
