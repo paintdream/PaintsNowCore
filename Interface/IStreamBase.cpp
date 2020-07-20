@@ -11,7 +11,7 @@ inline bool WriteBaseObject(IStreamBase& stream, Unique typeID, Unique refTypeID
 	bool result = true;
 	if (typeID != refTypeID) { // pointer
 		IReflectObjectComplex*& object = *reinterpret_cast<IReflectObjectComplex**>(ptr);
-		stream << ((object != nullptr) ? object->GetUnique()->typeName : "");
+		stream << ((object != nullptr) ? object->GetUnique()->GetName() : "");
 		if (object != nullptr) {
 			return *object >> stream;
 		} else {
@@ -59,10 +59,10 @@ inline bool ReadBaseObject(IStreamBase& stream, Unique typeID, Unique refTypeID,
 		String typeName;
 		stream >> typeName;
 		if (typeName.size() != 0) {
-			IUniqueInfo* info = GetGlobalUniqueAllocator()->Get(typeName.c_str());
-			assert(info != nullptr);
-			if (info != nullptr) {
-				object = static_cast<IReflectObjectComplex*>(info->Create());
+			Unique unique(typeName);
+			assert(unique);
+			if ((bool)unique && unique->IsCreatable()) {
+				object = static_cast<IReflectObjectComplex*>(unique->Create());
 				assert(!object->IsBasicObject());
 				*object << stream;
 				return true;
@@ -145,7 +145,7 @@ public:
 			meta = meta->GetNext();
 		}
 
-		size_t size = typeID->size;
+		size_t size = typeID->GetSize();
 		if (s.IsBasicObject()) {
 			if (read) {
 				if (customPersist != nullptr) {

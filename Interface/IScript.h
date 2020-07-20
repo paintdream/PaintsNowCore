@@ -93,7 +93,7 @@ namespace PaintsNow {
 		public:
 			inline const String& GetTypeName() const {
 				static Unique u = UniqueType<T>::Get();
-				return u.info->typeName;
+				return u->GetName();
 			}
 
 			inline T* Get() const {

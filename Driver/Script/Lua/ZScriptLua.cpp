@@ -142,7 +142,7 @@ static int FreeMem(lua_State* L) {
 	assert(script->GetLockCount() == 1);
 	script->UnLock();
 
-	// printf("<<<< DELETED OBJ: %p Type: %s\n", obj, obj->GetUnique()->typeName.c_str());
+	// printf("<<<< DELETED OBJ: %p Type: %s\n", obj, obj->GetUnique()->GetName().c_str());
 	if (obj != nullptr) {
 		obj->ScriptUninitialize(s);
 	}
@@ -911,7 +911,7 @@ inline void PushUserdata(lua_State* L, const IScript::BaseDelegate& b) {
 		lua_pop(L, 1);
 		void* p = lua_newuserdata(L, sizeof(void*));
 		memcpy(p, &ptr, sizeof(void*));
-		lua_pushstring(L, ptr->GetUnique()->typeName.c_str());
+		lua_pushstring(L, ptr->GetUnique()->GetName().c_str());
 
 		if (lua_rawget(L, LUA_REGISTRYINDEX) == LUA_TNIL) {
 			lua_pop(L, 1);

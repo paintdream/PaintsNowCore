@@ -4,79 +4,20 @@
 #include <sstream>
 using namespace PaintsNow;
 
-size_t IUniqueInfo::GetSize() const {
-	return size;
-}
-
-String IUniqueInfo::GetSubName() const {
+String UniqueInfo::GetBriefName() const {
 	String s = typeName;
-	size_t t = s.rfind(':');
-	if (t != String::npos) {
-		return s.substr(t + 1);
-	} else {
-		t = s.rfind(' ');
-		if (t != String::npos) {
-			return s.substr(t + 1);
+	size_t k = 0;
+	for (size_t i = 0, j = 0; i < typeName.size(); i++) {
+		if (s[i] == ':') {
+			k = j;
 		} else {
-			return s;
+			if (s[i] == '<' || s[i] == '>' || s[i] == ' ') j = i + 1;
+			s[k++] = s[i];
 		}
 	}
-}
 
-IReflectObject* IUniqueInfo::Create() const {
-	assert(creator);
-	return creator();
-}
-
-IUniqueAllocator* IUniqueInfo::GetAllocator() const {
-	return allocator;
-}
-
-Unique::Unique(IUniqueInfo* f) : info(f) {}
-
-bool Unique::operator != (const Unique& unique) const {
-	return !(*this == unique);
-}
-
-bool Unique::operator == (const Unique& unique) const {
-	assert(info != nullptr);
-	if (info == unique.info) {
-		return true;
-	} else if (info->allocator == unique.info->allocator) {
-		return false;
-	} else {
-#ifdef _MSC_VER
-		// compatibility
-		size_t lhs = info->typeName.length();
-		size_t rhs = unique.info->typeName.length();
-		const char* pl = info->typeName.c_str();
-		const char* pr = unique.info->typeName.c_str();
-		if (lhs < rhs) {
-			std::swap(lhs, rhs);
-			std::swap(pl, pr);
-		}
-
-		static const char ext[] = ",class PaintsNow::Void";
-		return strncmp(pl, pr, rhs - 1) == 0 && (pr[rhs - 1] == pl[rhs - 1] || (pr[rhs - 1] == '>' && strncmp(pl + rhs - 1, ext, sizeof(ext) - 1) == 0));
-#else
-		return info->typeName == unique.info->typeName /* && info->GetSize() == unique->GetSize() */;
-#endif
-	}
-}
-
-bool Unique::operator < (const Unique& unique) const {
-	// assert(info->GetAllocator() == unique.info->GetAllocator());
-	return info->typeName < unique.info->typeName;
-	// if (res > 0 || res < 0) return res < 0;
-	// else return info->GetSize() < unique->GetSize();
-}
-
-const IUniqueInfo* Unique::operator -> () const {
-	return info;
-}
-
-IUniqueInfo* Unique::operator -> () {
-	return info;
+	s[k] = '\0';
+	return String(s.c_str(), k);
 }
 
 IReflectObject::IReflectObject() {}
@@ -185,10 +126,6 @@ void* Inspector::Find(Unique unique, const String& filter) const {
 	}
 }
 
-IUniqueAllocator* IReflectObject::GetUniqueAllocator() const {
-	return GetGlobalUniqueAllocator();
-}
-
 bool IReflectObject::operator << (IStreamBase& stream) {
 	return stream.Read(const_cast<IReflectObject&>(*this), GetUnique(), const_cast<IReflectObject*>(this), sizeof(*this));
 }
@@ -247,7 +184,7 @@ public:
 
 String IReflectObjectComplex::ToString() const {
 	std::stringstream ss;
-	ss << GetUnique()->typeName << " (" << std::hex << (void*)this << " )";
+	ss << GetUnique()->GetName() << " (" << std::hex << (void*)this << " )";
 	return ss.str();
 }
 
@@ -269,7 +206,7 @@ IIterator::~IIterator() {}
 
 String IIterator::ToString() const {
 	std::stringstream ss;
-	ss << "Collection<" << GetPrototypeUnique()->typeName << "> (" << std::hex << (size_t)this << " ) [" << std::dec << GetTotalCount() << "]";
+	ss << "Collection<" << GetPrototypeUnique()->GetName() << "> (" << std::hex << (size_t)this << " ) [" << std::dec << GetTotalCount() << "]";
 	return ss.str();
 }
 
@@ -385,7 +322,7 @@ void ReflectQueryType::Class(IReflectObject& host, Unique id, const char* name, 
 
 Unique IReflectObject::GetUnique() const {
 	ReflectQueryType query(const_cast<IReflectObject&>(*this));
-	assert(((Unique)query).info != nullptr); // no class provided.
+	assert((Unique)query); // no class provided.
 	return query;
 }
 
@@ -400,59 +337,32 @@ String IReflectObject::ToString() const {
 	return str;
 }
 
-IUniqueAllocator::~IUniqueAllocator() {}
-
 UniqueAllocator::UniqueAllocator() {
 	critical.store(0, std::memory_order_relaxed);
 }
 
-UniqueAllocator::~UniqueAllocator() {
-}
-
-IUniqueInfo* UniqueAllocator::Get(const String& key) {
+UniqueInfo* UniqueAllocator::Create(const String& key, size_t size) {
 	SpinLock(critical);
-	std::map<String, IUniqueInfo>::iterator it = mapType.find(key);
-	IUniqueInfo* info = it == mapType.end() ? nullptr : &(*it).second;
-	SpinUnLock(critical);
 
-	return info;
-}
-
-IUniqueInfo* UniqueAllocator::Alloc(const String& key, size_t size) {
-	SpinLock(critical);
-	std::map<String, IUniqueInfo>::iterator it = mapType.find(key);
-	IUniqueInfo* ret = nullptr;
+	std::map<String, UniqueInfo>::iterator it = mapType.find(key);
+	UniqueInfo* ret = nullptr;
 	if (it == mapType.end()) {
-		IUniqueInfo info;
+		UniqueInfo info;
 		info.typeName = key;
 		info.size = size;
 		info.allocator = this;
 		ret = &(mapType[key] = info);
 	} else {
 		ret = &(mapType[key]);
+		if (size != 0) {
+			ret->size = size;
+		}
 	}
 
 	SpinUnLock(critical);
 	return ret;
 }
 
-namespace PaintsNow {
-	static UniqueAllocator LocalUniqueAllocator;
-	static IUniqueAllocator* TheUniqueAllocator = &LocalUniqueAllocator;
-
-	IUniqueAllocator* GetGlobalUniqueAllocator() {
-		assert(TheUniqueAllocator != nullptr);
-		return TheUniqueAllocator;
-	}
-
-	void SetGlobalUniqueAllocator(IUniqueAllocator* alloc) {
-		TheUniqueAllocator = alloc;
-	}
-
-	MetaNote Note("");
-	MetaConstructable Constructable;
-	MetaRuntime Runtime;
-}
 
 MetaNote::MetaNote(const String& v) : value(v) {}
 
@@ -480,4 +390,15 @@ Unique MetaConstructable::GetUnique() const {
 
 Unique MetaVoid::GetUnique() const {
 	return UniqueType<Void>::Get();
+}
+
+namespace PaintsNow {
+	UniqueAllocator& UniqueAllocator::GetInstance() {
+		static UniqueAllocator theAllocator;
+		return theAllocator;
+	}
+
+	MetaNote Note("");
+	MetaConstructable Constructable;
+	MetaRuntime Runtime;
 }

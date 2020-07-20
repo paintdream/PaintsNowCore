@@ -366,12 +366,12 @@ void FilterPodImpl::OnSubClass(IReflectObject& s, const char* name) {
 }
 
 IReflectObjectComplex* FilterPodImpl::CreateObjectFromMeta(const String& metaData) {
-	IUniqueInfo* info = GetGlobalUniqueAllocator()->Get(metaData.c_str());
-	return info == nullptr ? nullptr : static_cast<IReflectObjectComplex*>(info->Create());
+	Unique unique(metaData);
+	return (bool)unique && unique->IsCreatable() ? static_cast<IReflectObjectComplex*>(unique->Create()) : nullptr;
 }
 
 String FilterPodImpl::GetMetaFromObject(IReflectObjectComplex& object) {
-	return object.GetUnique().info->typeName;
+	return object.GetUnique()->GetName();
 }
 
 void FilterPodImpl::Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta) {
@@ -411,7 +411,7 @@ void FilterPodImpl::Property(IReflectObject& s, Unique typeID, Unique refTypeID,
 		bool isPointer = typeID != refTypeID;
 		if (isString || isByteBuffer || isPointer || customPersister != nullptr) {
 			bool created = false;
-			Type& type = NewType(typeID, typeID.info->typeName, postfix, created);
+			Type& type = NewType(typeID, typeID->GetName(), postfix, created);
 			if (created) {
 				if (customPersister != nullptr) {
 					type.persister = static_cast<MetaStreamPersist*>(customPersister->Clone());
@@ -426,12 +426,12 @@ void FilterPodImpl::Property(IReflectObject& s, Unique typeID, Unique refTypeID,
 
 			PodInsert(current->pod, (const uint8_t*)name, (PodSize)((const char*)ptr - (const char*)base), 1, 0, isPointer && customPersister == nullptr ? 1 : 0, type.pod);
 		} else {
-			PodInsert(current->pod, (const uint8_t*)name, (PodSize)((const char*)ptr - (const char*)base), 0, 0, 0, POD_TYPE(typeID->size));
+			PodInsert(current->pod, (const uint8_t*)name, (PodSize)((const char*)ptr - (const char*)base), 0, 0, 0, POD_TYPE(typeID->GetSize()));
 		}
 	} else if (s.IsIterator()) {
 		IIterator& iter = static_cast<IIterator&>(s);
 		std::ostringstream os;
-		os << name << "[" << (size_t)typeID.info << "]";
+		os << name << "[" << (size_t)typeID.GetInfo() << "]";
 		bool created = false;
 		Type& type = NewType(typeID, os.str(), postfix, created);
 
@@ -441,13 +441,13 @@ void FilterPodImpl::Property(IReflectObject& s, Unique typeID, Unique refTypeID,
 			Unique subUnique = iter.GetPrototypeUnique();
 			if (prototype.IsBasicObject() && customPersister == nullptr) {
 				if (subUnique != iter.GetPrototypeReferenceUnique()) {
-					Type& subType = NewType(subUnique, subUnique.info->typeName, postfix, created);
+					Type& subType = NewType(subUnique, subUnique->GetName(), postfix, created);
 					PodInsert(type.pod, (const uint8_t*)"[]", 0, 0, 0, 1, subType.pod);
 				} else {
-					PodInsert(type.pod, (const uint8_t*)"[]", 0, 0, 0, 0, POD_TYPE(subUnique->size));
+					PodInsert(type.pod, (const uint8_t*)"[]", 0, 0, 0, 0, POD_TYPE(subUnique->GetSize()));
 				}
 			} else {
-				Type& subType = NewType(subUnique, subUnique.info->typeName, postfix, created);
+				Type& subType = NewType(subUnique, subUnique->GetName(), postfix, created);
 				if (created) {
 					if (customPersister != nullptr) {
 						type.subPersister = subType.persister = static_cast<MetaStreamPersist*>(customPersister->Clone());
@@ -470,7 +470,7 @@ void FilterPodImpl::Property(IReflectObject& s, Unique typeID, Unique refTypeID,
 	} else {
 		// cascade
 		bool created = false;
-		Type& type = NewType(typeID, typeID.info->typeName, postfix, created);
+		Type& type = NewType(typeID, typeID->GetName(), postfix, created);
 		if (created) {
 			if (customPersister != nullptr) {
 				type.persister = static_cast<MetaStreamPersist*>(customPersister->Clone());
@@ -515,7 +515,7 @@ FilterPodImpl::Type& FilterPodImpl::NewType(Unique id, const String& name, const
 
 void FilterPodImpl::Class(IReflectObject& host, Unique id, const char* name, const char* path, const MetaChainBase* meta) {
 	bool created = false;
-	current = &NewType(id, id.info->typeName.c_str(), "", created);
+	current = &NewType(id, id->GetName().c_str(), "", created);
 	if (created) {
 		// write parent fields
 		while (meta != nullptr) {
@@ -524,7 +524,7 @@ void FilterPodImpl::Class(IReflectObject& host, Unique id, const char* name, con
 			Unique u = node->GetUnique();
 			if (u != UniqueType<Void>::Get()) {
 				bool created = false;
-				const char* subName = u.info->typeName.c_str();
+				const char* subName = u->GetName().c_str();
 				if (mapTypes.find(std::make_pair(u, String(""))) == mapTypes.end()) {
 					OnSubClass(*node, subName);
 				}

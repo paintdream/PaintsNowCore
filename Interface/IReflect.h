@@ -36,86 +36,81 @@
 namespace PaintsNow {
 	class IStreamBase;
 	class IReflectObject;
-	class IUniqueAllocator;
 
 	// Runtime class info
-	struct IUniqueInfo {
-		virtual ~IUniqueInfo() {}
-		virtual size_t GetSize() const;
-		virtual IReflectObject* Create() const;
-		virtual IUniqueAllocator* GetAllocator() const;
-		String GetSubName() const;
-		static inline bool CompareInterface(const std::pair<IUniqueInfo*, size_t>& lhs, const std::pair<IUniqueInfo*, size_t>& rhs) {
+	class UniqueAllocator;
+	struct UniqueInfo {
+		UniqueInfo() : size(0), allocator(nullptr) {}
+		size_t GetSize() const { return size; }
+		const String& GetName() const { return typeName; }
+		IReflectObject* Create() const { return creator(); }
+		bool IsCreatable() const { return creator; }
+		String GetBriefName() const;
+		UniqueAllocator* GetAllocator() const { return allocator; }
+		static inline bool CompareInterface(const std::pair<UniqueInfo*, size_t>& lhs, const std::pair<UniqueInfo*, size_t>& rhs) {
 			return lhs.first < rhs.first;
 		}
 
-		bool IsClass(IUniqueInfo* info) const {
-			return std::binary_find(interfaces.begin(), interfaces.end(), std::make_pair(info, (size_t)0), &IUniqueInfo::CompareInterface) != interfaces.end();
+		bool IsClass(UniqueInfo* info) const {
+			return std::binary_find(interfaces.begin(), interfaces.end(), std::make_pair(info, (size_t)0), &UniqueInfo::CompareInterface) != interfaces.end();
 		}
 
-		enum INT_STATE { IS_INTEGER, NOT_INTEGER, TBD };
+		friend class UniqueAllocator;
 
-		IUniqueAllocator* allocator;
+	protected:
 		size_t size;
+		UniqueAllocator* allocator;
 		String typeName;
+
+	public:
 		TWrapper<IReflectObject*> creator;
-		std::vector<std::pair<IUniqueInfo*, size_t> > interfaces; // Derivations
+		std::vector<std::pair<UniqueInfo*, size_t> > interfaces; // Derivations
+	};
+
+	class UniqueAllocator {
+	public:
+		UniqueAllocator();
+		static UniqueAllocator& GetInstance();
+		UniqueInfo* Create(const String& name, size_t size = 0);
+
+	protected:
+		std::atomic<int32_t> critical;
+		std::map<String, UniqueInfo> mapType;
 	};
 
 	// Quick wrapper for runtime class info
 	struct Unique {
-		Unique(IUniqueInfo* f = nullptr);
-		bool operator == (const Unique& unique) const;
-		bool operator != (const Unique& unique) const;
-		bool operator < (const Unique& unique) const;
-		const IUniqueInfo* operator -> () const;
-		IUniqueInfo* operator -> ();
-
-		operator IUniqueInfo* () const {
-			return info;
-		}
-
-		IUniqueInfo* info;
-	};
-
-	class IUniqueAllocator {
-	public:
-		virtual ~IUniqueAllocator();
-		virtual IUniqueInfo* Alloc(const String& name, size_t size) = 0;
-		virtual IUniqueInfo* Get(const String& name) = 0;
-	};
-
-	class UniqueAllocator : public IUniqueAllocator {
-	public:
-		UniqueAllocator();
-		virtual ~UniqueAllocator();
-		virtual IUniqueInfo* Alloc(const String& name, size_t size);
-		virtual IUniqueInfo* Get(const String& name);
+		Unique(UniqueInfo* f = nullptr) : info(f) {}
+		Unique(const String& name) : info(UniqueAllocator::GetInstance().Create(name)) {}
+		bool operator == (const Unique& unique) const { return info == unique.info; }
+		bool operator != (const Unique& unique) const { return info != unique.info; }
+		bool operator < (const Unique& unique) const { return info < unique.info; }
+		const UniqueInfo* operator -> () const { return info; }
+		UniqueInfo* operator -> () { return info; }
+		operator UniqueInfo* () const { return info; }
+		operator bool() const { return info != nullptr; }
+		UniqueInfo* GetInfo() const { return info; }
 
 	private:
-		std::atomic<int32_t> critical;
-		std::map<String, IUniqueInfo> mapType;
+		UniqueInfo* info;
 	};
 
-	IUniqueAllocator* GetGlobalUniqueAllocator();
-	void SetGlobalUniqueAllocator(IUniqueAllocator* alloc);
-
 	template <class T>
-	struct UniqueTypeEx {
+	struct UniqueType {
 		static std::string Demangle(const char* name) {
 			String className;
-		#ifdef __GNUG__
+#ifdef __GNUG__
 			int status = -4; // some arbitrary value to eliminate the compiler warning
 			// enable c++11 by passing the flag -std=c++11 to g++
-			std::unique_ptr<char, void(*)(void*)> res {
+			std::unique_ptr<char, void(*)(void*)> res{
 				abi::__cxa_demangle(name, nullptr, nullptr, &status),
 					std::free
 			};
 
-			className = (status==0) ? res.get() : name;
-		#else
+			className = (status == 0) ? res.get() : name;
+#else
 			className = name;
-		#endif
+#endif
 
 			// remove 'class ' or 'struct ' prefix
 			const String skipPrefixes[] = { "class ", "struct " };
@@ -132,35 +127,12 @@ namespace PaintsNow {
 				s.erase(i, size);
 		}
 
-		static Unique Get(IUniqueAllocator* allocator = GetGlobalUniqueAllocator()) {
-			assert(allocator != nullptr);
+		static Unique Get() {
 			static String className = Demangle(typeid(T).name());
-			static IUniqueInfo* value = allocator->Alloc(className, sizeof(typename ReturnType<T>::type));
+			static UniqueInfo* value = UniqueAllocator::GetInstance().Create(className, sizeof(typename ReturnType<T>::type));
 			return value;
 		}
 	};
-
-	template <class T>
-	struct UniqueType {
-		static Unique Get() {
-			static IUniqueAllocator* allocator = GetGlobalUniqueAllocator();
-#if defined(_MSC_VER) && _MSC_VER <= 1200
-			static Unique unique = UniqueTypeEx<std::remove_reference<T>::type>::Get(allocator);
-#else
-			static Unique unique = UniqueTypeEx<typename std::remove_reference<T>::type>::Get(allocator);
-#endif
-			return unique;
-		}
-
-		static Unique Get(IUniqueAllocator* allocator) {
-#if defined(_MSC_VER) && _MSC_VER <= 1200
-			return UniqueTypeEx<std::remove_reference<T>::type>::Get(allocator);
-#else
-			return UniqueTypeEx<typename std::remove_reference<T>::type>::Get(allocator);
-#endif
-		}
-	};
-
 
 	class IReflect;
 	class IIterator;
@@ -191,9 +163,9 @@ namespace PaintsNow {
 		static T* QueryInterfaceEx(IReflectObject* object, Unique unique, UniqueType<T> target) {
 			if (unique == target.Get()) return reinterpret_cast<T*>(object);
 
-			const std::vector<std::pair<IUniqueInfo*, size_t> >& vec = unique.info->interfaces;
-			IUniqueInfo* targetInfo = target.Get().info;
-			std::vector<std::pair<IUniqueInfo*, size_t> >::const_iterator it = std::binary_find(vec.begin(), vec.end(), std::make_pair(targetInfo, (size_t)0), &IUniqueInfo::CompareInterface);
+			const std::vector<std::pair<UniqueInfo*, size_t> >& vec = unique->interfaces;
+			UniqueInfo* targetInfo = target.Get();
+			std::vector<std::pair<UniqueInfo*, size_t> >::const_iterator it = std::binary_find(vec.begin(), vec.end(), std::make_pair(targetInfo, (size_t)0), &UniqueInfo::CompareInterface);
 
 			// We do not support virtual inheritance
 			return it != vec.end() ? reinterpret_cast<T*>((uint8_t*)object + it->second) : nullptr;
@@ -209,7 +181,6 @@ namespace PaintsNow {
 			return QueryInterfaceEx(const_cast<IReflectObject*>(this), GetUnique(), t);
 		}
 
-		virtual IUniqueAllocator* GetUniqueAllocator() const;
 		virtual void ReleaseObject(); // call delete this by default.
 		virtual void FinalDestroy();
 
@@ -694,7 +665,7 @@ namespace PaintsNow {
 		}
 
 		virtual void Finish(const MetaChainBase* head) {
-			WriterBase<T, const char>::reflect.OnClass(*WriterBase<T, const char>::object, UniqueType<T>::Get()->typeName.c_str(), WriterBase<T, const char>::member, head);
+			WriterBase<T, const char>::reflect.OnClass(*WriterBase<T, const char>::object, UniqueType<T>::Get()->GetName().c_str(), WriterBase<T, const char>::member, head);
 		}
 	};
 
@@ -768,16 +739,16 @@ namespace PaintsNow {
 
 			// We do not support virtual inheritance
 			// Just gen offset from T to P
-			const T* object = (const T*)0x1000;
+			const T* object = (const T*)0x10000;
 			const P* convert = static_cast<const P*>(object);
 			size_t offset = (uint8_t*)convert - (uint8_t*)object;
 
 			t->interfaces.reserve(t->interfaces.size() + p->interfaces.size() + 1);
-			std::binary_insert(t->interfaces, std::make_pair(p.info, offset), &IUniqueInfo::CompareInterface);
+			std::binary_insert(t->interfaces, std::make_pair(p.GetInfo(), offset), &UniqueInfo::CompareInterface);
 			// merge casts
 			for (size_t k = 0; k < p->interfaces.size(); k++) {
-				std::pair<IUniqueInfo*, size_t> v = p->interfaces[k];
-				std::binary_insert(t->interfaces, std::make_pair(v.first, v.second + offset), &IUniqueInfo::CompareInterface);
+				std::pair<UniqueInfo*, size_t> v = p->interfaces[k];
+				std::binary_insert(t->interfaces, std::make_pair(v.first, v.second + offset), &UniqueInfo::CompareInterface);
 			}
 		}
 	};
