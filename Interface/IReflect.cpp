@@ -344,7 +344,7 @@ UniqueAllocator::UniqueAllocator() {
 UniqueInfo* UniqueAllocator::Create(const String& key, size_t size) {
 	SpinLock(critical);
 
-	std::map<String, UniqueInfo>::iterator it = mapType.find(key);
+	std::unordered_map<String, UniqueInfo>::iterator it = mapType.find(key);
 	UniqueInfo* ret = nullptr;
 	if (it == mapType.end()) {
 		UniqueInfo info;

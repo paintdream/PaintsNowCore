@@ -12,6 +12,7 @@
 #include "../Template/TProxy.h"
 #include "../Template/TFactory.h"
 #include "../Template/TAtomic.h"
+#include "../Template/TMap.h"
 #include "IThread.h"
 #include <vector>
 #include <cstring>
@@ -75,7 +76,7 @@ namespace PaintsNow {
 
 	protected:
 		std::atomic<int32_t> critical;
-		std::map<String, UniqueInfo> mapType;
+		std::unordered_map<String, UniqueInfo> mapType;
 	};
 
 	// Quick wrapper for runtime class info
@@ -927,5 +928,14 @@ namespace PaintsNow {
 		}
 	};
 }
+
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+template <>
+struct hash<PaintsNow::Unique> {
+	size_t operator () (const PaintsNow::Unique& unique) const {
+		return (size_t)unique.GetInfo();
+	}
+};
+#endif
 
 #endif // __IREFLECT_H__

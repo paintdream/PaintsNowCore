@@ -621,7 +621,7 @@ namespace PaintsNow {
 			}
 
 			template <class K, class V>
-			Request& operator >> (unordered_map<K, V>& m) {
+			Request& operator >> (std::unordered_map<K, V>& m) {
 				Request& request = *this;
 				TableStart begintable;
 				TableEnd endtable;
@@ -729,13 +729,13 @@ namespace PaintsNow {
 			}
 
 			template <class K, class V>
-			Request& operator << (unordered_map<K, V>& m) {
+			Request& operator << (std::unordered_map<K, V>& m) {
 				Request& request = *this;
 				TableStart begintable;
 				TableEnd endtable;
 
 				request << begintable;
-				for (typename unordered_map<K, V>::iterator it = m.begin(); it != m.end(); ++it) {
+				for (typename std::unordered_map<K, V>::iterator it = m.begin(); it != m.end(); ++it) {
 					request << key((*it).first) << (*it).second;
 				}
 				request << endtable;
