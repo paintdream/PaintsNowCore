@@ -109,8 +109,8 @@ namespace PaintsNow {
 					std::atomic<size_t>& s = p->bitmap[k];
 					size_t mask = s.load(std::memory_order_relaxed);
 					if (mask != ~(size_t)0) {
-						size_t bit = Alignment(mask + 1);
-						size_t index = Log2(bit) + OFFSET + k * 8 * sizeof(size_t);
+						size_t bit = Math::Alignment(mask + 1);
+						size_t index = Math::Log2(bit) + OFFSET + k * 8 * sizeof(size_t);
 						if (index < N && s.compare_exchange_strong(mask, mask | bit, std::memory_order_release)) {
 							if (p->allocCount.fetch_add(1, std::memory_order_relaxed) == 0) {
 								BaseClass::ReferenceObject();

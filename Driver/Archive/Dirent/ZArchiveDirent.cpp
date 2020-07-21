@@ -57,12 +57,12 @@ public:
 	virtual bool Transfer(IStreamBase& stream, size_t& len) {
 		const size_t SIZE = 512;
 		char buffer[SIZE];
-		size_t rl = Min(SIZE, len);
+		size_t rl = Math::Min(SIZE, len);
 		while (len > 0 && Read(buffer, rl)) {
-			size_t wl = Min(SIZE, len);
+			size_t wl = Math::Min(SIZE, len);
 			stream.Write(buffer, wl);
 			len -= SIZE;
-			rl = Min(SIZE, len);
+			rl = Math::Min(SIZE, len);
 		}
 
 		return len == 0;

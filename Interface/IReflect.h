@@ -48,12 +48,9 @@ namespace PaintsNow {
 		bool IsCreatable() const { return creator; }
 		String GetBriefName() const;
 		UniqueAllocator* GetAllocator() const { return allocator; }
-		static inline bool CompareInterface(const std::pair<UniqueInfo*, size_t>& lhs, const std::pair<UniqueInfo*, size_t>& rhs) {
-			return lhs.first < rhs.first;
-		}
 
 		bool IsClass(UniqueInfo* info) const {
-			return std::binary_find(interfaces.begin(), interfaces.end(), std::make_pair(info, (size_t)0), &UniqueInfo::CompareInterface) != interfaces.end();
+			return std::binary_find(interfaces.begin(), interfaces.end(), info) != interfaces.end();
 		}
 
 		friend class UniqueAllocator;
@@ -65,7 +62,7 @@ namespace PaintsNow {
 
 	public:
 		TWrapper<IReflectObject*> creator;
-		std::vector<std::pair<UniqueInfo*, size_t> > interfaces; // Derivations
+		std::vector<std::key_value<UniqueInfo*, size_t> > interfaces; // Derivations
 	};
 
 	class UniqueAllocator {
@@ -164,9 +161,9 @@ namespace PaintsNow {
 		static T* QueryInterfaceEx(IReflectObject* object, Unique unique, UniqueType<T> target) {
 			if (unique == target.Get()) return reinterpret_cast<T*>(object);
 
-			const std::vector<std::pair<UniqueInfo*, size_t> >& vec = unique->interfaces;
+			const std::vector<std::key_value<UniqueInfo*, size_t> >& vec = unique->interfaces;
 			UniqueInfo* targetInfo = target.Get();
-			std::vector<std::pair<UniqueInfo*, size_t> >::const_iterator it = std::binary_find(vec.begin(), vec.end(), std::make_pair(targetInfo, (size_t)0), &UniqueInfo::CompareInterface);
+			std::vector<std::key_value<UniqueInfo*, size_t> >::const_iterator it = std::binary_find(vec.begin(), vec.end(), targetInfo);
 
 			// We do not support virtual inheritance
 			return it != vec.end() ? reinterpret_cast<T*>((uint8_t*)object + it->second) : nullptr;
@@ -745,11 +742,11 @@ namespace PaintsNow {
 			size_t offset = (uint8_t*)convert - (uint8_t*)object;
 
 			t->interfaces.reserve(t->interfaces.size() + p->interfaces.size() + 1);
-			std::binary_insert(t->interfaces, std::make_pair(p.GetInfo(), offset), &UniqueInfo::CompareInterface);
+			std::binary_insert(t->interfaces, std::make_key_value(p.GetInfo(), offset));
 			// merge casts
 			for (size_t k = 0; k < p->interfaces.size(); k++) {
-				std::pair<UniqueInfo*, size_t> v = p->interfaces[k];
-				std::binary_insert(t->interfaces, std::make_pair(v.first, v.second + offset), &UniqueInfo::CompareInterface);
+				std::key_value<UniqueInfo*, size_t> v = p->interfaces[k];
+				std::binary_insert(t->interfaces, std::make_key_value(v.first, v.second + offset));
 			}
 		}
 	};

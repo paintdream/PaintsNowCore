@@ -7,12 +7,12 @@ void WarpTiny::SetWarpIndex(uint32_t warpIndex) {
 	// Update warp index atomically
 	do {
 		old = value = flag.load(std::memory_order_acquire);
-		value = (value & ~(WARP_INDEX_END - WARP_INDEX_BEGIN)) | (warpIndex << Log2((uint32_t)WARP_INDEX_BEGIN));
+		value = (value & ~(WARP_INDEX_END - WARP_INDEX_BEGIN)) | (warpIndex << Math::Log2((uint32_t)WARP_INDEX_BEGIN));
 	} while (!flag.compare_exchange_weak(old, value, std::memory_order_release));
 }
 
 uint32_t WarpTiny::GetWarpIndex() const {
-	return (flag.load(std::memory_order_relaxed) & (WARP_INDEX_END - WARP_INDEX_BEGIN)) >> Log2((uint32_t)WARP_INDEX_BEGIN);
+	return (flag.load(std::memory_order_relaxed) & (WARP_INDEX_END - WARP_INDEX_BEGIN)) >> Math::Log2((uint32_t)WARP_INDEX_BEGIN);
 }
 
 void WarpTiny::AssertWarp(Kernel& kernel) const {
@@ -27,7 +27,7 @@ Kernel::Kernel(ThreadPool& tp, uint32_t warpCount) : threadPool(tp) {
 	}
 
 	// but not exceeds the warp bits restriction.
-	warpCount = Min(warpCount, safe_cast<uint32_t>(1 << WarpTiny::WARP_BITS) - 1);
+	warpCount = Math::Min(warpCount, safe_cast<uint32_t>(1 << WarpTiny::WARP_BITS) - 1);
 	taskQueueGrid.resize(warpCount, SubTaskQueue(this, safe_cast<uint32_t>(threadCount)));
 
 #ifdef _DEBUG

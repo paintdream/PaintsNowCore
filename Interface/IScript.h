@@ -143,15 +143,6 @@ namespace PaintsNow {
 				size_t value;
 			};
 
-			struct StackInfo {
-				String name;
-				String namewhat;
-				String source;
-				std::pair<int, int> range;
-				int currentLine;
-			};
-
-
 			class AutoWrapperBase {
 			public:
 				virtual ~AutoWrapperBase() {}

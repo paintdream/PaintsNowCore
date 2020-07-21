@@ -844,8 +844,8 @@ namespace PaintsNow {
 	bool Clip(std::pair<T, T>& lhs, const std::pair<T, T>& rhs) {
 		bool b = true;
 		for (size_t i = 0; i < T::size; i++) {
-			lhs.first[i] = Max(lhs.first[i], rhs.first[i]);
-			lhs.second[i] = Min(lhs.second[i], rhs.second[i]);
+			lhs.first[i] = Math::Max(lhs.first[i], rhs.first[i]);
+			lhs.second[i] = Math::Min(lhs.second[i], rhs.second[i]);
 
 			if (lhs.first[i] > lhs.second[i])
 				b = false;
@@ -864,8 +864,8 @@ namespace PaintsNow {
 	template <class T>
 	std::pair<T, T>& Union(std::pair<T, T>& host, const T& value) {
 		for (size_t i = 0; i < T::size; i++) {
-			host.first[i] = Min(host.first[i], value[i]);
-			host.second[i] = Max(host.second[i], value[i]);
+			host.first[i] = Math::Min(host.first[i], value[i]);
+			host.second[i] = Math::Max(host.second[i], value[i]);
 		}
 
 		return host;
