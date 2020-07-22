@@ -12,8 +12,6 @@ namespace PaintsNow {
 	class ZFilterPod final : public IFilterBase {
 	public:
 		virtual IStreamBase* CreateFilter(IStreamBase& stream) override;
-		virtual void ExportConfig(std::vector<std::pair<String, String> >& config) const override;
-		virtual void ImportConfig(const std::vector<std::pair<String, String> >& config) override;
 	};
 }
 

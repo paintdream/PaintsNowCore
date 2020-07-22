@@ -12,20 +12,12 @@
 namespace PaintsNow {
 	class ITask {
 	public:
-		ITask();
 		virtual ~ITask();
-		enum {
-			TASK_PRIORITY_BACKGROUND
-		};
-
 		virtual void Execute(void* context) = 0;
 		virtual void Suspend(void* context) = 0;
 		virtual void Resume(void* context) = 0;
 		virtual void Abort(void* context) = 0;
 		virtual bool Continue() const = 0;
-
-		ITask* UpdateFlag(uint32_t flag);
-		uint32_t flag;
 	};
 
 	class TaskOnce : public ITask {

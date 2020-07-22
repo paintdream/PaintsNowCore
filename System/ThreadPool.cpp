@@ -155,7 +155,7 @@ bool ThreadPool::Push(ITask* task) {
 	}
 }
 
-bool ThreadPool::PollRoutine(uint32_t index, bool realtime) {
+bool ThreadPool::PollRoutine(uint32_t index) {
 	for (uint32_t k = 0; k < MAX_YIELD_COUNT; k++) {
 		if (queuedTaskCount.load(std::memory_order_acquire) == 0) {
 			YieldThread();
@@ -179,26 +179,17 @@ bool ThreadPool::PollRoutine(uint32_t index, bool realtime) {
 	}
 
 	if (p != nullptr) {
-		if (realtime && (p->flag & ITask::TASK_PRIORITY_BACKGROUND) && activeThreadCount.load(std::memory_order_relaxed) > (int32_t)threadCount - 1) {
-			// Not suitable for running here, repost
-			Push(p);
+		activeThreadCount.fetch_add(1, std::memory_order_acquire);
+
+		void* context = threadInfos[index].context;
+		// Exited?
+		if (runningToken.load(std::memory_order_relaxed) == 0) {
+			p->Abort(context);
 		} else {
-			if (!realtime) {
-				activeThreadCount.fetch_add(1, std::memory_order_acquire);
-			}
-
-			void* context = threadInfos[index].context;
-			// Exited?
-			if (runningToken.load(std::memory_order_relaxed) == 0) {
-				p->Abort(context);
-			} else {
-				p->Execute(context);
-			}
-
-			if (!realtime) {
-				activeThreadCount.fetch_sub(1, std::memory_order_release);
-			}
+			p->Execute(context);
 		}
+
+		activeThreadCount.fetch_sub(1, std::memory_order_release);
 
 		return true;
 	} else {
@@ -212,7 +203,7 @@ bool ThreadPool::Run(IThread::Thread* thread, size_t index) {
 	// fetch one and execute
 	liveThreadCount.fetch_add(1, std::memory_order_acquire);
 	while (runningToken.load(std::memory_order_acquire) != 0) {
-		if (!PollRoutine(safe_cast<uint32_t>(index), false) && runningToken.load(std::memory_order_acquire) != 0) {
+		if (!PollRoutine(safe_cast<uint32_t>(index)) && runningToken.load(std::memory_order_acquire) != 0) {
 			threadApi.DoLock(mutex);
 			++waitEventCounter;
 			threadApi.Wait(eventPump, mutex, MAX_WAIT_MILLISECONDS);

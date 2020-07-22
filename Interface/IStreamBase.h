@@ -11,6 +11,7 @@ namespace PaintsNow {
 	class IStreamBase : public TReflected<IStreamBase, IReflectObjectComplex> {
 	protected:
 		virtual ~IStreamBase();
+
 	public:
 		IStreamBase();
 		virtual void Flush() = 0;

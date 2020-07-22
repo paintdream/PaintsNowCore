@@ -542,11 +542,3 @@ void FilterPodImpl::Class(IReflectObject& host, Unique id, const char* name, con
 IStreamBase* ZFilterPod::CreateFilter(IStreamBase& stream) {
 	return new FilterPodImpl(stream);
 }
-
-void ZFilterPod::ExportConfig(std::vector<std::pair<String, String> >& config) const {
-	// TOOD:
-}
-
-void ZFilterPod::ImportConfig(const std::vector<std::pair<String, String> >& config) {
-	// TODO:
-}

@@ -61,7 +61,7 @@ void Kernel::Clear() {
 		SubTaskQueue& q = taskQueueGrid[j];
 
 		while (!q.PreemptExecution()) {
-			if (!threadPool.PollRoutine(threadIndex, false))
+			if (!threadPool.PollRoutine(threadIndex))
 				break;
 		}
 

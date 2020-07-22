@@ -28,7 +28,7 @@ namespace PaintsNow {
 		// Custom thread context
 		void SetThreadContext(uint32_t index, void* context);
 		void* GetThreadContext(uint32_t index) const;
-		bool PollRoutine(uint32_t index, bool realtime);
+		bool PollRoutine(uint32_t index);
 
 		IThread& GetThreadApi();
 		void Initialize();

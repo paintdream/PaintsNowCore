@@ -136,6 +136,7 @@ namespace PaintsNow {
 namespace std {
 	template <class K, class V>
 	struct key_value : public pair<K, V> {
+		typedef pair<K, V> base;
 #if defined(_MSC_VER) && _MSC_VER <= 1200
 		key_value(const K& k = K(), const V& v = V()) : pair<K, V>(k, v) {}
 		key_value(rvalue<key_value> v) : pair<K, V>(std::move(v.first), std::move(v.second)) {}
@@ -146,11 +147,11 @@ namespace std {
 		key_value() {}
 #endif
 		bool operator == (const key_value& rhs) const {
-			return first == rhs.first;
+			return base::first == rhs.first;
 		}
 
 		bool operator < (const key_value& rhs) const {
-			return first < rhs.first;
+			return base::first < rhs.first;
 		}
 	};
 

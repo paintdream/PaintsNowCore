@@ -16,8 +16,6 @@ namespace PaintsNow {
 	public:
 		virtual ~IFilterBase();
 		// attach a stream, which all read operations depend on.
-		virtual void ExportConfig(std::vector<std::pair<String, String> >& config) const;
-		virtual void ImportConfig(const std::vector<std::pair<String, String> >& config);
 		virtual IStreamBase* CreateFilter(IStreamBase& inputStream) = 0;
 	};
 

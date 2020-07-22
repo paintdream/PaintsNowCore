@@ -60,7 +60,7 @@ namespace PaintsNow {
 				return false; // full
 			}
 
-			ringBuffer[pushIndex] = std::move(t);
+			ringBuffer[pushIndex] = t;
 			std::atomic_thread_fence(std::memory_order_release);
 			pushIndex = nextIndex;
 			return true;
@@ -162,10 +162,11 @@ namespace PaintsNow {
 			Node() : next(nullptr) {}
 			Node* next;
 		};
-	protected:
 
-		Node* pushHead; 
+	protected:
+		Node* pushHead;
 		Node* popHead; // popHead is always prior to pushHead
+		TQueueList(const TQueueList& rhs);
 
 	public:
 		TQueueList() {
@@ -188,30 +189,6 @@ namespace PaintsNow {
 			return *this;
 		}
 
-		TQueueList(const TQueueList& rhs) : pushHead(nullptr), popHead(nullptr) {
-			// copy list
-			assert(rhs.popHead != nullptr);
-			*this = rhs;
-		}
-
-		inline TQueueList& operator = (const TQueueList& rhs) {
-			Node* p = rhs.popHead;
-			Node** q = &popHead;
-
-			while (p != nullptr) {
-				*q = new Node(*p);
-				if (p == rhs.pushHead) {
-					pushHead = *q;
-				}
-
-				q = &(*q)->next;
-				p = p->next;
-			}
-
-			*q = nullptr;
-			return *this;
-		}
-
 		// not a thread safe destructor.
 		~TQueueList() {
 			if (popHead != nullptr) {
@@ -228,17 +205,9 @@ namespace PaintsNow {
 #if defined(_MSC_VER) && _MSC_VER <= 1200
 		template <class D>
 		inline void Push(D& t) {
-#else
-		template <class D>
-		inline void Push(D&& t) {
-#endif
 			if (!pushHead->Push(t)) { // full
 				Node* p = new Node();
-#if defined(_MSC_VER) && _MSC_VER <= 1200
 				bool success = p->Push(t); // Must success
-#else
-				bool success = p->Push(std::forward<D>(t)); // Must success
-#endif
 				assert(success);
 
 				pushHead->next = p;
@@ -246,21 +215,27 @@ namespace PaintsNow {
 				pushHead = p;
 			}
 		}
+#else
+		template <class D>
+		inline void Push(D&& t) {
+			if (!pushHead->Push(std::forward<D>(t))) { // full
+				Node* p = new Node();
+				bool success = p->Push(std::forward<D>(t)); // Must success
+				assert(success);
+
+				pushHead->next = p;
+				std::atomic_thread_fence(std::memory_order_release);
+				pushHead = p;
+			}
+		}
+#endif
 
 #if defined(_MSC_VER) && _MSC_VER <= 1200
 		template <class D>
 		inline Node* QuickPush(D& t, Node* storage) {
-#else
-		template <class D>
-		inline Node* QuickPush(D&& t, Node* storage) {
-#endif
 			if (!pushHead->Push(t)) { // full
 				Node* p = storage;
-#if defined(_MSC_VER) && _MSC_VER <= 1200
 				bool success = p->Push(t); // Must success
-#else
-				bool success = p->Push(std::forward<D>(t)); // Must success
-#endif
 				assert(success);
 
 				pushHead->next = p;
@@ -271,6 +246,23 @@ namespace PaintsNow {
 				return storage;
 			}
 		}
+#else
+		template <class D>
+		inline Node* QuickPush(D&& t, Node* storage) {
+			if (!pushHead->Push(std::forward<D>(t))) { // full
+				Node* p = storage;
+				bool success = p->Push(std::forward<D>(t)); // Must success
+				assert(success);
+
+				pushHead->next = p;
+				std::atomic_thread_fence(std::memory_order_release);
+				pushHead = p;
+				return nullptr;
+			} else {
+				return storage;
+			}
+		}
+#endif
 
 		inline T& Top() {
 			return popHead->Top();

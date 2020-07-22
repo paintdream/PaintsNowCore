@@ -4,11 +4,6 @@ using namespace PaintsNow;
 
 IFilterBase::~IFilterBase() {}
 
-void IFilterBase::ExportConfig(std::vector<std::pair<String, String> >& config) const {}
-void IFilterBase::ImportConfig(const std::vector<std::pair<String, String> >& config) {}
-
-//
-
 class NoFilterImpl : public IStreamBase {
 public:
 	NoFilterImpl(IStreamBase& streamBase);
