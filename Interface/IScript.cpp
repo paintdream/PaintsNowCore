@@ -508,7 +508,7 @@ IScript::MetaMethod IScript::MetaMethod::operator = (const String& key) {
 	return MetaMethod(key);
 }
 
-IScript::RequestPool::RequestPool(IScript& pscript, uint32_t psize) : script(pscript), size(psize) {
+IScript::RequestPool::RequestPool(IScript& pscript, size_t psize) : script(pscript), size(psize) {
 	requestCritical.store(0, std::memory_order_relaxed);
 }
 
