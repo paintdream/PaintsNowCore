@@ -27,6 +27,7 @@ enum {
 	LUA_RIDX_REFERENCE_KEY,
 	LUA_RIDX_OBJECT_KEY,
 	LUA_RIDX_WRAP_KEY,
+	LUA_RDIX_STRING_KEY
 };
 
 static thread_local IScript::RequestPool* _CurrentRequestPool = nullptr;
@@ -252,6 +253,9 @@ void ZScriptLua::Init() {
 	lua_pushcfunction(state, FreeWrapper);
 	lua_rawset(state, -3);
 	lua_rawseti(state, LUA_REGISTRYINDEX, LUA_RIDX_WRAP_KEY);
+
+	lua_newtable(state);
+	lua_rawseti(state, LUA_REGISTRYINDEX, LUA_RDIX_STRING_KEY);
 
 	// const char* type = lua_typename(state, lua_typex(state, -1));
 
@@ -751,7 +755,7 @@ inline void strwrite(lua_State* L, const String& v) {
 	lua_pushlstring(L, v.c_str(), v.size());
 }
 
-String strget(lua_State* L, int index) {
+inline String strget(lua_State* L, int index) {
 	size_t length;
 	const char* ptr = lua_tolstring(L, index, &length);
 	return String(ptr, length);
@@ -766,6 +770,58 @@ IScript::Request& ZScriptLua::Request::operator << (const String& v) {
 IScript::Request& ZScriptLua::Request::operator >> (String& v) {
 	assert(GetScript()->GetLockCount() == 1);
 	Read(L, tableLevel, idx, key, strget, v);
+
+	return *this;
+}
+
+inline void uniquewrite(lua_State* L, Unique v) {
+	lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RDIX_STRING_KEY);
+	if (lua_rawgetp(L, -1, (void*)v.GetInfo()) == LUA_TNIL) {
+		lua_pop(L, 1);
+		const String& name = v->GetName();
+		lua_pushlstring(L, name.c_str(), name.size());
+		lua_pushvalue(L, -1);
+		lua_rawsetp(L, -3, (void*)v.GetInfo());
+		lua_pushvalue(L, -1);
+		lua_pushlightuserdata(L, (void*)v.GetInfo());
+		lua_rawset(L, -4);
+	}
+
+	lua_replace(L, -2);
+}
+
+inline Unique uniqueget(lua_State* L, int index) {
+	lua_pushvalue(L, index);
+	lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RDIX_STRING_KEY);
+	lua_pushvalue(L, -2);
+
+	if (lua_rawget(L, -2) != LUA_TNIL) {
+		Unique unique = (UniqueInfo*)lua_touserdata(L, -1);
+		lua_pop(L, 3);
+		return unique;
+	} else {
+		lua_pop(L, 1);
+		Unique unique(lua_tostring(L, -2));
+		lua_pushvalue(L, -2);
+		lua_rawsetp(L, -2, (void*)unique.GetInfo());
+		lua_pushvalue(L, -2);
+		lua_pushlightuserdata(L, (void*)unique.GetInfo());
+		lua_rawset(L, -3);
+		lua_pop(L, 2);
+		
+		return unique;
+	}
+}
+
+IScript::Request& ZScriptLua::Request::operator << (Unique v) {
+	assert(GetScript()->GetLockCount() == 1);
+	Write(L, tableLevel, idx, key, uniquewrite, v);
+	return *this;
+}
+
+IScript::Request& ZScriptLua::Request::operator >> (Unique& v) {
+	assert(GetScript()->GetLockCount() == 1);
+	Read(L, tableLevel, idx, key, uniqueget, v);
 
 	return *this;
 }

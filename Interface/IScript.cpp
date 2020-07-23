@@ -431,6 +431,17 @@ IScript::Request& IScript::Request::operator << (const IReflectObject& object) {
 	return *this;
 }
 
+IScript::Request& IScript::Request::operator << (Unique unique) {
+	return *this << unique->GetName();
+}
+
+IScript::Request& IScript::Request::operator >> (Unique& unique) {
+	String str;
+	*this >> str;
+	unique = Unique(str);
+	return *this;
+}
+
 bool IScript::IsTypeCompatible(Request::TYPE target, Request::TYPE source) const {
 	return target == source;
 }

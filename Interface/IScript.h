@@ -528,6 +528,8 @@ namespace PaintsNow {
 			virtual Request& operator << (Library& module);
 			virtual Request& operator >> (IReflectObject& reflectObject);
 			virtual Request& operator << (const IReflectObject& reflectObject);
+			virtual Request& operator << (Unique str);
+			virtual Request& operator >> (Unique& str);
 
 			// Basic types
 			virtual Request& operator << (double value) = 0;

@@ -57,6 +57,8 @@ namespace PaintsNow {
 			virtual IScript::Request& operator >> (double& value) override;
 			virtual IScript::Request& operator << (const String& str) override;
 			virtual IScript::Request& operator >> (String& str) override;
+			virtual IScript::Request& operator << (Unique unique) override;
+			virtual IScript::Request& operator >> (Unique& unique) override;
 			virtual IScript::Request& operator << (const char* str) override;
 			virtual IScript::Request& operator >> (const char*& str) override;
 			virtual IScript::Request& operator << (int64_t value) override;
