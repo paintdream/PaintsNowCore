@@ -166,13 +166,15 @@ namespace PaintsNow {
 	protected:
 		Node* pushHead;
 		Node* popHead; // popHead is always prior to pushHead
-		TQueueList(const TQueueList& rhs);
 
 	public:
 		TQueueList() {
 			pushHead = popHead = new Node();
 		}
 
+		TQueueList(const TQueueList& rhs) {
+			assert(rhs.Empty());
+		}
 
 		TQueueList(rvalue<TQueueList> rhs) {
 			pushHead = rhs.pushHead;
