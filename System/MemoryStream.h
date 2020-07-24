@@ -22,7 +22,7 @@ namespace PaintsNow {
 		virtual bool Read(void* p, size_t& len);
 		virtual bool Write(const void* p, size_t& len);
 		virtual bool WriteDummy(size_t& len);
-		virtual bool Seek(SEEK_OPTION option, long offset);
+		virtual bool Seek(SEEK_OPTION option, int64_t offset);
 		virtual void Flush();
 		size_t GetOffset() const;
 		size_t GetTotalLength() const;

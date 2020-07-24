@@ -22,7 +22,7 @@ namespace PaintsNow {
 		virtual bool Read(void* p, size_t& len) override;
 		virtual bool Write(const void* p, size_t& len) override;
 		virtual bool WriteDummy(size_t& len) override;
-		virtual bool Seek(SEEK_OPTION option, long offset) override;
+		virtual bool Seek(SEEK_OPTION option, int64_t offset) override;
 		virtual void Flush() override;
 		virtual bool Transfer(IStreamBase& stream, size_t& len) override;
 

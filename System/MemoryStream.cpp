@@ -125,7 +125,7 @@ void MemoryStream::SetEnd() {
 	totalSize = offset;
 }
 
-bool MemoryStream::Seek(SEEK_OPTION option, long f) {
+bool MemoryStream::Seek(SEEK_OPTION option, int64_t f) {
 	switch (option) {
 	case IStreamBase::BEGIN:
 		if (f < 0 || (size_t)f > totalSize)

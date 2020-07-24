@@ -63,7 +63,7 @@ void ShadowStream::Flush() {
 	baseStream->Flush();
 }
 
-bool ShadowStream::Seek(SEEK_OPTION option, long f) {
+bool ShadowStream::Seek(SEEK_OPTION option, int64_t f) {
 	assert(baseStream != nullptr);
 	return baseStream->Seek(option, f);
 }

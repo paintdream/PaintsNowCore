@@ -20,7 +20,7 @@ namespace PaintsNow {
 		virtual bool Transfer(IStreamBase& stream, size_t& len) = 0;
 		virtual bool WriteDummy(size_t& len) = 0;
 		enum SEEK_OPTION { BEGIN, CUR, END };
-		virtual bool Seek(SEEK_OPTION option, long offset) = 0;
+		virtual bool Seek(SEEK_OPTION option, int64_t offset) = 0;
 		virtual IStreamBase& GetBaseStream();
 		void SetEnvironment(IReflectObject& object);
 		IReflectObject& GetEnvironment();
@@ -138,7 +138,7 @@ namespace PaintsNow {
 		virtual bool Write(const void* p, size_t& len) override;
 		virtual bool Transfer(IStreamBase& stream, size_t& len) override;
 		virtual bool WriteDummy(size_t& len) override;
-		virtual bool Seek(SEEK_OPTION option, long offset) override;
+		virtual bool Seek(SEEK_OPTION option, int64_t offset) override;
 
 		IStreamBase& stream;
 		int64_t transition;

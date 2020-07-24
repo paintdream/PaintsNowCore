@@ -12,7 +12,7 @@ public:
 	virtual bool Write(const void* p, size_t& len);
 	virtual bool Transfer(IStreamBase& stream, size_t& len);
 	virtual bool WriteDummy(size_t& len);
-	virtual bool Seek(SEEK_OPTION option, long offset);
+	virtual bool Seek(SEEK_OPTION option, int64_t offset);
 
 private:
 	IStreamBase& stream;
@@ -37,7 +37,7 @@ bool NoFilterImpl::WriteDummy(size_t& len) {
 }
 
 
-bool NoFilterImpl::Seek(SEEK_OPTION option, long offset) {
+bool NoFilterImpl::Seek(SEEK_OPTION option, int64_t offset) {
 	return stream.Seek(option, offset);
 }
 

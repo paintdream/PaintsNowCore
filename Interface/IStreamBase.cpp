@@ -340,7 +340,7 @@ bool StreamBaseMeasure::WriteDummy(size_t& len) {
 	return result;
 }
 
-bool StreamBaseMeasure::Seek(SEEK_OPTION option, long offset) {
+bool StreamBaseMeasure::Seek(SEEK_OPTION option, int64_t offset) {
 	bool result = stream.Seek(option, offset);
 	assert(option == SEEK_OPTION::CUR);
 	transition += offset;

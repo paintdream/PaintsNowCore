@@ -38,7 +38,7 @@ public:
 		return (len = fwrite(p, 1, len, fp)) != 0;
 	}
 
-	virtual bool Seek(SEEK_OPTION option, long offset) {
+	virtual bool Seek(SEEK_OPTION option, int64_t offset) {
 		int s = SEEK_CUR;
 		switch (option) {
 		case BEGIN:
@@ -51,7 +51,9 @@ public:
 			s = SEEK_CUR;
 			break;
 		}
-		return fseek(fp, offset, s) == 0;
+
+		assert(abs(offset) < 0x7FFFFFFF);
+		return fseek(fp, (long)offset, s) == 0;
 	}
 
 	virtual bool Transfer(IStreamBase& stream, size_t& len) {
