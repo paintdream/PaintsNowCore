@@ -12,7 +12,7 @@
 namespace PaintsNow {
 	class MemoryStream : public IStreamBase {
 	public:
-		MemoryStream(size_t maxSize, bool autoSize = false, uint16_t alignment = 8);
+		MemoryStream(size_t maxSize, uint32_t alignment = 8);
 		virtual ~MemoryStream();
 
 		const void* GetBuffer() const;
@@ -41,9 +41,8 @@ namespace PaintsNow {
 		size_t offset;
 		size_t totalSize;
 		size_t maxSize;
-		uint16_t alignment;
-		bool autoSize;
-		uint8_t reserved;
+
+		uint32_t alignment;
 	};
 }
 

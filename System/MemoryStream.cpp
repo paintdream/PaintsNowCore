@@ -3,7 +3,7 @@
 
 using namespace PaintsNow;
 
-MemoryStream::MemoryStream(size_t b, bool s, uint16_t align) : offset(0), totalSize(0), maxSize(b), autoSize(s), alignment(align) {
+MemoryStream::MemoryStream(size_t b, uint32_t align) : offset(0), totalSize(0), maxSize(b), alignment(align) {
 	buffer = (uint8_t*)IMemory::AllocAligned(maxSize, alignment);
 }
 
@@ -51,11 +51,8 @@ bool MemoryStream::CheckSize(size_t& len) {
 	if (len + offset > totalSize) {
 		if (len + offset <= maxSize) {
 			totalSize = len + offset;
-		} else if (autoSize) {
+		} else  {
 			Realloc(len + offset);
-		} else {
-			len = totalSize - offset;
-			return false;
 		}
 	}
 
@@ -63,7 +60,6 @@ bool MemoryStream::CheckSize(size_t& len) {
 }
 
 IReflectObject* MemoryStream::Clone() const {
-	// Not clonable by now
 	// TODO:
 	assert(false);
 	return nullptr;
@@ -126,23 +122,27 @@ void MemoryStream::SetEnd() {
 }
 
 bool MemoryStream::Seek(SEEK_OPTION option, int64_t f) {
+	int64_t next;
 	switch (option) {
 	case IStreamBase::BEGIN:
 		if (f < 0 || (size_t)f > totalSize)
 			return false;
+
 		offset = (size_t)f;
-		break;
+		return true;
 	case IStreamBase::CUR:
-		if (offset + f < 0 || (size_t)(offset + f) > totalSize)
-			return false;
-		offset += f;
+		next = (int64_t)offset + f;
+		if (next >= 0 && next <= totalSize) {
+			offset = (size_t)next;
+			return true;
+		}
 		break;
 	case IStreamBase::END:
 		offset = totalSize;
-		break;
+		return true;
 	}
 
-	return true;
+	return false;
 }
 
 
