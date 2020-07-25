@@ -116,7 +116,7 @@ namespace PaintsNow {
 				RemovePatterns(className, skipPrefixes[i]);
 			}
 
-			return className;
+			return className == "PaintsNow::Void" ? "void" : className;
 		}
 
 		static void RemovePatterns(String& s, const String& p) {
@@ -422,12 +422,13 @@ namespace PaintsNow {
 
 		void RegisterBuiltinTypes(bool useStdintType = false);
 		struct Param {
-			Param(Unique t = UniqueType<Void>::Get(), const String& n = "") : type(t), name(n) {}
+			Param(Unique t = UniqueType<Void>::Get(), Unique d = UniqueType<Void>::Get()) : type(t), decayType(d) {}
 			operator Unique () const {
 				return type;
 			}
 
 			Unique type;
+			Unique decayType;
 			String name;
 		};
 
@@ -482,10 +483,29 @@ namespace PaintsNow {
 				UniqueType<P>::Get()
 			};
 
-			static Param retValue = UniqueType<R>::Get();
+			static Unique decayParams[] = {
+				UniqueType<typename std::decay<A>::type>::Get(),
+				UniqueType<typename std::decay<B>::type>::Get(),
+				UniqueType<typename std::decay<C>::type>::Get(),
+				UniqueType<typename std::decay<D>::type>::Get(),
+				UniqueType<typename std::decay<E>::type>::Get(),
+				UniqueType<typename std::decay<F>::type>::Get(),
+				UniqueType<typename std::decay<G>::type>::Get(),
+				UniqueType<typename std::decay<H>::type>::Get(),
+				UniqueType<typename std::decay<I>::type>::Get(),
+				UniqueType<typename std::decay<J>::type>::Get(),
+				UniqueType<typename std::decay<K>::type>::Get(),
+				UniqueType<typename std::decay<L>::type>::Get(),
+				UniqueType<typename std::decay<M>::type>::Get(),
+				UniqueType<typename std::decay<N>::type>::Get(),
+				UniqueType<typename std::decay<O>::type>::Get(),
+				UniqueType<typename std::decay<P>::type>::Get()
+			};
+
+			static Param retValue(UniqueType<R>::Get(), UniqueType<typename std::decay<R>::type>::Get());
 			std::vector<Param> p;
 			for (size_t i = 0; i < sizeof(params) / sizeof(params[0]) && (!(params[i] == UniqueType<Void>::Get())); i++) {
-				p.emplace_back(Param(params[i]));
+				p.emplace_back(Param(params[i], decayParams[i]));
 			}
 
 			static Unique unique = UniqueType<TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P> >::Get();
@@ -497,7 +517,8 @@ namespace PaintsNow {
 			std::vector<Param> params;
 			ParseParams(params, t);
 			static Unique u = UniqueType<R>::Get();
-			static Param retValue(u);
+			static Unique d = UniqueType<typename std::decay<R>::type>::Get();
+			static Param retValue(u, d);
 			static Unique unique = UniqueType<TWrapper<R, Args...> >::Get();
 			Method(unique, name, reinterpret_cast<const TProxy<>*>(&t.GetProxy()), retValue, params, meta);
 		}
@@ -505,7 +526,8 @@ namespace PaintsNow {
 		template <typename R, typename V, typename... Args>
 		inline void ParseParams(std::vector<Param>& params, const TWrapper<R, V, Args...>&) {
 			static Unique u = UniqueType<V>::Get();
-			params.emplace_back(Param(u));
+			static Unique d = UniqueType<typename std::decay<V>::type>::Get();
+			params.emplace_back(Param(u, d));
 			ParseParams(params, TWrapper<R, Args...>());
 		}
 

@@ -174,6 +174,7 @@ namespace PaintsNow {
 
 		TQueueList(const TQueueList& rhs) {
 			assert(rhs.Empty());
+			pushHead = popHead = new Node();
 		}
 
 		TQueueList(rvalue<TQueueList> rhs) {

@@ -60,7 +60,7 @@ inline bool ReadBaseObject(IStreamBase& stream, Unique typeID, Unique refTypeID,
 		stream >> typeName;
 		if (typeName.size() != 0) {
 			Unique unique(typeName);
-			assert(unique);
+			assert((bool)unique);
 			if ((bool)unique && unique->IsCreatable()) {
 				object = static_cast<IReflectObjectComplex*>(unique->Create());
 				assert(!object->IsBasicObject());

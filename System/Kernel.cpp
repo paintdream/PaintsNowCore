@@ -136,7 +136,7 @@ void Kernel::QueueRoutine(WarpTiny* warpTiny, ITask* task) {
 	} else {
 		// Must be asynchronized
 #ifdef _DEBUG
-		++activeTaskCount;
+		activeTaskCount.fetch_add(1, std::memory_order_relaxed);
 #endif
 		warpTiny->ReferenceObject(); // hold reference in case of invalid memory access.
 		QueueRoutineInternal(toWarpIndex, fromThreadIndex, warpTiny, task);
@@ -148,7 +148,7 @@ void Kernel::QueueRoutinePost(WarpTiny* warpTiny, ITask* task) {
 	uint32_t fromThreadIndex = threadPool.GetCurrentThreadIndex();
 	uint32_t toWarpIndex = warpTiny->GetWarpIndex();
 #ifdef _DEBUG
-		++activeTaskCount;
+	activeTaskCount.fetch_add(1, std::memory_order_relaxed);
 #endif
 	warpTiny->ReferenceObject(); // hold reference in case of invalid memory access.
 	QueueRoutineInternal(toWarpIndex, fromThreadIndex, warpTiny, task);
@@ -274,7 +274,7 @@ bool Kernel::SubTaskQueue::InvokeOperation(std::pair<ITask*, void*>& task, void 
 		// we have hold tiny on enqueuing, release it after calling.
 		if (warpTiny != nullptr) {
 #ifdef _DEBUG
-			--kernel->activeTaskCount;
+			kernel->activeTaskCount.fetch_sub(1, std::memory_order_relaxed);
 #endif
 			warpTiny->ReleaseObject();
 		}

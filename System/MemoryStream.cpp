@@ -132,7 +132,7 @@ bool MemoryStream::Seek(SEEK_OPTION option, int64_t f) {
 		return true;
 	case IStreamBase::CUR:
 		next = (int64_t)offset + f;
-		if (next >= 0 && next <= totalSize) {
+		if (next >= 0 && next <= (int64_t)totalSize) {
 			offset = (size_t)next;
 			return true;
 		}

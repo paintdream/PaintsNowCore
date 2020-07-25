@@ -322,7 +322,7 @@ void ReflectQueryType::Class(IReflectObject& host, Unique id, const char* name, 
 
 Unique IReflectObject::GetUnique() const {
 	ReflectQueryType query(const_cast<IReflectObject&>(*this));
-	assert((Unique)query); // no class provided.
+	assert((bool)(Unique)query); // no class provided.
 	return query;
 }
 

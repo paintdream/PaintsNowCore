@@ -682,7 +682,7 @@ namespace PaintsNow {
 			}
 
 			template <class T>
-			Request& operator << (std::vector<T>& vec) {
+			Request& operator << (const std::vector<T>& vec) {
 				Request& request = *this;
 				static ArrayStart beginarray;
 				static ArrayEnd endarray;
@@ -695,7 +695,7 @@ namespace PaintsNow {
 			}
 
 			template <class T>
-			Request& operator << (std::list<T>& vec) {
+			Request& operator << (const std::list<T>& vec) {
 				Request& request = *this;
 				static ArrayStart beginarray;
 				static ArrayEnd endarray;
@@ -708,7 +708,7 @@ namespace PaintsNow {
 			}
 
 			template <class K, class V>
-			Request& operator << (std::map<K, V>& m) {
+			Request& operator << (const std::map<K, V>& m) {
 				Request& request = *this;
 				TableStart begintable;
 				TableEnd endtable;
@@ -722,7 +722,7 @@ namespace PaintsNow {
 			}
 
 			template <class K, class V>
-			Request& operator << (std::unordered_map<K, V>& m) {
+			Request& operator << (const std::unordered_map<K, V>& m) {
 				Request& request = *this;
 				TableStart begintable;
 				TableEnd endtable;
