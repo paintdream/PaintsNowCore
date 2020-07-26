@@ -60,9 +60,12 @@ void Kernel::Clear() {
 	for (uint32_t j = 0; j < GetWarpCount(); j++) {
 		SubTaskQueue& q = taskQueueGrid[j];
 
-		while (!q.PreemptExecution()) {
-			if (!threadPool.PollRoutine(threadIndex))
-				break;
+		if (threadPool.GetThreadCount() != 0) {
+			while (!q.PreemptExecution()) {
+				if (!threadPool.PollRoutine(threadIndex)) {
+					YieldThread();
+				}
+			}
 		}
 
 		q.Abort(nullptr);
