@@ -5,7 +5,7 @@
 
 // 3rd party libraries:
 //		LZMA			OpenGL			GLEW
-//		OpenAL			FreeImage		Freeglut
+//		OpenAL			FreeImage		GLFW
 //		Freetype		Lame			Pthread
 //		Dirent			Libiconv		LibNoise
 //		LibEvent2		Sqlite3			Lua5.4
