@@ -948,13 +948,17 @@ namespace PaintsNow {
 	};
 }
 
-#if defined(_MSC_VER) && _MSC_VER <= 1200
-template <>
-struct hash<PaintsNow::Unique> {
-	size_t operator () (const PaintsNow::Unique& unique) const {
-		return (size_t)unique.GetInfo();
-	}
-};
+#if !defined(_MSC_VER) || _MSC_VER > 1200
+namespace std {
+#endif
+	template <>
+	struct hash<PaintsNow::Unique> {
+		size_t operator () (const PaintsNow::Unique& unique) const {
+			return (size_t)unique.GetInfo();
+		}
+	};
+#if !defined(_MSC_VER) || _MSC_VER > 1200
+}
 #endif
 
 #endif // __IREFLECT_H__
