@@ -394,7 +394,7 @@ Unique MetaVoid::GetUnique() const {
 
 namespace PaintsNow {
 	UniqueAllocator& UniqueAllocator::GetInstance() {
-		static UniqueAllocator theAllocator;
+		static UniqueAllocator& theAllocator = TSingleton<UniqueAllocator>::Get();
 		return theAllocator;
 	}
 

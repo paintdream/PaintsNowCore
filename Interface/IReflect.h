@@ -95,7 +95,7 @@ namespace PaintsNow {
 
 	template <class T>
 	struct UniqueType {
-		static std::string Demangle(const char* name) {
+		static String Demangle(const char* name) {
 			String className;
 #ifdef __GNUG__
 			int status = -4; // some arbitrary value to eliminate the compiler warning
@@ -126,8 +126,7 @@ namespace PaintsNow {
 		}
 
 		static Unique Get() {
-			static String className = Demangle(typeid(T).name());
-			static UniqueInfo* value = UniqueAllocator::GetInstance().Create(className, sizeof(typename ReturnType<T>::type));
+			static UniqueInfo* value = UniqueAllocator::GetInstance().Create(Demangle(typeid(T).name()), sizeof(typename ReturnType<T>::type));
 			return value;
 		}
 	};
@@ -799,7 +798,7 @@ namespace PaintsNow {
 		template <class T, class D>
 		inline const MetaInterface<P>& FilterField(T* t, D* d) const {
 			// class T is Interfaced form class P
-			static TStaticInitializer<RegisterInterface<T, P> > reg;
+			static RegisterInterface<T, P>& reg = TSingleton<RegisterInterface<T, P> >::Get();
 			
 			return *this; // do nothing
 		}

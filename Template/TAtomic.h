@@ -171,22 +171,26 @@ namespace PaintsNow {
 
 #if defined(_MSC_VER) && _MSC_VER <= 1200
 	template <class T>
-	class TStaticInitializer {
+	class TSingleton {
 	public:
-		TStaticInitializer() {
+		static T& Get() {
 			static std::atomic<uint32_t> critical;
+
 			SpinLock(critical);
 			static T object;
 			SpinUnLock(critical);
+
+			return object;
 		}
 	};
 #else
 	template <class T>
-	class TStaticInitializer {
+	class TSingleton {
 	public:
-		TStaticInitializer() {
+		static T& Get() {
 			// C++ 11 provides thread-safety for static variables.
 			static T object;
+			return object;
 		}
 	};
 #endif
