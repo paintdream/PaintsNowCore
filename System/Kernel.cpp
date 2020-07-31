@@ -217,7 +217,7 @@ Kernel::SubTaskQueue::~SubTaskQueue() {}
 
 void Kernel::SubTaskQueue::Flush(ThreadPool& threadPool) {
 	// avoid duplicated flushes
-	if (queueing.exchange(1, std::memory_order_relaxed) == 0) {
+	if (queueing.exchange(1, std::memory_order_acq_rel) == 0) {
 		TaskQueue::Flush(threadPool);
 	}
 }
@@ -226,7 +226,7 @@ bool Kernel::SubTaskQueue::PreemptExecution() {
 	uint32_t* expected = nullptr;
 	uint32_t thisWarpIndex = safe_cast<uint32_t>(this - &kernel->taskQueueGrid[0]);
 
-	if (threadWarp.compare_exchange_strong(expected, &WarpIndex, std::memory_order_acq_rel)) {
+	if (threadWarp.compare_exchange_strong(expected, &WarpIndex, std::memory_order_acquire)) {
 		WarpIndex = thisWarpIndex;
 		return true;
 	} else {

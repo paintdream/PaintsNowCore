@@ -175,7 +175,7 @@ namespace PaintsNow {
 	public:
 		static T& Get() {
 			static std::atomic<uint32_t> critical;
-			static T* ptr;
+			static T* ptr = nullptr;
 			if (ptr == nullptr) { // x86 is strongly ordered
 				SpinLock(critical);
 				if (ptr == nullptr) {
@@ -186,7 +186,7 @@ namespace PaintsNow {
 				SpinUnLock(critical); // unlock indicates std::memory_order_release
 			}
 
-			return ptr;
+			return *ptr;
 		}
 	};
 #else

@@ -81,13 +81,11 @@ namespace PaintsNow {
 #endif
 
 		inline T& Top() {
-			std::atomic_thread_fence(std::memory_order_acquire);
 			assert(!Empty());
 			return ringBuffer[popIndex];
 		}
 
 		inline const T& Top() const {
-			std::atomic_thread_fence(std::memory_order_acquire);
 			assert(!Empty());
 			return ringBuffer[popIndex];
 		}
