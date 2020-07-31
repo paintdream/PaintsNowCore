@@ -152,7 +152,7 @@ namespace PaintsNow {
 	inline T SpinLock(std::atomic<T>& section, T newValue = 1) {
 		T ret;
 		while (true) {
-			while (section.load(std::memory_order_relaxed) == newValue) {
+			while (section.load(std::memory_order_acquire) == newValue) {
 				YieldThreadFast();
 			}
 
@@ -175,12 +175,18 @@ namespace PaintsNow {
 	public:
 		static T& Get() {
 			static std::atomic<uint32_t> critical;
+			static T* ptr;
+			if (ptr == nullptr) { // x86 is strongly ordered
+				SpinLock(critical);
+				if (ptr == nullptr) {
+					static T object;
+					ptr = &object;
+				}
 
-			SpinLock(critical);
-			static T object;
-			SpinUnLock(critical);
+				SpinUnLock(critical); // unlock indicates std::memory_order_release
+			}
 
-			return object;
+			return ptr;
 		}
 	};
 #else
