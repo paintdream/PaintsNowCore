@@ -133,7 +133,7 @@ void Kernel::QueueRoutine(WarpTiny* warpTiny, ITask* task) {
 		warpTiny->ReferenceObject();
 		threadPool.Push(new ForwardRoutine<Kernel>(*this, warpTiny, task));
 		threadPool.UnLock();
-	} else if (WarpIndex == toWarpIndex && (size_t)q.threadWarp.load(std::memory_order_relaxed) == (size_t)&WarpIndex && q.suspendCount.load(std::memory_order_acquire) == 0) {
+	} else if (WarpIndex == toWarpIndex && (size_t)q.threadWarp.load(std::memory_order_acquire) == (size_t)&WarpIndex && q.suspendCount.load(std::memory_order_acquire) == 0) {
 		// Just the same warp? Execute at once.
 		task->Execute(threadPool.GetThreadContext(fromThreadIndex));
 	} else {
@@ -177,7 +177,7 @@ bool Kernel::ResumeWarp(uint32_t warpIndex) {
 Kernel::SubTaskQueue::SubTaskQueue(Kernel* e, uint32_t idCount) : kernel(e), TaskQueue(idCount) {
 	threadWarp.store(nullptr, std::memory_order_relaxed);
 	suspendCount.store(0, std::memory_order_relaxed);
-	queueing.store(0, std::memory_order_relaxed);
+	queueing.store(0, std::memory_order_release);
 
 	YieldExecution();
 }
@@ -186,7 +186,7 @@ Kernel::SubTaskQueue::SubTaskQueue(const SubTaskQueue& rhs) : TaskQueue(safe_cas
 	kernel = rhs.kernel;
 	threadWarp.store(nullptr, std::memory_order_relaxed);
 	suspendCount.store(0, std::memory_order_relaxed);
-	queueing.store(0, std::memory_order_relaxed);
+	queueing.store(0, std::memory_order_release);
 
 	YieldExecution();
 }
