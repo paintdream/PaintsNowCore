@@ -116,7 +116,7 @@ bool Tape::ReadPacket(int64_t& seq, IStreamBase& target, int64_t& totalLength) {
 		int64_t alignment = safe_cast<int64_t>(location < mid ? Math::Alignment(location | mid) : Math::AlignmentTop(remaining - mid));
 		if (location >= mid) remaining -= alignment;
 		int64_t extra = header.firstMark ? sizeof(length) : 0;
-		assert(length > sizeof(PacketHeader) + extra);
+		assert(length > (int64_t)sizeof(PacketHeader) + extra);
 		int64_t size = Math::Min(length, alignment) - (sizeof(PacketHeader) + extra);
 
 		assert((int64_t)size > 0);

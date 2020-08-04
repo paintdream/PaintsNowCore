@@ -40,13 +40,24 @@ namespace PaintsNow {
 			}
 		}
 
-		TMatrix() {
+		static const TMatrix CreateIdentity() {
+			TMatrix mat;
+			T (*data)[n] = mat.data;
 			size_t z = Math::Min(m, n);
-			memset(data, 0, sizeof(data));
+			memset(data, 0, sizeof(mat.data));
 			for (size_t i = 0; i < z; i++) {
 				data[i][i] = 1;
 			}
+
+			return mat;
 		}
+
+		static const TMatrix& Identity() {
+			static TMatrix matrix = CreateIdentity();
+			return matrix;
+		}
+
+		TMatrix() {}
 
 		TMatrix<T, n, m> Transpose() const {
 			TMatrix<T, n, m> target;
@@ -160,7 +171,7 @@ namespace PaintsNow {
 	namespace Math {
 		template <class T, size_t m, size_t n>
 		TMatrix<T, m, n> Scale(const TMatrix<T, m, n>& lhs, const TVector<T, m>& v) {
-			TMatrix<T, m, n> mat;
+			TMatrix<T, m, n> mat = TMatrix<T, m, n>::Identity();
 			for (size_t i = 0; i < Math::Min(m, n); i++) {
 				mat.data[i][i] = v[i];
 			}
@@ -187,12 +198,15 @@ namespace PaintsNow {
 			inverse(0, 0) = mat(0, 0) / xx;
 			inverse(0, 1) = mat(1, 0) / xy;
 			inverse(0, 2) = mat(2, 0) / xz;
+			inverse(0, 3) = 0;
 			inverse(1, 0) = mat(0, 1) / xy;
 			inverse(1, 1) = mat(1, 1) / yy;
 			inverse(1, 2) = mat(2, 1) / yz;
+			inverse(1, 3) = 0;
 			inverse(2, 0) = mat(0, 2) / xy;
 			inverse(2, 1) = mat(1, 2) / yy;
 			inverse(2, 2) = mat(2, 2) / yz;
+			inverse(2, 3) = 0;
 
 			TType3<T> right = TType3<T>(inverse(0, 0), inverse(1, 0), inverse(2, 0));
 			TType3<T> up = TType3<T>(inverse(0, 1), inverse(1, 1), inverse(2, 1));
@@ -202,6 +216,7 @@ namespace PaintsNow {
 			inverse(3, 0) = -DotProduct(right, position);
 			inverse(3, 1) = -DotProduct(up, position);
 			inverse(3, 2) = -DotProduct(forward, position);
+			inverse(3, 3) = 1;
 
 			return inverse;
 		}

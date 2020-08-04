@@ -119,14 +119,22 @@ namespace PaintsNow {
 			m(0, 0) = side[0];
 			m(1, 0) = side[1];
 			m(2, 0) = side[2];
+			m(3, 0) = 0;
 
 			m(0, 1) = up[0];
 			m(1, 1) = up[1];
 			m(2, 1) = up[2];
+			m(3, 1) = 0;
 
 			m(0, 2) = -direction[0];
 			m(1, 2) = -direction[1];
 			m(2, 2) = -direction[2];
+			m(3, 2) = 0;
+
+			m(0, 3) = 0;
+			m(1, 3) = 0;
+			m(2, 3) = 0;
+			m(3, 3) = 1;
 
 			return Translate3D(m, -position);
 		}

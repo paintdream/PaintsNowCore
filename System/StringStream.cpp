@@ -52,13 +52,13 @@ bool StringStream::Seek(SEEK_OPTION option, int64_t f) {
 	int64_t next;
 	switch (option) {
 		case SEEK_OPTION::BEGIN:
-			if (f < 0 || f > storage.size())
+			if (f < 0 || f > (int64_t)storage.size())
 				return false;
 			location = f;
 			return true;
 		case SEEK_OPTION::CUR:
 			next = location + f;
-			if (next >= 0 && next <= storage.size()) {
+			if (next >= 0 && next <= (int64_t)storage.size()) {
 				location = next;
 				return true;
 			}
