@@ -1252,10 +1252,6 @@ namespace PaintsNow {
 			}
 		}
 
-		inline void Hook(TWrapper& rhs) {
-			std::swap(proxy, rhs.proxy);
-		}
-
 		const TProxy<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& GetProxy() const {
 			return proxy;
 		}
@@ -1792,21 +1788,20 @@ namespace PaintsNow {
 	const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P> Wrap(R(*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n, O o, P p)) {
 		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>(d);
 	}
-
 #else
-
 	template <typename R = Void, typename... Args>
 	class TProxy {
 	public:
 		static inline size_t GetCount() { return sizeof...(Args); }
 	};
 
-
 	template <class T, class M, class Z, class... Args>
 	struct Dispatch {
 		Dispatch(const M& t) : p(t) {}
-		inline Z Invoke(Args&&... args) const {
-			return ((reinterpret_cast<T*>(p.host))->*(p.p))(std::forward<Args>(args)...);
+
+		template <typename... Params>
+		inline Z Invoke(Params&&... params) const {
+			return ((reinterpret_cast<T*>(p.host))->*(p.p))(std::forward<Params>(params)...);
 		}
 		const M& p;
 	};
@@ -1814,8 +1809,10 @@ namespace PaintsNow {
 	template <class T, class M, class... Args>
 	struct Dispatch<T, M, void, Args...> {
 		Dispatch(const M& t) : p(t) {}
-		inline Void Invoke(Args&&... args) {
-			((reinterpret_cast<T*>(p.host))->*(p.p))(std::forward<Args>(args)...);
+
+		template <typename... Params>
+		inline Void Invoke(Params&&... params) {
+			((reinterpret_cast<T*>(p.host))->*(p.p))(std::forward<Params>(params)...);
 			return Void();
 		}
 		const M& p;
@@ -2023,9 +2020,6 @@ namespace PaintsNow {
 		inline IHost* GetHost() const { return proxy.host; }
 		const TProxy<R, Args...>& GetProxy() const { return proxy; }
 		inline size_t GetCount() const { return proxy.GetCount(); }
-		inline void Hook(TWrapper& rhs) {
-			std::swap(proxy, rhs.proxy);
-		}
 
 		TMethod<false, Void, R, Args...> proxy;
 	};
@@ -2063,9 +2057,7 @@ namespace PaintsNow {
 	auto WrapClosure(const T& object) -> decltype(WrapClosure(&object, &T::operator())) {
 		return WrapClosure(&object, &T::operator());
 	}
-
 #endif
-
 
 #if defined(_MSC_VER) && _MSC_VER < 1800 || defined(COMPATIBLE_PROXY)
 	class Invoker {
@@ -2160,6 +2152,7 @@ namespace PaintsNow {
 		Invoker(const TWrapper<void>& func) {
 			func();
 		}
+
 		template <typename... Args>
 		Invoker(const TWrapper<void, Args...>& func, Args&&... args) {
 			func(std::forward<Args>(args)...);

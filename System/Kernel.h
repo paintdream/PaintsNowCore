@@ -653,7 +653,8 @@ namespace PaintsNow {
 	template <typename T, typename... Args>
 	class CoTaskTemplate : public TaskOnce {
 	public:
-		CoTaskTemplate(Kernel& k, T c, Args&&... args) : kernel(k), callback(c), arguments(std::forward<Args>(args)...) {
+		template <typename... Params>
+		CoTaskTemplate(Kernel& k, T c, Params&&... params) : kernel(k), callback(c), arguments(std::forward<Params>(params)...) {
 			warp = kernel.GetCurrentWarpIndex();
 			assert(warp != ~(uint32_t)0);
 			kernel.SuspendWarp(warp);
@@ -661,7 +662,7 @@ namespace PaintsNow {
 
 		template <size_t... S>
 		void Apply(void* context, bool run, seq<S...>) {
-			callback(context, run, std::move(std::get<S>(std::move(arguments)))...);
+			callback(context, run, std::move(std::get<S>(arguments))...);
 			kernel.ResumeWarp(warp);
 		}
 
@@ -689,7 +690,8 @@ namespace PaintsNow {
 	template <typename T, typename... Args>
 	class ContextFreeCoTaskTemplate : public TaskOnce {
 	public:
-		ContextFreeCoTaskTemplate(Kernel& k, T t, Args&&... args) : kernel(k), callback(t), arguments(std::forward<Args>(args)...) {
+		template <typename... Params>
+		ContextFreeCoTaskTemplate(Kernel& k, T t, Params&&... params) : kernel(k), callback(t), arguments(std::forward<Params>(params)...) {
 			warp = kernel.GetCurrentWarpIndex();
 			assert(warp != ~(uint32_t)0);
 			kernel.SuspendWarp(warp);
@@ -697,7 +699,7 @@ namespace PaintsNow {
 
 		template <size_t... S>
 		void Apply(seq<S...>) {
-			callback(std::get<S>(arguments)...);
+			callback(std::move(std::get<S>(arguments))...);
 		}
 
 		virtual void Execute(void* request) override {

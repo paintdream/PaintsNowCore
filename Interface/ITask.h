@@ -405,11 +405,12 @@ namespace PaintsNow {
 	template <typename T, typename... Args>
 	class TaskTemplate : public TaskOnce {
 	public:
-		TaskTemplate(T c, Args&&... args) : callback(c), arguments(std::forward<Args>(args)...) {}
+		template <typename... Params>
+		TaskTemplate(T c, Params&&... params) : callback(c), arguments(std::forward<Params>(params)...) {}
 
 		template <size_t... S>
 		void Apply(void* context, bool run, seq<S...>) {
-			callback(context, run, std::move(std::get<S>(std::move(arguments)))...);
+			callback(context, run, std::move(std::get<S>(arguments))...);
 		}
 
 		virtual void Execute(void* request) override {
@@ -434,7 +435,8 @@ namespace PaintsNow {
 	template <typename T, typename... Args>
 	class ContextFreeTaskTemplate : public TaskOnce {
 	public:
-		ContextFreeTaskTemplate(T t, Args&&... args) : callback(t), arguments(std::forward<Args>(args)...) {}
+		template <typename... Params>
+		ContextFreeTaskTemplate(T t, Params&&... params) : callback(t), arguments(std::forward<Params>(params)...) {}
 
 		template <size_t... S>
 		void Apply(seq<S...>) {
