@@ -2080,95 +2080,69 @@ namespace PaintsNow {
 
 #if defined(_MSC_VER) && _MSC_VER < 1800
 	template <class R = Void, class A = Void, class B = Void, class C = Void, class D = Void, class E = Void, class F = Void, class G = Void, class H = Void, class I = Void, class J = Void, class K = Void, class L = Void, class M = Void, class N = Void, class O = Void, class P = Void>
-	class TBinder : public TWrapper<R> {
+	class TBinder {
 	public:
-		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun) : TWrapper<R>(WrapClosure(this, &TBinder::Invoke0)), func(fun) {}
-		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa) : TWrapper<R>(WrapClosure(this, &TBinder::Invoke1)), func(fun), a(aa) {}
-		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb) : TWrapper<R>(WrapClosure(this, &TBinder::Invoke2)), func(fun), a(aa), b(bb) {}
-		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc) : TWrapper<R>(WrapClosure(this, &TBinder::Invoke3)), func(fun), a(aa), b(bb), c(cc) {}
-		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd) : TWrapper<R>(WrapClosure(this, &TBinder::Invoke4)), func(fun), a(aa), b(bb), c(cc), d(dd) {}
-		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee) : TWrapper<R>(WrapClosure(this, &TBinder::Invoke5)), func(fun), a(aa), b(bb), c(cc), d(dd), e(ee) {}
-		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee, F ff) : TWrapper<R>(WrapClosure(this, &TBinder::Invoke6)), func(fun), a(aa), b(bb), c(cc), d(dd), e(ee), f(ff) {}
-		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee, F ff, G gg) : TWrapper<R>(WrapClosure(this, &TBinder::Invoke7)), func(fun), a(aa), b(bb), c(cc), d(dd), e(ee), f(ff), g(gg) {}
-		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee, F ff, G gg, H hh) : TWrapper<R>(WrapClosure(this, &TBinder::Invoke8)), func(fun), a(aa), b(bb), c(cc), d(dd), e(ee), f(ff), g(gg), h(hh) {}
-		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee, F ff, G gg, H hh, I ii) : TWrapper<R>(WrapClosure(this, &TBinder::Invoke9)), func(fun), a(aa), b(bb), c(cc), d(dd), e(ee), f(ff), g(gg), h(hh), i(ii) {}
-		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee, F ff, G gg, H hh, I ii, J jj) : TWrapper<R>(WrapClosure(this, &TBinder::Invoke10)), func(fun), a(aa), b(bb), c(cc), d(dd), e(ee), f(ff), g(gg), h(hh), i(ii), j(jj) {}
-		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee, F ff, G gg, H hh, I ii, J jj, K kk) : TWrapper<R>(WrapClosure(this, &TBinder::Invoke11)), func(fun), a(aa), b(bb), c(cc), d(dd), e(ee), f(ff), g(gg), h(hh), i(ii), j(jj), k(kk) {}
-		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee, F ff, G gg, H hh, I ii, J jj, K kk, L ll) : TWrapper<R>(WrapClosure(this, &TBinder::Invoke12)), func(fun), a(aa), b(bb), c(cc), d(dd), e(ee), f(ff), g(gg), h(hh), i(ii), j(jj), k(kk), l(ll) {}
-		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee, F ff, G gg, H hh, I ii, J jj, K kk, L ll, M mm) : TWrapper<R>(WrapClosure(this, &TBinder::Invoke13)), func(fun), a(aa), b(bb), c(cc), d(dd), e(ee), f(ff), g(gg), h(hh), i(ii), j(jj), k(kk), l(ll), m(mm) {}
-		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee, F ff, G gg, H hh, I ii, J jj, K kk, L ll, M mm, N nn) : TWrapper<R>(WrapClosure(this, &TBinder::Invoke14)), func(fun), a(aa), b(bb), c(cc), d(dd), e(ee), f(ff), g(gg), h(hh), i(ii), j(jj), k(kk), l(ll), m(mm), n(nn) {}
-		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee, F ff, G gg, H hh, I ii, J jj, K kk, L ll, M mm, N nn, O oo) : TWrapper<R>(WrapClosure(this, &TBinder::Invoke15)), func(fun), a(aa), b(bb), c(cc), d(dd), e(ee), f(ff), g(gg), h(hh), i(ii), j(jj), k(kk), l(ll), m(mm), n(nn), O(oo) {}
-		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee, F ff, G gg, H hh, I ii, J jj, K kk, L ll, M mm, N nn, O oo, P pp) : TWrapper<R>(WrapClosure(this, &TBinder::Invoke16)), func(fun), a(aa), b(bb), c(cc), d(dd), e(ee), f(ff), g(gg), h(hh), i(ii), j(jj), k(kk), l(ll), m(mm), n(nn), O(oo), P(pp) {}
+		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun) : func(fun) {}
+		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa) : func(fun), a(aa) {}
+		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb) : func(fun), a(aa), b(bb) {}
+		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc) : func(fun), a(aa), b(bb), c(cc) {}
+		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd) : func(fun), a(aa), b(bb), c(cc), d(dd) {}
+		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee) : func(fun), a(aa), b(bb), c(cc), d(dd), e(ee) {}
+		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee, F ff) : func(fun), a(aa), b(bb), c(cc), d(dd), e(ee), f(ff) {}
+		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee, F ff, G gg) : func(fun), a(aa), b(bb), c(cc), d(dd), e(ee), f(ff), g(gg) {}
+		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee, F ff, G gg, H hh) :func(fun), a(aa), b(bb), c(cc), d(dd), e(ee), f(ff), g(gg), h(hh) {}
+		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee, F ff, G gg, H hh, I ii) : func(fun), a(aa), b(bb), c(cc), d(dd), e(ee), f(ff), g(gg), h(hh), i(ii) {}
+		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee, F ff, G gg, H hh, I ii, J jj) :func(fun), a(aa), b(bb), c(cc), d(dd), e(ee), f(ff), g(gg), h(hh), i(ii), j(jj) {}
+		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee, F ff, G gg, H hh, I ii, J jj, K kk) : func(fun), a(aa), b(bb), c(cc), d(dd), e(ee), f(ff), g(gg), h(hh), i(ii), j(jj), k(kk) {}
+		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee, F ff, G gg, H hh, I ii, J jj, K kk, L ll) : func(fun), a(aa), b(bb), c(cc), d(dd), e(ee), f(ff), g(gg), h(hh), i(ii), j(jj), k(kk), l(ll) {}
+		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee, F ff, G gg, H hh, I ii, J jj, K kk, L ll, M mm) : func(fun), a(aa), b(bb), c(cc), d(dd), e(ee), f(ff), g(gg), h(hh), i(ii), j(jj), k(kk), l(ll), m(mm) {}
+		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee, F ff, G gg, H hh, I ii, J jj, K kk, L ll, M mm, N nn) : func(fun), a(aa), b(bb), c(cc), d(dd), e(ee), f(ff), g(gg), h(hh), i(ii), j(jj), k(kk), l(ll), m(mm), n(nn) {}
+		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee, F ff, G gg, H hh, I ii, J jj, K kk, L ll, M mm, N nn, O oo) : func(fun), a(aa), b(bb), c(cc), d(dd), e(ee), f(ff), g(gg), h(hh), i(ii), j(jj), k(kk), l(ll), m(mm), n(nn), O(oo) {}
+		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee, F ff, G gg, H hh, I ii, J jj, K kk, L ll, M mm, N nn, O oo, P pp) : func(fun), a(aa), b(bb), c(cc), d(dd), e(ee), f(ff), g(gg), h(hh), i(ii), j(jj), k(kk), l(ll), m(mm), n(nn), O(oo), P(pp) {}
+
+		typename ReturnType<R>::type operator () () const {
+			switch (func.GetCount()) {
+			case 0:
+				return func();
+			case 1:
+				return func(a);
+			case 2:
+				return func(a, b);
+			case 3:
+				return func(a, b, c);
+			case 4:
+				return func(a, b, c, d);
+			case 5:
+				return func(a, b, c, d, e);
+			case 6:
+				return func(a, b, c, d, e, f);
+			case 7:
+				return func(a, b, c, d, e, f, g);
+			case 8:
+				return func(a, b, c, d, e, f, g, h);
+			case 9:
+				return func(a, b, c, d, e, f, g, h, i);
+			case 10:
+				return func(a, b, c, d, e, f, g, h, i, j);
+			case 11:
+				return func(a, b, c, d, e, f, g, h, i, j, k);
+			case 12:
+				return func(a, b, c, d, e, f, g, h, i, j, k, l);
+			case 13:
+				return func(a, b, c, d, e, f, g, h, i, j, k, l, m);
+			case 14:
+				return func(a, b, c, d, e, f, g, h, i, j, k, l, m, n);
+			case 15:
+				return func(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o);
+			case 16:
+				return func(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p);
+			default:
+				assert(false);
+				return ReturnType<R>::type();
+			}
+		}
 
 	protected:
-		typename ReturnType<R>::type Invoke0() {
-			return func();
-		}
-
-		typename ReturnType<R>::type Invoke1() {
-			return func(a);
-		}
-
-		typename ReturnType<R>::type Invoke2() {
-			return func(a, b);
-		}
-
-		typename ReturnType<R>::type Invoke3() {
-			return func(a, b, c);
-		}
-
-		typename ReturnType<R>::type Invoke4() {
-			return func(a, b, c, d);
-		}
-
-		typename ReturnType<R>::type Invoke5() {
-			return func(a, b, c, d, e);
-		}
-
-		typename ReturnType<R>::type Invoke6() {
-			return func(a, b, c, d, e, f);
-		}
-
-		typename ReturnType<R>::type Invoke7() {
-			return func(a, b, c, d, e, f, g);
-		}
-
-		typename ReturnType<R>::type Invoke8() {
-			return func(a, b, c, d, e, f, g, h);
-		}
-
-		typename ReturnType<R>::type Invoke9() {
-			return func(a, b, c, d, e, f, g, h, i);
-		}
-
-		typename ReturnType<R>::type Invoke10() {
-			return func(a, b, c, d, e, f, g, h, i, j);
-		}
-
-		typename ReturnType<R>::type Invoke11() {
-			return func(a, b, c, d, e, f, g, h, i, j, k);
-		}
-
-		typename ReturnType<R>::type Invoke12() {
-			return func(a, b, c, d, e, f, g, h, i, j, k, l);
-		}
-
-		typename ReturnType<R>::type Invoke13() {
-			return func(a, b, c, d, e, f, g, h, i, j, k, l, m);
-		}
-
-		typename ReturnType<R>::type Invoke14() {
-			return func(a, b, c, d, e, f, g, h, i, j, k, l, m, n);
-		}
-
-		typename ReturnType<R>::type Invoke15() {
-			return func(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o);
-		}
-
-		typename ReturnType<R>::type Invoke16() {
-			return func(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p);
-		}
-
 		TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P> func;
 		std::decay<A>::type a; std::decay<B>::type b; std::decay<C>::type c; std::decay<D>::type d; std::decay<E>::type e;
 		std::decay<F>::type f; std::decay<G>::type g; std::decay<H>::type h; std::decay<I>::type i; std::decay<J>::type j;
@@ -2303,115 +2277,131 @@ namespace PaintsNow {
 	template <class T, class A>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a) {
 		TWrapper<T*, A> wrapper = Wrap(&_New1<T, A>::Invoke);
-		return TBinder<T*, A>(wrapper, a);
+		TBinder<T*, A> binder(wrapper, a);
+		return WrapClosure(&binder, &TBinder<T*, A>::operator ());
 	}
 
 	template <class T, class A, class B>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b) {
 		TWrapper<T*, A, B> wrapper = Wrap(&_New2<T, A, B>::Invoke);
-		return TBinder<T*, A, B>(wrapper, a, b);
+		TBinder<T*, A, B> binder(wrapper, a, b);
+		return WrapClosure(&binder, &TBinder<T*, A, B>::operator ());
 	}
 
 	template <class T, class A, class B, class C>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c) {
 		TWrapper<T*, A, B, C> wrapper = Wrap(&_New3<T, A, B, C>::Invoke);
-		return TBinder<T*, A, B, C>(wrapper, a, b, c);
+		TBinder<T*, A, B, C> binder(wrapper, a, b, c);
+		return WrapClosure(&binder, &TBinder<T*, A, B, C>::operator ());
 	}
 
 	template <class T, class A, class B, class C, class D>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d) {
 		TWrapper<T*, A, B, C, D> wrapper = Wrap(&_New4<T, A, B, C, D>::Invoke);
-		return TBinder<T*, A, B, C, D>(wrapper, a, b, c, d);
+		TBinder<T*, A, B, C, D> binder(wrapper, a, b, c, d);
+		return WrapClosure(&binder, &TBinder<T*, A, B, C, D>::operator ());
 	}
 
 	template <class T, class A, class B, class C, class D, class E>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d, E e) {
 		TWrapper<T*, A, B, C, D, E> wrapper = Wrap(&_New5<T, A, B, C, D, E>::Invoke);
-		return TBinder<T*, A, B, C, D, E>(wrapper, a, b, c, d, e);
+		TBinder<T*, A, B, C, D, E> binder(wrapper, a, b, c, d, e);
+		return WrapClosure(&binder, &TBinder<T*, A, B, C, D, E>::operator ());
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d, E e, F f) {
 		TWrapper<T*, A, B, C, D, E, F> wrapper = Wrap(&_New6<T, A, B, C, D, E, F>::Invoke);
-		return TBinder<T*, A, B, C, D, E, F>(wrapper, a, b, c, d, e, f);
+		TBinder<T*, A, B, C, D, E, F> binder(wrapper, a, b, c, d, e, f);
+		return WrapClosure(&binder, &TBinder<T*, A, B, C, D, E, F>::operator ());
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d, E e, F f, G g) {
 		TWrapper<T*, A, B, C, D, E, F, G> wrapper = Wrap(&_New7<T, A, B, C, D, E, F, G>::Invoke);
-		return TBinder<T*, A, B, C, D, E, F, G>(wrapper, a, b, c, d, e, f, g);
+		TBinder<T*, A, B, C, D, E, F, G> binder(wrapper, a, b, c, d, e, f, g);
+		return WrapClosure(&binder, &TBinder<T*, A, B, C, D, E, F, G>::operator ());
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G, class H>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d, E e, F f, G g, H h) {
 		TWrapper<T*, A, B, C, D, E, F, G, H> wrapper = Wrap(&_New8<T, A, B, C, D, E, F, G, H>::Invoke);
-		return TBinder<T*, A, B, C, D, E, F, G, H>(wrapper, a, b, c, d, e, f, g, h);
+		TBinder<T*, A, B, C, D, E, F, G, H> binder(wrapper, a, b, c, d, e, f, g, h);
+		return WrapClosure(&binder, &TBinder<T*, A, B, C, D, E, F, G, H>::operator ());
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G, class H, class I>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d, E e, F f, G g, H h, I i) {
 		TWrapper<T*, A, B, C, D, E, F, G, H, I> wrapper = Wrap(&_New9<T, A, B, C, D, E, F, G, H, I>::Invoke);
-		return TBinder<T*, A, B, C, D, E, F, G, H, I>(wrapper, a, b, c, d, e, f, g, h, i);
+		TBinder<T*, A, B, C, D, E, F, G, H, I> binder(wrapper, a, b, c, d, e, f, g, h, i);
+		return WrapClosure(&binder, &TBinder<T*, A, B, C, D, E, F, G, H, I>::operator ());
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d, E e, F f, G g, H h, I i, J j) {
 		TWrapper<T*, A, B, C, D, E, F, G, H, I, J> wrapper = Wrap(&_New10<T, A, B, C, D, E, F, G, H, I, J>::Invoke);
-		return TBinder<T*, A, B, C, D, E, F, G, H, I, J>(wrapper, a, b, c, d, e, f, g, h, i, j);
+		TBinder<T*, A, B, C, D, E, F, G, H, I, J> binder(wrapper, a, b, c, d, e, f, g, h, i, j);
+		return WrapClosure(&binder, &TBinder<T*, A, B, C, D, E, F, G, H, I, J>::operator ());
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k) {
 		TWrapper<T*, A, B, C, D, E, F, G, H, I, J, K> wrapper = Wrap(&_New11<T, A, B, C, D, E, F, G, H, I, J, K>::Invoke);
-		return TBinder<T*, A, B, C, D, E, F, G, H, I, J, K>(wrapper, a, b, c, d, e, f, g, h, i, j, k);
+		TBinder<T*, A, B, C, D, E, F, G, H, I, J, K> binder(wrapper, a, b, c, d, e, f, g, h, i, j, k);
+		return WrapClosure(&binder, &TBinder<T*, A, B, C, D, E, F, G, H, I, J, K>::operator ());
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l) {
 		TWrapper<T*, A, B, C, D, E, F, G, H, I, J, K, L> wrapper = Wrap(&_New12<T, A, B, C, D, E, F, G, H, I, J, K, L>::Invoke);
-		return TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L>(wrapper, a, b, c, d, e, f, g, h, i, j, k, l);
+		TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L> binder(wrapper, a, b, c, d, e, f, g, h, i, j, k, l);
+		return WrapClosure(&binder, &TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L>::operator ());
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m) {
 		TWrapper<T*, A, B, C, D, E, F, G, H, I, J, K, L, M> wrapper = Wrap(&_New13<T, A, B, C, D, E, F, G, H, I, J, K, L, M>::Invoke);
-		return TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M>(wrapper, a, b, c, d, e, f, g, h, i, j, k, l, m);
+		TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M> binder(wrapper, a, b, c, d, e, f, g, h, i, j, k, l, m);
+		return WrapClosure(&binder, &TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M>::operator ());
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n) {
 		TWrapper<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N> wrapper = Wrap(&_New14<T, A, B, C, D, E, F, G, H, I, J, K, L, M, N>::Invoke);
-		return TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N>(wrapper, a, b, c, d, e, f, g, h, i, j, k, l, m, n);
+		TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N> binder(wrapper, a, b, c, d, e, f, g, h, i, j, k, l, m, n);
+		return WrapClosure(&binder, &TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N>::operator ());
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N, class O>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n, O o) {
 		TWrapper<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> wrapper = Wrap(&_New15<T, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>::Invoke);
-		return TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(wrapper, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o);
+		TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> binder(wrapper, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o);
+		return WrapClosure(&binder, &TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>::operator ());
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N, class O, class P>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n, O o, P p) {
 		TWrapper<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P> wrapper = Wrap(&_New16<T, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>::Invoke);
-		return TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>(wrapper, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p);
+		TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P> binder(wrapper, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p);
+		return WrapClosure(&binder, &TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>::operator ());
 	}
 #else
 	template <typename R, typename... Args>
-	class TBinder : public TWrapper<R> {
+	class TBinder {
 	public:
 		TBinder() {}
 	
-		template <typename F, typename... Params>
-		explicit TBinder(F&& f, Params&&... params) : TWrapper<R>(Wrap(this, &TBinder::Apply)), func(std::forward<F>(f)), args(std::forward<Params>(params)...) {}
+		template <typename... Params>
+		explicit TBinder(TWrapper<R, Args...>&& f, Params&&... params) : func(std::forward<TWrapper<R, Args...>>(f)), args(std::forward<Params>(params)...) {}
+		
+		typename ReturnType<R>::type operator () () const {
+			return Apply(gen_seq<sizeof...(Args)>());
+		}
 	
 	protected:
 		template <size_t... I>
-		R ApplyEx(seq<I...>) const {
+		typename ReturnType<R>::type Apply(seq<I...>) const {
 			return func(std::get<I>(args)...);
-		}
-	
-		R Apply() const {
-			return ApplyEx(gen_seq<sizeof...(Args)>());
 		}
 	
 		TWrapper<R, Args...> func;
@@ -2425,7 +2415,7 @@ namespace PaintsNow {
 	
 	template <typename T, typename... Params>
 	static TWrapper<T*> WrapFactory(TypeParam<T>, Params&&... params) {
-		return TBinder<T*, Params...>(Wrap(&_New<T, Params...>), std::forward<Params>(params)...);
+		return WrapClosure(TBinder<T*, Params...>(Wrap(&_New<T, Params...>), std::forward<Params>(params)...));
 	}
 	#endif
 }
