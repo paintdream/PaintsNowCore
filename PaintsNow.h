@@ -521,7 +521,7 @@ struct getboolean<std::true_type> { enum { value = true }; };
 
 // seq from stackoverflow http://stackoverflow.com/questions/17424477/implementation-c14-make-integer-sequence By Xeo
 
-#if !(defined(_MSC_VER) && _MSC_VER < 1800) || defined(COMPATIBLE_PROXY)
+#if !(defined(_MSC_VER) && _MSC_VER < 1800)
 #ifdef _MSC_VER
 	template<unsigned...> struct seq{ typedef seq type; };
 	template<class S1, class S2> struct concat;

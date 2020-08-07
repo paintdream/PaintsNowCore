@@ -165,7 +165,7 @@ namespace PaintsNow {
 				virtual AutoWrapperBase* Clone() const;
 			};
 
-#if (defined(_MSC_VER) && _MSC_VER < 1800) || defined(COMPATIBLE_PROXY)
+#if (defined(_MSC_VER) && _MSC_VER < 1800)
 			template <class R = Void, class A = Void, class B = Void, class C = Void, class D = Void, class E = Void, class F = Void, class G = Void, class H = Void, class I = Void, class J = Void, class K = Void, class L = Void, class M = Void, class N = Void, class O = Void>
 			class AutoWrapper : public AutoWrapperBase, public TWrapper<R, Request&, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> {
 			public:

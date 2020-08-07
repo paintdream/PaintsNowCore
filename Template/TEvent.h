@@ -186,11 +186,19 @@ namespace PaintsNow {
 			return *this;
 		}
 
-		void operator () (Args... args) {
-			for (typename std::vector<W>::iterator it = callbacks.begin(); it != callbacks.end();) {
-				const TWrapper<void, Args...>& m = *it;
-				++it;
-				m(args...);
+		template <typename... Params>
+		void operator () (Params&&... params) {
+			typename std::vector<W>::iterator it = callbacks.begin();
+			if (it != callbacks.end()) {
+				while (true) {
+					const TWrapper<void, Args...>& m = *it;
+					if (++it != callbacks.end()) {
+						m(params...);
+					} else {
+						m(std::forward<Params>(params)...);
+						break;
+					}
+				}
 			}
 		}
 

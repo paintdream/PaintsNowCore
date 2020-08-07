@@ -222,87 +222,99 @@ namespace PaintsNow {
 		}
 
 		template <class A>
-		inline T* New(A& a) {
+		inline T* New(A a) {
 			void* ptr = Allocate();
 			return new (ptr) T(a);
 		}
 
 		template <class A, class B>
-		inline T* New(A& a, B& b) {
+		inline T* New(A a, B b) {
 			void* ptr = Allocate();
 			return new (ptr) T(a, b);
 		}
 
 		template <class A, class B, class C>
-		inline T* New(A& a, B& b, C& c) {
+		inline T* New(A a, B b, C c) {
 			void* ptr = Allocate();
 			return new (ptr) T(a, b, c);
 		}
 
 		template <class A, class B, class C, class D>
-		inline T* New(A& a, B& b, C& c, D& d) {
+		inline T* New(A a, B b, C c, D d) {
 			void* ptr = Allocate();
 			return new (ptr) T(a, b, c, d);
 		}
 
 		template <class A, class B, class C, class D, class E>
-		inline T* New(A& a, B& b, C& c, D& d, E& e) {
+		inline T* New(A a, B b, C c, D d, E e) {
 			void* ptr = Allocate();
 			return new (ptr) T(a, b, c, d, e);
 		}
 
 		template <class A, class B, class C, class D, class E, class F>
-		inline T* New(A& a, B& b, C& c, D& d, E& e, F& f) {
+		inline T* New(A a, B b, C c, D d, E e, F f) {
 			void* ptr = Allocate();
 			return new (ptr) T(a, b, c, d, e, f);
 		}
 
 		template <class A, class B, class C, class D, class E, class F, class G>
-		inline T* New(A& a, B& b, C& c, D& d, E& e, F& f, G& g) {
+		inline T* New(A a, B b, C c, D d, E e, F f, G g) {
 			void* ptr = Allocate();
 			return new (ptr) T(a, b, c, d, e, f, g);
 		}
 
 		template <class A, class B, class C, class D, class E, class F, class G, class H>
-		inline T* New(A& a, B& b, C& c, D& d, E& e, F& f, G& g, H& h) {
+		inline T* New(A a, B b, C c, D d, E e, F f, G g, H h) {
 			void* ptr = Allocate();
 			return new (ptr) T(a, b, c, d, e, f, g, h);
 		}
 
 		template <class A, class B, class C, class D, class E, class F, class G, class H, class I>
-		inline T* New(A& a, B& b, C& c, D& d, E& e, F& f, G& g, H& h, I& i) {
+		inline T* New(A a, B b, C c, D d, E e, F f, G g, H h, I i) {
 			void* ptr = Allocate();
 			return new (ptr) T(a, b, c, d, e, f, g, h, i);
 		}
 
 		template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J>
-		inline T* New(A& a, B& b, C& c, D& d, E& e, F& f, G& g, H& h, I& i, J& j) {
+		inline T* New(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j) {
 			void* ptr = Allocate();
 			return new (ptr) T(a, b, c, d, e, f, g, h, i, j);
 		}
 
 		template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K>
-		inline T* New(A& a, B& b, C& c, D& d, E& e, F& f, G& g, H& h, I& i, J& j, K& k) {
+		inline T* New(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k) {
 			void* ptr = Allocate();
 			return new (ptr) T(a, b, c, d, e, f, g, h, i, j, k);
 		}
 
 		template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L>
-		inline T* New(A& a, B& b, C& c, D& d, E& e, F& f, G& g, H& h, I& i, J& j, K& k, L& l) {
+		inline T* New(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l) {
 			void* ptr = Allocate();
 			return new (ptr) T(a, b, c, d, e, f, g, h, i, j, k, l);
 		}
 
 		template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M>
-		inline T* New(A& a, B& b, C& c, D& d, E& e, F& f, G& g, H& h, I& i, J& j, K& k, L& l, M& m) {
+		inline T* New(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m) {
 			void* ptr = Allocate();
 			return new (ptr) T(a, b, c, d, e, f, g, h, i, j, k, l, m);
 		}
 
 		template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N>
-		inline T* New(A& a, B& b, C& c, D& d, E& e, F& f, G& g, H& h, I& i, J& j, K& k, L& l, M& m, N& n) {
+		inline T* New(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n) {
 			void* ptr = Allocate();
 			return new (ptr) T(a, b, c, d, e, f, g, h, i, j, k, l, m, n);
+		}
+
+		template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N, class O>
+		inline T* New(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n, O o) {
+			void* ptr = Allocate();
+			return new (ptr) T(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o);
+		}
+
+		template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N, class O, class P>
+		inline T* New(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n, O o, P p) {
+			void* ptr = Allocate();
+			return new (ptr) T(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p);
 		}
 #else
 		template <typename... Args>

@@ -10,7 +10,6 @@
 #include "IType.h"
 #include "../Template/TObject.h"
 #include "../Template/TProxy.h"
-#include "../Template/TFactory.h"
 #include "../Template/TAtomic.h"
 #include "../Template/TMap.h"
 #include "IThread.h"
@@ -94,7 +93,7 @@ namespace PaintsNow {
 	};
 
 	template <class T>
-	struct UniqueType {
+	struct UniqueType : public TypeParam<T> {
 		static String Demangle(const char* name) {
 			String className;
 #ifdef __GNUG__
@@ -459,7 +458,7 @@ namespace PaintsNow {
 			Property(const_cast<IReflectObject&>(s), typeID, refTypeID, name, base, ptr, meta);
 		}
 
-#if (defined(_MSC_VER) && _MSC_VER < 1800) || defined(COMPATIBLE_PROXY)
+#if (defined(_MSC_VER) && _MSC_VER < 1800)
 		// T == TWrapper<...>
 		template <class R, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N, class O, class P>
 		inline void OnMethod(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& t, const char* name, const MetaChainBase* meta) {
