@@ -1250,8 +1250,8 @@ namespace PaintsNow {
 		public:
 			RequestPool(IScript& script, size_t size);
 			~RequestPool();
-			Request* AllocateRequest();
-			void FreeRequest(Request* request);
+			Request* AcquireRequest();
+			void ReleaseRequest(Request* request);
 			IScript& GetScript();
 			void Clear();
 

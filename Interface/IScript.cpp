@@ -548,7 +548,7 @@ void IScript::RequestPool::Clear() {
 	}
 }
 
-IScript::Request* IScript::RequestPool::AllocateRequest() {
+IScript::Request* IScript::RequestPool::AcquireRequest() {
 	IScript::Request* request = nullptr;
 	SpinLock(requestCritical);
 	if (!requests.empty()) {
@@ -568,7 +568,7 @@ IScript::Request* IScript::RequestPool::AllocateRequest() {
 	return request;
 }
 
-void IScript::RequestPool::FreeRequest(IScript::Request* request) {
+void IScript::RequestPool::ReleaseRequest(IScript::Request* request) {
 	SpinLock(requestCritical);
 	if (requests.size() < size) {
 		requests.push(request);
