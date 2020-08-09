@@ -537,15 +537,13 @@ struct getboolean<std::true_type> { enum { value = true }; };
 	template< std::size_t ... i >
 	struct seq
 	{
-	    typedef std::size_t value_type;
-
-	    typedef seq<i...> type;
-
-	    // gcc-4.4.7 doesn't support `constexpr` and `noexcept`.
-	    static /*constexpr*/ std::size_t size() /*noexcept*/
-	    {
-	        return sizeof ... (i);
-	    }
+		typedef std::size_t value_type;
+		typedef seq<i...> type;
+		// gcc-4.4.7 doesn't support `constexpr` and `noexcept`.
+		static /*constexpr*/ std::size_t size() /*noexcept*/
+		{
+			return sizeof ... (i);
+		}
 	};
 
 
@@ -557,33 +555,31 @@ struct getboolean<std::true_type> { enum { value = true }; };
 	template< std::size_t s, std::size_t ... i >
 	struct doubled_seq< s, seq<i... > >
 	{
-	    typedef seq<i..., (s + i)... > type;
+		typedef seq<i..., (s + i)... > type;
 	};
 
 	// this structure incremented by one seq, iff NEED-is true,
 	// otherwise returns IS
-	template< bool NEED, typename IS >
+	template <bool NEED, typename IS>
 	struct inc_seq;
 
-	template< typename IS >
+	template <typename IS>
 	struct inc_seq<false,IS>{ typedef IS type; };
 
-	template< std::size_t ... i >
-	struct inc_seq< true, seq<i...> >
+	template <std::size_t ... i>
+	struct inc_seq<true, seq<i...>>
 	{
-	    typedef seq<i..., sizeof...(i)> type;
+		typedef seq<i..., sizeof...(i)> type;
 	};
 
-
-
 	// helper structure for make_seq.
-	template< std::size_t N >
+	template <std::size_t N>
 	struct make_seq_impl :
-	           inc_seq< (N % 2 != 0),
-	                typename doubled_seq< N / 2,
-	                           typename make_seq_impl< N / 2> ::type
-	               >::type
-	       >
+			   inc_seq< (N % 2 != 0),
+					typename doubled_seq< N / 2,
+							typename make_seq_impl< N / 2> ::type
+				>::type
+		>
 	{};
 
 	 // helper structure needs specialization only with 0 element.
@@ -591,8 +587,8 @@ struct getboolean<std::true_type> { enum { value = true }; };
 
 	// OUR make_seq,  gcc-4.4.7 doesn't support `using`,
 	// so we use struct instead of it.
-	template< std::size_t N >
-	struct gen_seq  : make_seq_impl<N>::type {};
+	template <std::size_t N>
+	struct gen_seq : make_seq_impl<N>::type {};
 
 #endif
 #endif

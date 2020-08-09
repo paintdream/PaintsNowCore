@@ -337,12 +337,12 @@ void ZThreadPthread::Signal(Semaphore* s) {
 #if defined(_MSC_VER) && !defined(PREFER_NATIVE_THREAD)
 #include <Windows.h>
 #define CLOCK_MONOTONIC 0
-int clock_gettime(int, struct timespec *spec)      //C-file part
+int clock_gettime(int, struct timespec *spec) //C-file part
 {
 	__int64 wintime; GetSystemTimeAsFileTime((FILETIME*)&wintime);
-	wintime -= (__int64)116444736000000000;  //1jan1601 to 1jan1970
-	spec->tv_sec = wintime / 10000000;           //seconds
-	spec->tv_nsec = wintime % 10000000 * 100;      //nano-seconds
+	wintime -= (__int64)116444736000000000; //1jan1601 to 1jan1970
+	spec->tv_sec = wintime / 10000000; //seconds
+	spec->tv_nsec = wintime % 10000000 * 100; //nano-seconds
 	return 0;
 }
 #endif

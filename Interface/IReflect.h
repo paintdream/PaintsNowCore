@@ -139,7 +139,7 @@ namespace PaintsNow {
 		IReflectObject();
 		// General object construction
 		// We can initialize an IReflectObject with anything, and get a stub IReflectObject
-		//     that IsBasicObject() == true && IsIterator() == false
+		//	 that IsBasicObject() == true && IsIterator() == false
 		// It's useful when writing templates dealing with various pod types, see IStreamBase for more details
 		template <class T>
 		IReflectObject(const T& t) {}
