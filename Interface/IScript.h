@@ -14,6 +14,7 @@
 #include "../Template/TProxy.h"
 #include "../Template/TMap.h"
 #include "../Template/TAlgorithm.h"
+#include "../Template/TPool.h"
 #include "IThread.h"
 #include <vector>
 #include <list>
@@ -1246,20 +1247,15 @@ namespace PaintsNow {
 		// virtual void DoLock();
 		// virtual void UnLock();
 
-		class RequestPool {
+		class RequestPool : public TPool<RequestPool, Request*> {
 		public:
 			RequestPool(IScript& script, size_t size);
-			~RequestPool();
-			Request* AcquireRequest();
-			void ReleaseRequest(Request* request);
+			Request* New();
+			void Delete(Request* request);
 			IScript& GetScript();
-			void Clear();
 
 		protected:
 			IScript& script;
-			std::stack<Request*> requests;
-			size_t size;
-			std::atomic<size_t> requestCritical;
 		};
 
 	protected:

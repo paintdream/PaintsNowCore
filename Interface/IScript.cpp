@@ -519,66 +519,23 @@ IScript::MetaMethod IScript::MetaMethod::operator = (const String& key) {
 	return MetaMethod(key);
 }
 
-IScript::RequestPool::RequestPool(IScript& pscript, size_t psize) : script(pscript), size(psize) {
-	requestCritical.store(0, std::memory_order_relaxed);
-}
-
-IScript::RequestPool::~RequestPool() {
-	Clear();
-}
+IScript::RequestPool::RequestPool(IScript& pscript, size_t psize) : PoolBase(psize), script(pscript){}
 
 IScript& IScript::RequestPool::GetScript() {
 	return script;
 }
 
-void IScript::RequestPool::Clear() {
-	SpinLock(requestCritical);
-	std::stack<IScript::Request*> s;
-	std::swap(s, requests);
-	SpinUnLock(requestCritical);
-
-	if (!s.empty()) {
-		script.DoLock();
-		while (!s.empty()) {
-			IScript::Request* request = s.top();
-			request->ReleaseObject();
-			s.pop();
-		}
-		script.UnLock();
-	}
-}
-
-IScript::Request* IScript::RequestPool::AcquireRequest() {
-	IScript::Request* request = nullptr;
-	SpinLock(requestCritical);
-	if (!requests.empty()) {
-		request = requests.top();
-		assert(request->GetRequestPool() == this);
-		requests.pop();
-	}
-	SpinUnLock(requestCritical);
-
-	if (request == nullptr) {
-		script.DoLock();
-		request = script.NewRequest();
-		request->SetRequestPool(this);
-		script.UnLock();
-	}
-
+IScript::Request* IScript::RequestPool::New() {
+	script.DoLock();
+	IScript::Request* request = script.NewRequest();
+	request->SetRequestPool(this);
+	script.UnLock();
 	return request;
 }
 
-void IScript::RequestPool::ReleaseRequest(IScript::Request* request) {
-	SpinLock(requestCritical);
-	if (requests.size() < size) {
-		requests.push(request);
-		request = nullptr;
-	}
-	SpinUnLock(requestCritical);
-
-	if (request != nullptr) {
-		script.DoLock();
-		request->ReleaseObject();
-		script.UnLock();
-	}
+void IScript::RequestPool::Delete(IScript::Request* request) {
+	assert(request->GetRequestPool() == this);
+	script.DoLock();
+	request->ReleaseObject();
+	script.UnLock();
 }
