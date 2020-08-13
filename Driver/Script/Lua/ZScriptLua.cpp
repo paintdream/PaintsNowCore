@@ -187,6 +187,7 @@ bool ZScriptLua::IsClosing() const {
 void ZScriptLua::Clear() {
 	// Wait for all active routines finished.
 	DoLock();
+	closing.store(1, std::memory_order_seq_cst);
 
 	if (callCounter != 0) {
 		IThread::Event* e = threadApi.NewEvent();
@@ -196,9 +197,9 @@ void ZScriptLua::Clear() {
 		threadApi.DeleteEvent(e);
 	}
 
-	closing.store(1, std::memory_order_relaxed);
 	lua_close(state);
 	delete defaultRequest;
+	closing.store(0, std::memory_order_release);
 	UnLock();
 
 #ifdef _DEBUG
@@ -214,7 +215,6 @@ void ZScriptLua::Clear() {
 
 void ZScriptLua::Init() {
 	DoLock();
-	closing.store(0, std::memory_order_relaxed);
 	state = luaL_newstate();
 	defaultRequest = new ZScriptLua::Request(this, state);
 	luaL_openlibs(state);
@@ -272,7 +272,6 @@ void ZScriptLua::Init() {
 	initCountDefer = 0;
 
 	deferState = lua_newthread(state); // don't pop it from stack unless the state was closed.
-
 	UnLock();
 }
 
@@ -314,6 +313,8 @@ IScript::Request::TYPE ZScriptLua::Request::GetReferenceType(const IScript::Requ
 bool ZScriptLua::Request::Call(const AutoWrapperBase& defer, const IScript::Request::Ref& g) {
 	assert(GetScript()->GetLockCount() == 1);
 	assert(tableLevel == 0);
+	if (state->IsClosing()) return false;
+
 	if (!state->BeforeCall())
 		return false;
 

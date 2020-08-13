@@ -24,8 +24,8 @@ namespace PaintsNow {
 
 		T Acquire() {
 			if (!freeItems.empty()) {
-				T item = freeItems.top();
-				freeItems.pop();
+				T item = freeItems.back();
+				freeItems.pop_back();
 				return item;
 			} else {
 				return (static_cast<D*>(this))->New();
@@ -35,8 +35,8 @@ namespace PaintsNow {
 		T AcquireSafe() {
 			SpinLock(critical);
 			if (!freeItems.empty()) {
-				T item = freeItems.top();
-				freeItems.pop();
+				T item = freeItems.back();
+				freeItems.pop_back();
 				return item;
 			}
 			SpinUnLock(critical);
@@ -48,7 +48,7 @@ namespace PaintsNow {
 			if (freeItems.size() >= maxCount) {
 				(static_cast<D*>(this))->Delete(item);
 			} else {
-				freeItems.push(item);
+				freeItems.emplace_back(item);
 			}
 		}
 
@@ -58,22 +58,23 @@ namespace PaintsNow {
 				SpinUnLock(critical);
 				(static_cast<D*>(this))->Delete(item);
 			} else {
-				freeItems.push(item);
+				freeItems.emplace_back(item);
 				SpinUnLock(critical);
 			}
 		}
 
 		void Clear() {
-			while (!freeItems.empty()) {
-				(static_cast<D*>(this))->Delete(freeItems.top());
-				freeItems.pop();
+			for (size_t i = 0; i < freeItems.size(); i++) {
+				(static_cast<D*>(this))->Delete(freeItems[i]);
 			}
+
+			freeItems.clear();
 		}
 
 	protected:
 		size_t maxCount;
 		std::atomic<uint32_t> critical;
-		std::stack<T> freeItems;
+		std::vector<T> freeItems;
 	};
 }
 
