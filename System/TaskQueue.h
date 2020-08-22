@@ -3,9 +3,7 @@
 // 2018-10-30
 //
 
-#ifndef __TASKQUEUE_H__
-#define __TASKQUEUE_H__
-
+#pragma once
 #include "../Template/TAtomic.h"
 #include "../Template/TQueue.h"
 #include "../Interface/ITask.h"
@@ -44,4 +42,3 @@ namespace PaintsNow {
 	};
 }
 
-#endif // __TASKQUEUE_H__

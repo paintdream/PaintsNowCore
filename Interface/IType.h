@@ -3,9 +3,7 @@
 // 2014-11-30
 //
 
-#ifndef __ITYPE_H__
-#define __ITYPE_H__
-
+#pragma once
 #ifdef _MSC_VER
 #pragma warning (disable:4786)
 #pragma warning (disable:4503)
@@ -392,4 +390,3 @@ namespace PaintsNow {
 	};
 }
 
-#endif // __ITYPE_H__

@@ -1,6 +1,4 @@
-#ifndef __TATOMIC_H__
-#define __TATOMIC_H__
-
+#pragma once
 #include "../PaintsNow.h"
 #include <string>
 #include <exception>
@@ -202,4 +200,3 @@ namespace PaintsNow {
 #endif
 }
 
-#endif // __TATOMIC_H__

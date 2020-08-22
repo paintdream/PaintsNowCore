@@ -167,7 +167,6 @@ namespace PaintsNow {
 			return maxDist >= 0 && Overlap(rect, size);
 		}
 
-
 		template <class T>
 		bool FloatEqual(T a, T b) {
 			return fabs(a - b) < 1e-6;
@@ -286,7 +285,6 @@ namespace PaintsNow {
 			uv = Float2(alpha, beta);
 			return (alpha >= -EPSILON && beta >= -EPSILON && (alpha + beta <= 1 + EPSILON));
 		}
-
 
 		// https://github.com/gszauer/GamePhysicsCookbook/blob/master/Code/Geometry3D.cpp
 #if defined(_MSC_VER) && _MSC_VER <= 1200

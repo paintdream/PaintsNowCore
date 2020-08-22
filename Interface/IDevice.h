@@ -3,9 +3,7 @@
 // 2018-3-12
 //
 
-#ifndef __IDEVICE_H__
-#define __IDEVICE_H__
-
+#pragma once
 namespace PaintsNow {
 	class IDevice {
 	public:
@@ -14,4 +12,3 @@ namespace PaintsNow {
 	};
 }
 
-#endif // __IDEVICE_H__

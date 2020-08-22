@@ -3,9 +3,7 @@
 // 2018-10-30
 //
 
-#ifndef __TASKGRAPH_H__
-#define __TASKGRAPH_H__
-
+#pragma once
 #include "Kernel.h"
 #include "Tiny.h"
 
@@ -45,4 +43,3 @@ namespace PaintsNow {
 	};
 }
 
-#endif // __TASKGRAPH_H__

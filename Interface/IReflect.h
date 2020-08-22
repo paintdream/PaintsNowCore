@@ -3,9 +3,7 @@
 // 2014-7-16
 //
 
-#ifndef __IREFLECT_H__
-#define __IREFLECT_H__
-
+#pragma once
 #include "../PaintsNow.h"
 #include "IType.h"
 #include "../Template/TObject.h"
@@ -959,4 +957,4 @@ namespace std {
 }
 #endif
 
-#endif // __IREFLECT_H__
+

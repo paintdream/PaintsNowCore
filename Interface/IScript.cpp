@@ -214,7 +214,6 @@ public:
 
 	virtual void Method(Unique typeID, const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) {}
 
-
 	IScript::Request& request;
 	size_t itemCount;
 };
@@ -254,7 +253,6 @@ IScript::Request::Key::Key(const String& k, IScript::Request::TYPE t) : type(t),
 IScript::Request::Key IScript::Request::Key::operator () (const String& k) {
 	return Key(k);
 }
-
 
 /*
 IScript* IScript::Request::operator -> () {
@@ -342,7 +340,6 @@ IScript::Request& IScript::Request::operator >> (uint8_t& t) {
 	return *this;
 }
 
-
 IScript::Request& IScript::Request::operator << (uint8_t t) {
 	(*this) << (uint64_t)t;
 	return *this;
@@ -384,12 +381,10 @@ IScript::Request& IScript::Request::operator << (uint64_t t) {
 	return *this;
 }
 
-
 IScript::Request& IScript::Request::operator << (Library& module) {
 	module.Require(*this);
 	return *this;
 }
-
 
 IScript::Request& IScript::Request::operator >> (Void&) {
 	return *this;
@@ -496,7 +491,6 @@ bool IScript::Request::Sync::IsSync() const {
 void IScript::Request::Sync::Execute(Request& request) const {
 	assert(false);
 }
-
 
 IScript::Request::AutoWrapperBase* IScript::Request::Sync::Clone() const {
 	return nullptr;

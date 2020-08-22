@@ -199,7 +199,6 @@ TObject<IReflect>& IReflectObjectComplex::operator () (IReflect& reflect) {
 	return *this; // no operations
 }
 
-
 // IIterator
 IIterator::IIterator() {}
 IIterator::~IIterator() {}
@@ -362,7 +361,6 @@ UniqueInfo* UniqueAllocator::Create(const String& key, size_t size) {
 	SpinUnLock(critical);
 	return ret;
 }
-
 
 MetaNote::MetaNote(const String& v) : value(v) {}
 

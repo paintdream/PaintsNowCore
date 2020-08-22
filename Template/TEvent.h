@@ -3,9 +3,7 @@
 // 2015-6-6
 //
 
-#ifndef __TEVENT_H__
-#define __TEVENT_H__
-
+#pragma once
 #include "TProxy.h"
 #include "TAlgorithm.h"
 
@@ -209,6 +207,3 @@ namespace PaintsNow {
 	};
 #endif
 }
-
-
-#endif // __TEVENT_H__

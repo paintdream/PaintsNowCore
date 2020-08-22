@@ -3,9 +3,7 @@
 // 2018-1-15
 //
 
-#ifndef __TINY_H__
-#define __TINY_H__
-
+#pragma once
 #include "../Interface/IScript.h"
 #include "../Interface/IReflect.h"
 #include "../Template/TAtomic.h"
@@ -223,6 +221,3 @@ namespace PaintsNow {
 		return request << IScript::BaseDelegate(static_cast<IScript::Object*>(t()));
 	}
 }
-
-
-#endif // __TINY_H__

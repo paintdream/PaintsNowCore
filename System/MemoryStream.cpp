@@ -145,7 +145,6 @@ bool MemoryStream::Seek(SEEK_OPTION option, int64_t f) {
 	return false;
 }
 
-
 size_t MemoryStream::GetOffset() const {
 	return offset;
 }

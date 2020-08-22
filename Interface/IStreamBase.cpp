@@ -117,7 +117,6 @@ inline bool ReadBaseObject(IStreamBase& stream, Unique typeID, Unique refTypeID,
 	return result;
 }
 
-
 // this class is not mult-thread safe
 template <bool read>
 class Reflect : public IReflect {

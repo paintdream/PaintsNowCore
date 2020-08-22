@@ -3,9 +3,7 @@
 // 2014-11-30
 //
 
-#ifndef __TVECTOR_H__
-#define __TVECTOR_H__
-
+#pragma once
 
 #include "../PaintsNow.h"
 #include "TAlgorithm.h"
@@ -927,6 +925,3 @@ namespace PaintsNow {
 		return std::pair<T, D>(lhs.first / t, lhs.second / t);
 	}
 }
-
-
-#endif // __TVECTOR_H__

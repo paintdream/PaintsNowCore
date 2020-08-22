@@ -3,9 +3,7 @@
 // 2014-12-1
 //
 
-#ifndef __TMATRIX_H__
-#define __TMATRIX_H__
-
+#pragma once
 
 #include "../PaintsNow.h"
 #include <algorithm>
@@ -261,6 +259,3 @@ namespace PaintsNow {
 		}
 	}
 }
-
-
-#endif // __TMATRIX_H__

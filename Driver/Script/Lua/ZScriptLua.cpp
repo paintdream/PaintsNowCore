@@ -129,7 +129,6 @@ static int FunctionProxy(lua_State* L) {
 	return ContinueProxy(L, LUA_OK, (lua_KContext)nullptr);
 }
 
-
 static int FreeMem(lua_State* L) {
 	void* mem = lua_touserdata(L, -1);
 	if (mem == nullptr) // we only free user data
@@ -275,7 +274,6 @@ void ZScriptLua::Init() {
 	UnLock();
 }
 
-
 bool ZScriptLua::BeforeCall() {
 	assert(GetLockCount() == 1);
 	callCounter++;
@@ -308,7 +306,6 @@ IScript::Request::TYPE ZScriptLua::Request::GetReferenceType(const IScript::Requ
 
 	return ZScriptLua::Request::ConvertType(t);
 }
-
 
 bool ZScriptLua::Request::Call(const AutoWrapperBase& defer, const IScript::Request::Ref& g) {
 	assert(GetScript()->GetLockCount() == 1);
@@ -429,7 +426,6 @@ inline void refget(lua_State* L, const IScript::Request::Ref& ref) {
 	lua_replace(L, -2);
 }
 
-
 template <class F, class C>
 inline void Write(lua_State* L, int& tableLevel, int& idx, String& key, F f, const C& value) {
 	if (tableLevel != 0) {
@@ -455,7 +451,6 @@ inline void Write(lua_State* L, int& tableLevel, int& idx, String& key, F f, con
 		f(L, value);
 	}
 }
-
 
 template <class F, class C>
 inline void Read(lua_State* L, int& tableLevel, int& idx, String& key, F f, C& value) {
@@ -496,7 +491,6 @@ IScript::Request& ZScriptLua::Request::operator << (const IScript::Request::Glob
 	tableLevel++;
 	return *this;
 }
-
 
 void ZScriptLua::Request::Dereference(IScript::Request::Ref& ref) {
 	assert(GetScript()->GetLockCount() == 1);
@@ -595,7 +589,6 @@ IScript::Request& ZScriptLua::Request::operator << (const AutoWrapperBase& wrapp
 	return *this;
 }
 
-
 IScript::Request& ZScriptLua::Request::operator >> (IScript::Request::Ref& ref) {
 	assert(GetScript()->GetLockCount() == 1);
 
@@ -609,7 +602,6 @@ IScript::Request& ZScriptLua::Request::operator << (const IScript::Request::Ref&
 	Write(L, tableLevel, idx, key, refget, ref);
 	return *this;
 }
-
 
 IScript::Request& ZScriptLua::GetDefaultRequest() {
 	return *defaultRequest;
@@ -751,7 +743,6 @@ IScript::Request& ZScriptLua::Request::operator >> (double& value) {
 	return *this;
 }
 
-
 inline void strwrite(lua_State* L, const String& v) {
 	lua_pushlstring(L, v.c_str(), v.size());
 }
@@ -834,7 +825,6 @@ IScript::Request& ZScriptLua::Request::operator << (int64_t value) {
 	return *this;
 }
 
-
 inline int64_t tointeger(lua_State* L, int index) {
 	int isnumber;
 	int64_t v = lua_tointegerx(L, index, &isnumber);
@@ -888,7 +878,6 @@ IScript::Request& ZScriptLua::Request::operator << (const IScript::Request::Key&
 	key = k.name;
 	return *this;
 }
-
 
 IScript::Request::TYPE ZScriptLua::Request::ConvertType(int type) {
 	IScript::Request::TYPE target = NIL;
@@ -1041,7 +1030,6 @@ IScript::Request& ZScriptLua::Request::operator >> (IScript::BaseDelegate& d) {
 	return *this;
 }
 
-
 IScript::Request& ZScriptLua::Request::operator << (const Nil& n) {
 	assert(GetScript()->GetLockCount() == 1);
 	Write(L, tableLevel, idx, key, fake_pushnil, n);
@@ -1160,7 +1148,6 @@ IScript::Request::Ref ZScriptLua::Request::Load(const String& script, const Stri
 	return ref;
 }
 
-
 ZScriptLua::Request::~Request() {
 	assert(GetScript()->GetLockCount() == 1);
 	if (ref.value != 0) {
@@ -1185,7 +1172,6 @@ inline int ZScriptLua::GetInitDeferCount() const {
 void ZScriptLua::SetInitDeferCount(int count) {
 	initCountDefer = count;
 }
-
 
 lua_State* ZScriptLua::GetDeferState() const {
 	return deferState;

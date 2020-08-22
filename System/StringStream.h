@@ -3,9 +3,7 @@
 // 2015-1-19
 //
 
-#ifndef __STRINGSTREAM_H__
-#define __STRINGSTREAM_H__
-
+#pragma once
 #include "../../Core/Interface/IType.h"
 #include "../../Core/Interface/IStreamBase.h"
 
@@ -28,4 +26,3 @@ namespace PaintsNow {
 	};
 }
 
-#endif // __STRINGSTREAM_H__

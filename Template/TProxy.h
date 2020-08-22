@@ -2,9 +2,7 @@
 // By PaintDream (paintdream@paintdream.com)
 // 2014-12-14
 //
-#ifndef __TPROXY_H__
-#define __TPROXY_H__
-
+#pragma once
 #include "../PaintsNow.h"
 
 // Remarks: If you use C++ 11, all features provided in this file can be well replaced by std::function<(...)>.
@@ -2419,6 +2417,3 @@ namespace PaintsNow {
 	}
 	#endif
 }
-
-#endif // __TPROXY_H__
-

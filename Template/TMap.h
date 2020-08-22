@@ -3,9 +3,7 @@
 // 2015-3-6
 //
 
-#ifndef __TMAP_H__
-#define __TMAP_H__
-
+#pragma once
 #if defined(_MSC_VER) && _MSC_VER <= 1200
 #pragma warning (disable:4786)
 #pragma warning (disable:4503)
@@ -46,4 +44,4 @@ struct hash<bool> {
 #include <unordered_map>
 #endif
 
-#endif // __TMAP_H__
+

@@ -3,9 +3,7 @@
 // 2016-4-6
 //
 
-#ifndef __ITASK_H__
-#define __ITASK_H__
-
+#pragma once
 #include "../Template/TAlgorithm.h"
 #include "IType.h"
 
@@ -460,5 +458,3 @@ namespace PaintsNow {
 #endif
 }
 
-
-#endif // __ITASK_H__

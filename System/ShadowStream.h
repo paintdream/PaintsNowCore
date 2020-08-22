@@ -3,9 +3,7 @@
 // 2015-1-19
 //
 
-#ifndef __SHADOWSTREAM_H__
-#define __SHADOWSTREAM_H__
-
+#pragma once
 #include "../../Core/Interface/IType.h"
 #include "../../Core/Interface/IStreamBase.h"
 #include "../../Core/Template/TBuffer.h"
@@ -40,4 +38,3 @@ namespace PaintsNow {
 	};
 }
 
-#endif // __SHADOWSTREAM_H__

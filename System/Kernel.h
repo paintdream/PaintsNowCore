@@ -4,9 +4,7 @@
 // Grid-Based Task Schedule System
 //
 
-#ifndef __KERNEL_H__
-#define __KERNEL_H__
-
+#pragma once
 #include "../Interface/ITask.h"
 #include "Tiny.h"
 #include "TaskQueue.h"
@@ -431,7 +429,6 @@ namespace PaintsNow {
 			delete this;
 		}
 
-
 		Kernel& kernel;
 		uint32_t warp;
 		T callback;
@@ -461,7 +458,6 @@ namespace PaintsNow {
 
 			delete this;
 		}
-
 
 		Kernel& kernel;
 		uint32_t warp;
@@ -493,7 +489,6 @@ namespace PaintsNow {
 
 			delete this;
 		}
-
 
 		Kernel& kernel;
 		uint32_t warp;
@@ -726,4 +721,3 @@ namespace PaintsNow {
 #endif
 }
 
-#endif // __KERNEL_H__

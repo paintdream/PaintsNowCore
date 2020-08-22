@@ -3,9 +3,7 @@
 // 2014-12-13
 //
 
-#ifndef __IFILTERBASE_H__
-#define __IFILTERBASE_H__
-
+#pragma once
 
 #include "../PaintsNow.h"
 #include "IDevice.h"
@@ -25,6 +23,3 @@ namespace PaintsNow {
 	};
 }
 
-
-
-#endif // __IFILTERBASE_H__

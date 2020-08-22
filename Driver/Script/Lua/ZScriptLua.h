@@ -1,6 +1,4 @@
-#ifndef __ZSCRIPTLUA_H__
-#define __ZSCRIPTLUA_H__
-
+#pragma once
 #include "../../../../Core/Interface/IScript.h"
 
 struct lua_State;
@@ -123,4 +121,3 @@ namespace PaintsNow {
 	};
 }
 
-#endif // __ZSCRIPTLUA_H__

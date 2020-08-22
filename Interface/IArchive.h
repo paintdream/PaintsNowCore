@@ -3,9 +3,7 @@
 // 2014-12-1
 //
 
-#ifndef __IARCHIVE_H__
-#define __IARCHIVE_H__
-
+#pragma once
 
 #include "../../Core/PaintsNow.h"
 #include "../../Core/Interface/IDevice.h"
@@ -26,6 +24,3 @@ namespace PaintsNow {
 	};
 }
 
-
-
-#endif // __IARCHIVE_H__

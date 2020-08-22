@@ -3,9 +3,7 @@
 // 2014-12-2
 //
 
-#ifndef __TALGORITHM_H__
-#define __TALGORITHM_H__
-
+#pragma once
 #include "../PaintsNow.h"
 #include <cstring>
 #include <algorithm>
@@ -131,7 +129,6 @@ namespace PaintsNow {
 
 	}
 }
-
 
 namespace std {
 	template <class K, class V>
@@ -271,4 +268,3 @@ namespace std {
 	}
 }
 
-#endif // __TALGORITHM_H__

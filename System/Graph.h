@@ -3,9 +3,7 @@
 // 2018-7-30
 //
 
-#ifndef __GRAPH_H__
-#define __GRAPH_H__
-
+#pragma once
 #include "Tiny.h"
 #include <set>
 #include <map>
@@ -201,7 +199,6 @@ namespace PaintsNow {
 				}
 			}
 
-
 			while (!importantNodes.empty()) {
 				std::vector<Node*> newNodes;
 				for (size_t i = 0; i < importantNodes.size(); i++) {
@@ -280,5 +277,3 @@ namespace PaintsNow {
 	};
 }
 
-
-#endif // __GRAPH_H__

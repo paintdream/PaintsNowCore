@@ -1,6 +1,4 @@
-#ifndef __ISTREAMBASE_H__
-#define __ISTREAMBASE_H__
-
+#pragma once
 #include "IReflect.h"
 #include "../PaintsNow.h"
 #include <map>
@@ -151,6 +149,3 @@ namespace PaintsNow {
 		virtual const String& GetUniqueName() const = 0;
 	};
 }
-
-
-#endif // __ISTREAMBASE_H__

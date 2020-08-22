@@ -3,9 +3,7 @@
 // 2013-7-24
 //
 
-#ifndef __ISCRIPT_H__
-#define __ISCRIPT_H__
-
+#pragma once
 #include "../PaintsNow.h"
 #include "../Interface/IType.h"
 #include "../Interface/IReflect.h"
@@ -1362,4 +1360,3 @@ namespace PaintsNow {
 	extern IScript::Request::Deferred deferred;
 }
 
-#endif // __ISCRIPT_H__

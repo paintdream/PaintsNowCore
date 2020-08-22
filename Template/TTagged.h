@@ -3,9 +3,7 @@
 // PaintDream (paintdream@paintdream.com)
 //
 
-#ifndef __TTAGGED_H__
-#define __TTAGGED_H__
-
+#pragma once
 #include "../Interface/IType.h"
 
 namespace PaintsNow {
@@ -47,4 +45,3 @@ namespace PaintsNow {
 	};
 }
 
-#endif // __TTAGGED_H__

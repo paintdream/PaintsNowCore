@@ -3,9 +3,7 @@
 // 2015-6-10
 //
 
-#ifndef __ZFILTERPOD_H__
-#define __ZFILTERPOD_H__
-
+#pragma once
 #include "../../../Interface/IFilterBase.h"
 
 namespace PaintsNow {
@@ -15,5 +13,3 @@ namespace PaintsNow {
 	};
 }
 
-
-#endif // __ZFILTERPOD_H__

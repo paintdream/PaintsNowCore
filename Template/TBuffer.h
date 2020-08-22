@@ -3,9 +3,7 @@
 // 2014-11-30
 //
 
-#ifndef __TBUFFER_H__
-#define __TBUFFER_H__
-
+#pragma once
 #include "../PaintsNow.h"
 #include "../Interface/IType.h"
 #include <string>
@@ -198,4 +196,3 @@ namespace PaintsNow {
 	};
 }
 
-#endif // __TBUFFER_H__

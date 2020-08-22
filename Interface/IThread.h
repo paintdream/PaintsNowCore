@@ -3,9 +3,7 @@
 // 2014-12-14
 //
 
-#ifndef __ITHREAD_H__
-#define __ITHREAD_H__
-
+#pragma once
 
 #include "../PaintsNow.h"
 #include "../Interface/IType.h"
@@ -105,5 +103,3 @@ namespace PaintsNow {
 
 }
 
-
-#endif // __ITHREAD_H__

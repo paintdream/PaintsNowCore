@@ -241,7 +241,6 @@ static uint8_t GetSize(const PodList* p) {
 	return *(uint8_t*)&p->node;
 }
 
-
 #define CLEAN_ITERATOR(t, iterator, context) \
 	{	void* pos; \
 		if (iterator != NULL) while ((pos = t->iterateHandler(t->locateContext, &iterator, context)) != NULL); }
@@ -713,7 +712,6 @@ Pod* PodDuplicate(const Pod* from) {
 	return w;
 }
 
-
 int PodWriteData(const Pod* type, const PodStream* stream, const void* base, void* context) {
 	PodSize size;
 	DataHeader header;
@@ -958,7 +956,6 @@ PodStream stockFileStream;
 const PodStream* PodGetStockStreamFile() {
 	return &stockFileStream;
 }
-
 
 void PodInit() {
 	InitCRC32();

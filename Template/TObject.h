@@ -3,9 +3,7 @@
 // 2014-12-19
 //
 
-#ifndef __TOBJECT_H__
-#define __TOBJECT_H__
-
+#pragma once
 #include "../Template/TProxy.h"
 
 namespace PaintsNow {
@@ -17,6 +15,3 @@ namespace PaintsNow {
 		virtual TObject& operator ()(T& t) = 0;
 	};
 }
-
-
-#endif // __ZOBJECT_H__

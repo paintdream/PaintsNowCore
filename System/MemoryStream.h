@@ -3,9 +3,7 @@
 // 2015-1-19
 //
 
-#ifndef __MEMORYSTREAM_H__
-#define __MEMORYSTREAM_H__
-
+#pragma once
 #include "../../Core/Interface/IType.h"
 #include "../../Core/Interface/IStreamBase.h"
 
@@ -46,4 +44,3 @@ namespace PaintsNow {
 	};
 }
 
-#endif // __ZMEMORYSTREAM_H__

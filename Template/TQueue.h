@@ -3,9 +3,7 @@
 // PaintDream (paintdream@paintdream.com)
 //
 
-#ifndef __TQUEUE_H__
-#define __TQUEUE_H__
-
+#pragma once
 #include <vector>
 #include <cassert>
 #include "TAtomic.h"
@@ -373,4 +371,3 @@ namespace PaintsNow {
 	};
 }
 
-#endif // __TQUEUE_H__

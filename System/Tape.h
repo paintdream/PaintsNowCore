@@ -3,8 +3,8 @@
 // 2015-1-8
 //
 
-#ifndef __TAPE_H__ 
-#define __TAPE_H__
+#pragma once 
+
 
 #include "../../Core/Interface/IStreamBase.h"
 #include "../../Core/Interface/IType.h"
@@ -51,6 +51,3 @@ namespace PaintsNow {
 		int64_t maxLocation;
 	};
 }
-
-
-#endif // __TAPE_H__

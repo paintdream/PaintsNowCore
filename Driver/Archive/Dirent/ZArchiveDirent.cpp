@@ -254,7 +254,6 @@ IStreamBase* ZArchiveDirent::Open(const String& uri, bool write, size_t& length,
 	return new FileStream(fp, std::move(path));
 }
 
-
 void ZArchiveDirent::Query(const String& uri, const TWrapper<void, bool, const String&>& wrapper) const {
 	if (FilterSandBox(uri)) {
 		return;

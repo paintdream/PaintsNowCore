@@ -1,6 +1,4 @@
-#ifndef __TKDTREE_H__
-#define __TKDTREE_H__
-
+#pragma once
 
 #include "../PaintsNow.h"
 #include "../Interface/IType.h"
@@ -297,6 +295,3 @@ namespace PaintsNow {
 		};
 	};
 }
-
-
-#endif // __TKDTREE_H__

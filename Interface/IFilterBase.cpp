@@ -36,7 +36,6 @@ bool NoFilterImpl::WriteDummy(size_t& len) {
 	return stream.WriteDummy(len);
 }
 
-
 bool NoFilterImpl::Seek(SEEK_OPTION option, int64_t offset) {
 	return stream.Seek(option, offset);
 }

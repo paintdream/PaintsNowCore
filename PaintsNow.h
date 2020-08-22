@@ -18,9 +18,7 @@
 //		MSVC6 | MSVC14
 //
 
-#ifndef __PAINTSNOW_H__
-#define __PAINTSNOW_H__
-
+#pragma once
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0600
 #endif
@@ -593,4 +591,4 @@ struct getboolean<std::true_type> { enum { value = true }; };
 #endif
 #endif
 
-#endif // __PAINTSNOW_H__
+

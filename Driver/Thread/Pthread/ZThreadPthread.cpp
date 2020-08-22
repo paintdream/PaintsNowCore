@@ -127,7 +127,6 @@ ZThreadPthread::~ZThreadPthread() {
 	DetachLocalThread();
 }
 
-
 void ZThreadPthread::AttachLocalThread() const {
 #if defined(_WIN32) || defined(WIN32)
 #ifndef PREFER_NATIVE_THREAD
@@ -143,7 +142,6 @@ void ZThreadPthread::DetachLocalThread() const {
 #endif
 #endif
 }
-
 
 void ZThreadPthread::Wait(Thread* th) {
 	ThreadImpl* t = static_cast<ThreadImpl*>(th);
@@ -181,7 +179,6 @@ IThread::Thread* ZThreadPthread::NewThread(const TWrapper<bool, IThread::Thread*
 
 	return t;
 }
-
 
 bool ZThreadPthread::IsThreadRunning(Thread* th) const {
 	assert(th != nullptr);

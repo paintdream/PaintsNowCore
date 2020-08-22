@@ -3,9 +3,7 @@
 // 2014-12-14
 //
 
-#ifndef __THREADPTHREAD_H__
-#define __THREADPTHREAD_H__
-
+#pragma once
 #include "../../../Interface/IThread.h"
 
 namespace PaintsNow {
@@ -47,4 +45,3 @@ namespace PaintsNow {
 	};
 }
 
-#endif // __THREADPTHREAD_H__

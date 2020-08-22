@@ -3,9 +3,7 @@
 // PaintDream (paintdream@paintdream.com)
 //
 
-#ifndef __TPOOL_H__
-#define __TPOOL_H__
-
+#pragma once
 #include "TAtomic.h"
 #include <stack>
 
@@ -78,4 +76,3 @@ namespace PaintsNow {
 	};
 }
 
-#endif // __TPOOL_H__

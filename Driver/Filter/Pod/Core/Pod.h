@@ -1,8 +1,6 @@
 /* PaintDream Open Document */
 
-#ifndef __POD_H__
-#define __POD_H__
-
+#pragma once
 #ifndef __STD_TYPES__
 #define __STD_TYPES__
 #ifdef _MSC_VER
@@ -141,4 +139,4 @@ const PodStream* PodGetStockStreamFile();
 
 
 
-#endif // __POD_H__
+

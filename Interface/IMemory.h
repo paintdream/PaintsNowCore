@@ -3,9 +3,7 @@
 // 2014-12-3
 //
 
-#ifndef __IMEMORY_H__
-#define __IMEMORY_H__
-
+#pragma once
 #include "../PaintsNow.h"
 #include "../Template/TAtomic.h"
 #include <malloc.h>
@@ -106,4 +104,3 @@ namespace PaintsNow {
 	};
 }
 
-#endif // __IMEMORY_H__

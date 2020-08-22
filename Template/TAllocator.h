@@ -3,9 +3,7 @@
 // 2019-10-9
 //
 
-#ifndef __TALLOCATOR_H__
-#define __TALLOCATOR_H__
-
+#pragma once
 #include "../Interface/IMemory.h"
 #include "TAtomic.h"
 #include "TAlgorithm.h"
@@ -329,6 +327,29 @@ namespace PaintsNow {
 	class TAllocatedTiny : public TReflected<T, B> {
 	public:
 		typedef TObjectAllocator<T, M, Align> Allocator;
+		typedef TAllocatedTiny BaseClass;
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+		TAllocatedTiny() {}
+		template <class A>
+		TAllocatedTiny(A& a) : TReflected<T, B>(a) {}
+		template <class A, class B>
+		TAllocatedTiny(A& a, B& b) : TReflected<T, B>(a, b) {}
+		template <class A, class B, class C>
+		TAllocatedTiny(A& a, B& b, C& c) : TReflected<T, B>(a, b, c) {}
+		template <class A, class B, class C, class D>
+		TAllocatedTiny(A& a, B& b, C& c, D& d) : TReflected<T, B>(a, b, c, d) {}
+		template <class A, class B, class C, class D, class E>
+		TAllocatedTiny(A& a, B& b, C& c, D& d, E& e) : TReflected<T, B>(a, b, c, d, e) {}
+		template <class A, class B, class C, class D, class E, class F>
+		TAllocatedTiny(A& a, B& b, C& c, D& d, E& e, F& f) : TReflected<T, B>(a, b, c, d, e, f) {}
+		template <class A, class B, class C, class D, class E, class F, class G>
+		TAllocatedTiny(A& a, B& b, C& c, D& d, E& e, F& f, G& g) : TReflected<T, B>(a, b, c, d, e, f, g) {}
+		template <class A, class B, class C, class D, class E, class F, class G, class H>
+		TAllocatedTiny(A& a, B& b, C& c, D& d, E& e, F& f, G& g, H& h) : TReflected<T, B>(a, b, c, d, e, f, g, h) {}
+#else
+		template <typename... Args>
+		TAllocatedTiny(Args&&... args) : TReflected<T, B>(std::forward<Args>(args)...) {}
+#endif
 
 		virtual void FinalDestroy() override {
 			Allocator::Delete(static_cast<T*>(this));
@@ -336,4 +357,3 @@ namespace PaintsNow {
 	};
 }
 
-#endif // __TALLOCATOR_H__

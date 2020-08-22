@@ -3,9 +3,7 @@
 // 2014-12-14
 //
 
-#ifndef __THREADPOOL_H__
-#define __THREADPOOL_H__
-
+#pragma once
 #include "../Interface/IThread.h"
 #include "../Interface/ITask.h"
 #include "../Template/TProxy.h"
@@ -62,6 +60,3 @@ namespace PaintsNow {
 		std::vector<ThreadInfo> threadInfos;
 	};
 }
-
-
-#endif // __THREADPOOL_H__
