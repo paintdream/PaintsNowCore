@@ -92,9 +92,10 @@ namespace PaintsNow {
 			if (size == 0) {
 				return rhs.GetSize() != 0;
 			} else {
-				uint32_t minSize = Math::Min(size, rhs.GetSize());
+				uint32_t rsize = rhs.GetSize();
+				uint32_t minSize = Math::Min(size, rsize);
 				int result = memcmp(GetData(), rhs.GetData(), minSize * sizeof(T));
-				return result != 0 ? result < 0 : size < minSize;
+				return result != 0 ? result < 0 : size < rsize;
 			}
 		}
 
