@@ -191,7 +191,7 @@ namespace PaintsNow {
 		// not a thread safe destructor.
 		~TQueueList() {
 			if (popHead != nullptr) {
-				// free momery
+				// free memory
 				Node* q = popHead;
 				while (q != nullptr) {
 					Node* p = q;
