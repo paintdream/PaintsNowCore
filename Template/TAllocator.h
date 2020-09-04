@@ -26,8 +26,7 @@ namespace PaintsNow {
 
 		struct ControlBlock {
 			TAllocator* allocator;
-			std::atomic<uint32_t> referenced;
-			std::atomic<uint32_t> allocCount;
+			std::atomic<size_t> allocCount;
 			std::atomic<size_t> bitmap[BITMAPSIZE];
 		};
 
@@ -38,8 +37,10 @@ namespace PaintsNow {
 	public:
 		TAllocator() {
 			static_assert(N / 2 * K > sizeof(ControlBlock), "N is too small");
-			controlBlock.store(nullptr, std::memory_order_relaxed);
+#ifdef _DEBUG
 			critical.store(0, std::memory_order_relaxed);
+#endif
+			controlBlock.store(nullptr, std::memory_order_release);
 		}
 
 		~TAllocator() {
@@ -53,78 +54,46 @@ namespace PaintsNow {
 				IMemory::FreeAligned(p);
 			}
 
-			// SpinLock(critical);
-			for (size_t i = 0; i < recycledBlocks.size(); i++) {
-				assert(p->allocCount.load(std::memory_order_acquire) == 0);
-#ifdef _DEBUG
-				SpinLock(critical);
-				marked.erase(p);
-				SpinUnLock(critical);
-#endif
-				IMemory::FreeAligned(p);
-			}
-			// SpinUnLock(critical);
-
 #ifdef _DEBUG
 			assert(marked.empty()); // guard for memory leaks
 #endif
 		}
 
 		inline void* Allocate() {
-			while (true) {
-				ControlBlock* p = (ControlBlock*)controlBlock.load(std::memory_order_acquire);
-				if (p == nullptr) {
-					SpinLock(critical);
-					if (!recycledBlocks.empty()) {
-						p = recycledBlocks.back();
-						recycledBlocks.pop_back();
-					}
-					SpinUnLock(critical);
+			ControlBlock* p = (ControlBlock*)controlBlock.exchange(nullptr, std::memory_order_acquire);
 
-					if (p == nullptr) {
-						p = reinterpret_cast<ControlBlock*>(IMemory::AllocAligned(SIZE, SIZE));
-						memset(p, 0, sizeof(ControlBlock));
+			if (p == nullptr) {
+				p = reinterpret_cast<ControlBlock*>(IMemory::AllocAligned(SIZE, SIZE));
+				memset(p, 0, sizeof(ControlBlock));
 #ifdef _DEBUG
-						SpinLock(critical);
-						marked.insert(p);
-						SpinUnLock(critical);
+				SpinLock(critical);
+				marked.insert(p);
+				SpinUnLock(critical);
 #endif
-						p->referenced.store(1, std::memory_order_relaxed);
-						p->allocator = this;
-					}
+				p->allocator = this;
+			}
 
-					ControlBlock* w = (ControlBlock*)controlBlock.exchange(p, std::memory_order_release);
-					if (w != nullptr) {
-						assert(w->allocator != nullptr);
-						assert(w->referenced.load(std::memory_order_acquire) != 0);
-						SpinLock(critical);
-						recycledBlocks.emplace_back(w);
-						SpinUnLock(critical);
-					}
-				}
-
-				for (size_t k = 0; k < BITMAPSIZE; k++) {
-					std::atomic<size_t>& s = p->bitmap[k];
-					size_t mask = s.load(std::memory_order_relaxed);
-					if (mask != ~(size_t)0) {
-						size_t bit = Math::Alignment(mask + 1);
-						size_t index = Math::Log2(bit) + OFFSET + k * 8 * sizeof(size_t);
-						if (index < N && s.compare_exchange_strong(mask, mask | bit, std::memory_order_release)) {
-							if (p->allocCount.fetch_add(1, std::memory_order_relaxed) == 0) {
-								BaseClass::ReferenceObject();
-							}
-
-							return reinterpret_cast<char*>(p) + index * K;
+			ControlBlock* expected = nullptr;
+			for (size_t k = 0; k < BITMAPSIZE; k++) {
+				std::atomic<size_t>& s = p->bitmap[k];
+				size_t mask = s.load(std::memory_order_relaxed);
+				if (mask != ~(size_t)0) {
+					size_t bit = Math::Alignment(mask + 1);
+					size_t index = Math::Log2(bit) + OFFSET + k * 8 * sizeof(size_t);
+					if (index < N && s.compare_exchange_strong(mask, mask | bit, std::memory_order_release)) {
+						size_t count = p->allocCount.fetch_add(1, std::memory_order_relaxed);
+						if (count == 0) {
+							BaseClass::ReferenceObject();
+						} else if (count != N - 1) { // full?
+							controlBlock.compare_exchange_strong(expected, p);
 						}
-					}
-				}
 
-				// full, remove
-				if (controlBlock.compare_exchange_strong(p, nullptr, std::memory_order_relaxed)) {
-					p->referenced.store(0, std::memory_order_release);
+						return reinterpret_cast<char*>(p) + index * K;
+					}
 				}
 			}
 
+			assert(false);
 			return nullptr; // never reach here
 		}
 
@@ -136,63 +105,31 @@ namespace PaintsNow {
 		}
 
 	protected:
-		inline bool CleanRecycled(ControlBlock* t) {
-			if (t->referenced.load(std::memory_order_relaxed) == 0) {
-				return true;
-			}
-
-			bool find = false;
-			SpinLock(critical);
-			for (size_t i = 0; i < recycledBlocks.size(); i++) {
-				ControlBlock* p = recycledBlocks[i];
-				if (p == t) {
-					recycledBlocks.erase(recycledBlocks.begin() + i);
-					find = true;
-					break;
-				}
-			}
-			SpinUnLock(critical);
-
-			return find;
-		}
-
 		inline void Deallocate(ControlBlock* p, size_t id) {
 			assert(p->allocator != nullptr);
 
-			bool release = p->allocCount.fetch_sub(1, std::memory_order_release) == 1;
-			if (release) {
-				if (CleanRecycled(p)) {
+			if (p->allocCount.fetch_sub(1, std::memory_order_release) == 1) {
 #ifdef _DEBUG
-					SpinLock(critical);
-					marked.erase(p);
-					SpinUnLock(critical);
-#endif
-					IMemory::FreeAligned(p);
-					BaseClass::ReleaseObject();
-					return;
-				}
-
-				release = true;
-			}
-
-			p->bitmap[id / BITS].fetch_and(~((size_t)1 << (id & MASK)));
-			if (p->referenced.exchange(1, std::memory_order_relaxed) == 0) {
 				SpinLock(critical);
-				recycledBlocks.emplace_back(p);
+				marked.erase(p);
 				SpinUnLock(critical);
-			}
-
-			if (release) {
+#endif
+				IMemory::FreeAligned(p);
 				BaseClass::ReleaseObject();
+			} else {
+				p->bitmap[id / BITS].fetch_and(~((size_t)1 << (id & MASK)));
+				ControlBlock* expected = nullptr;
+				if ((ControlBlock*)controlBlock.load(std::memory_order_acquire) == nullptr) {
+					controlBlock.compare_exchange_strong(expected, p, std::memory_order_release);
+				}
 			}
 		}
 
 	protected:
 		std::atomic<ControlBlock*> controlBlock;
-		std::atomic<uint32_t> critical;
-		std::vector<ControlBlock*> recycledBlocks;
 #ifdef _DEBUG
 		std::set<ControlBlock*> marked;
+		std::atomic<size_t> critical;
 #endif
 	};
 
