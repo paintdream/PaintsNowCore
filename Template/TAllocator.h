@@ -114,8 +114,11 @@ namespace PaintsNow {
 				marked.erase(p);
 				SpinUnLock(critical);
 #endif
-				IMemory::FreeAligned(p);
-				BaseClass::ReleaseObject();
+				ControlBlock* t = (ControlBlock*)controlBlock.exchange(p, std::memory_order_acquire);
+				if (t != nullptr && t != p && t->allocCount.load(std::memory_order_acquire) == 0) {
+					IMemory::FreeAligned(t);
+					BaseClass::ReleaseObject();
+				}
 			} else {
 				p->bitmap[id / BITS].fetch_and(~((size_t)1 << (id & MASK)));
 				ControlBlock* expected = nullptr;
