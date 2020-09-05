@@ -107,13 +107,14 @@ namespace PaintsNow {
 
 		lua_State* state;
 		lua_State* deferState;
-		std::atomic<uint32_t> closing;
 		ZScriptLua::Request* defaultRequest;
-		size_t totalReference;
-		size_t callCounter;
 		IThread::Event* runningEvent;
+
 		int initCountDefer;
-		static std::map<String, std::pair<const char*, size_t> > builtinModules;
+		std::atomic<uint32_t> closing;
+		uint32_t totalReference;
+		uint32_t callCounter;
+
 	private:
 #ifdef _DEBUG
 		std::map<size_t, std::pair<uint32_t, String> > debugReferences;
