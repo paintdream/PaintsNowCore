@@ -7,7 +7,7 @@ namespace PaintsNow {
 	// A general interface of lua
 	class ZScriptLua final : public IScript {
 	public:
-		ZScriptLua(IThread& threadApi);
+		ZScriptLua(IThread& threadApi, lua_State* L = nullptr);
 		virtual ~ZScriptLua();
 
 		bool BeforeCall();
@@ -100,6 +100,7 @@ namespace PaintsNow {
 		int GetInitDeferCount() const;
 		void SetInitDeferCount(int count);
 		bool IsClosing() const;
+		bool IsHosting() const;
 
 	private:
 		void Init();
@@ -107,6 +108,7 @@ namespace PaintsNow {
 
 		lua_State* state;
 		lua_State* deferState;
+		lua_State* rawState;
 		ZScriptLua::Request* defaultRequest;
 		IThread::Event* runningEvent;
 
