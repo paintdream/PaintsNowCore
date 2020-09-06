@@ -184,7 +184,7 @@ public:
 
 String IReflectObjectComplex::ToString() const {
 	std::stringstream ss;
-	ss << GetUnique()->GetName() << " (" << std::hex << (void*)this << " )";
+	ss << GetUnique()->GetName() << " (" << std::hex << (void*)this << ")";
 	return ss.str();
 }
 
