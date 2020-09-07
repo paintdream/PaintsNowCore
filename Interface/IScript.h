@@ -503,7 +503,6 @@ namespace PaintsNow {
 			virtual void Error(const String& msg);
 			virtual Request& MoveVariables(Request& target, size_t count) = 0;
 
-
 			// Special nodes
 			virtual Request& operator >> (Arguments& ph) = 0;
 			virtual Request& operator >> (Ref&) = 0;
@@ -1139,7 +1138,6 @@ namespace PaintsNow {
 			static TWrapper<void> Make(const TWrapper<R, const Request::AutoWrapperBase&, Request&, Args...>&) {
 				return Convert(Wrap((Dispatcher<Args...>*)nullptr, &Dispatcher<Args...>::Invoke));
 			}
-
 #endif
 
 			virtual IReflectObject* Clone() const override {

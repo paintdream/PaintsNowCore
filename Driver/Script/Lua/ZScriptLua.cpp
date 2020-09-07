@@ -403,7 +403,7 @@ int ZScriptLua::Request::GetCount() {
 	return lua_gettop(L) - initCount;
 }
 
-IScript::Request& PaintsNow::ZScriptLua::Request::CleanupIndex() {
+IScript::Request& ZScriptLua::Request::CleanupIndex() {
 	idx = initCount + 1;
 	return *this;
 }
