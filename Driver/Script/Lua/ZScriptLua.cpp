@@ -154,6 +154,23 @@ static int FreeWrapper(lua_State* L) {
 	return 0;
 }
 
+static int Cocreate(lua_State* L) {
+	lua_State* NL;
+	luaL_checktype(L, 1, LUA_TFUNCTION);
+	NL = lua_newthread(L);
+	/* copy request pool info*/
+	lua_rawgetp(L, LUA_REGISTRYINDEX, LUA_RIDX_REQUEST_POOL_KEY);
+	lua_pushvalue(L, -2);
+	lua_pushthread(L);
+	lua_rawget(L, -3);
+	lua_rawset(L, -3);
+	lua_pop(L, 1);
+
+	lua_pushvalue(L, 1);  /* move function to top */
+	lua_xmove(L, NL, 1);  /* move function from L to NL */
+	return 1;
+}
+
 static int SetIndexer(lua_State* L) {
 	// const char* s = lua_tostring(L, 1);
 	luaL_checktype(L, 1, LUA_TSTRING);
@@ -278,6 +295,12 @@ void ZScriptLua::Init() {
 	// enable setmetatable for userdata
 	lua_pushcfunction(state, SetIndexer);
 	lua_setglobal(state, "setindexer");
+
+	lua_getglobal(state, "coroutine");
+	lua_pushliteral(state, "create");
+	lua_pushcclosure(state, Cocreate, 0);
+	lua_settable(state, -3);
+	lua_pop(state, 1);
 
 	totalReference = 0;
 	initCountDefer = 0;

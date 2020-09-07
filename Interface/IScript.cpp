@@ -528,8 +528,8 @@ IScript::Request* IScript::RequestPool::New() {
 }
 
 void IScript::RequestPool::Delete(IScript::Request* request) {
-	assert(request->GetRequestPool() == this);
 	script.DoLock();
+	assert(request->GetRequestPool() == this);
 	request->ReleaseObject();
 	script.UnLock();
 }
