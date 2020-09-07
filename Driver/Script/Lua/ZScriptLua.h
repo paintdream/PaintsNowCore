@@ -13,6 +13,8 @@ namespace PaintsNow {
 		bool BeforeCall();
 		void AfterCall();
 
+		static void SetDefaultRequestPool(IScript::RequestPool* pool);
+
 		struct IndexState {
 			IndexState(lua_State* L);
 			IndexState() : idx(1), initCount(0), tableLevel(0) {}

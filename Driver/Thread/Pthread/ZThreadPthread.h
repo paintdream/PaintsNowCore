@@ -7,7 +7,7 @@
 #include "../../../Interface/IThread.h"
 
 namespace PaintsNow {
-	class ZThreadPthread final : public IThread {
+	class ZThreadPthread : public IThread {
 	public:
 		ZThreadPthread(bool initOnWin32 = true);
 		virtual ~ZThreadPthread();

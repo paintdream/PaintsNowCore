@@ -180,6 +180,10 @@ ZScriptLua::ZScriptLua(IThread& threadApi, lua_State* L) : IScript(threadApi), c
 	Init();
 }
 
+void ZScriptLua::SetDefaultRequestPool(IScript::RequestPool* p) {
+	_CurrentRequestPool = p;
+}
+
 bool ZScriptLua::IsClosing() const {
 	return closing.load(std::memory_order_relaxed) != 0;
 }
@@ -226,14 +230,12 @@ void ZScriptLua::Init() {
 	// attach to existing lua vm?
 	if (rawState != nullptr) {
 		state = rawState;
-		defaultRequest = new ZScriptLua::Request(this, nullptr);
-		state = defaultRequest->GetRequestState();
 	} else {
 		state = luaL_newstate();
-		defaultRequest = new ZScriptLua::Request(this, state);
 		luaL_openlibs(state);
 	}
 
+	defaultRequest = new ZScriptLua::Request(this, state);
 	callCounter = 0;
 
 	ZScriptLua** s = reinterpret_cast<ZScriptLua**>(lua_getextraspace(state));
@@ -279,6 +281,12 @@ void ZScriptLua::Init() {
 
 	totalReference = 0;
 	initCountDefer = 0;
+
+	if (rawState != nullptr) {
+		delete defaultRequest;
+		defaultRequest = new Request(this, nullptr);
+		state = defaultRequest->GetRequestState();
+	}
 
 	deferState = lua_newthread(state); // don't pop it from stack unless the state was closed.
 	UnLock();
