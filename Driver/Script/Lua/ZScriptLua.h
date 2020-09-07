@@ -13,8 +13,6 @@ namespace PaintsNow {
 		bool BeforeCall();
 		void AfterCall();
 
-		static void SetDefaultRequestPool(IScript::RequestPool* pool);
-
 		struct IndexState {
 			IndexState(lua_State* L);
 			IndexState() : idx(1), initCount(0), tableLevel(0) {}
@@ -30,6 +28,8 @@ namespace PaintsNow {
 			virtual ~Request() override;
 			virtual TObject<IReflect>& operator () (IReflect& reflect) override;
 			virtual IScript* GetScript() override;
+			virtual IScript::RequestPool* GetRequestPool() override;
+			virtual void SetRequestPool(IScript::RequestPool* requestPool) override;
 			virtual bool Call(const AutoWrapperBase& defer, const Request::Ref& g) override;
 			virtual std::vector<Key> Enumerate() override;
 			virtual IScript::Request::TYPE GetCurrentType() override;

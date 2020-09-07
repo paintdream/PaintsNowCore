@@ -29,8 +29,7 @@ CUSTOM_TABLE(LUA_RIDX_REFERENCE_KEY);
 CUSTOM_TABLE(LUA_RIDX_OBJECT_KEY);
 CUSTOM_TABLE(LUA_RIDX_WRAP_KEY);
 CUSTOM_TABLE(LUA_RIDX_STRING_KEY);
-
-static thread_local IScript::RequestPool* _CurrentRequestPool = nullptr;
+CUSTOM_TABLE(LUA_RIDX_REQUEST_POOL_KEY);
 
 static int lua_typex(lua_State* L, int index) {
 	int type = lua_type(L, index); // maybe faster ? ttypetag()
@@ -48,7 +47,6 @@ inline ZScriptLua* GetScript(lua_State* L) {
 static void HandleError(ZScriptLua* script, lua_State* L) {
 	// error
 	ZScriptLua::Request s(script, L);
-	s.SetRequestPool(_CurrentRequestPool);
 
 	const char* errMsg = lua_tostring(L, -1);
 	assert(script->GetLockCount() == 1);
@@ -66,8 +64,6 @@ static int ContinueProxy(lua_State* L, int status, lua_KContext ctx);
 static int FunctionProxyEx(ZScriptLua* pRet, const IScript::Request::AutoWrapperBase* wrapper, lua_State* L) {
 	int valsize = 0;
 	ZScriptLua::Request s(pRet, L);
-	assert(_CurrentRequestPool != nullptr);
-	s.SetRequestPool(_CurrentRequestPool);
 
 	int ptr = lua_gettop(L);
 	// popup all locks
@@ -136,7 +132,6 @@ static int FreeMem(lua_State* L) {
 
 	IScript::Object* obj = *(IScript::Object**)mem;
 	ZScriptLua::Request s(GetScript(L), L);
-	s.SetRequestPool(_CurrentRequestPool);
 
 	IScript* script = s.GetScript();
 	assert(script->GetLockCount() == 1);
@@ -178,10 +173,6 @@ static int SetIndexer(lua_State* L) {
 ZScriptLua::ZScriptLua(IThread& threadApi, lua_State* L) : IScript(threadApi), callCounter(0), runningEvent(nullptr), rawState(L) {
 	closing.store(0, std::memory_order_release);
 	Init();
-}
-
-void ZScriptLua::SetDefaultRequestPool(IScript::RequestPool* p) {
-	_CurrentRequestPool = p;
 }
 
 bool ZScriptLua::IsClosing() const {
@@ -275,6 +266,15 @@ void ZScriptLua::Init() {
 	lua_newtable(state);
 	lua_rawsetp(state, LUA_REGISTRYINDEX, LUA_RIDX_STRING_KEY);
 
+	// make a table for request pools
+	lua_newtable(state);
+	lua_pushliteral(state, "__mode");
+	lua_pushliteral(state, "k");
+	lua_rawset(state, -3);
+	lua_pushvalue(state, -1);
+	lua_setmetatable(state, -2);
+	lua_rawsetp(state, LUA_REGISTRYINDEX, LUA_RIDX_REQUEST_POOL_KEY);
+
 	// enable setmetatable for userdata
 	lua_pushcfunction(state, SetIndexer);
 	lua_setglobal(state, "setindexer");
@@ -350,22 +350,17 @@ bool ZScriptLua::Request::Call(const AutoWrapperBase& defer, const IScript::Requ
 		// lua_KContext context = (lua_KContext)defer.Clone();
 		// dispatch deferred calls after the next sync call.
 		// int status = lua_pcallk(L, in, LUA_MULTRET, 0, nullptr, ContinueProxy);
-		RequestPool* p = _CurrentRequestPool;
-		_CurrentRequestPool = GetRequestPool();
-		assert(_CurrentRequestPool != nullptr);
 		int status = lua_pcall(L, in, LUA_MULTRET, 0);
 
 		if (status != LUA_OK && status != LUA_YIELD) {
 			HandleError(static_cast<ZScriptLua*>(GetScript()), L);
 			state->AfterCall();
-			_CurrentRequestPool = p;
 			return false;
 		} else {
 			assert(lua_gettop(L) >= initCount);
 			// important!
 			SetIndex(initCount + 1);
 			state->AfterCall();
-			_CurrentRequestPool = p;
 			return true;
 		}
 	} else {
@@ -1150,6 +1145,29 @@ IScript::Request::Ref ZScriptLua::Request::Load(const String& script, const Stri
 
 	AddReference(ref);
 	return ref;
+}
+
+void ZScriptLua::Request::SetRequestPool(IScript::RequestPool* p) {
+	assert(GetScript()->GetLockCount() == 1);
+
+	lua_rawgetp(L, LUA_REGISTRYINDEX, LUA_RIDX_REQUEST_POOL_KEY);
+	lua_pushthread(L);
+	lua_pushlightuserdata(L, p);
+	lua_rawset(L, -3);
+	lua_pop(L, 1);
+}
+
+IScript::RequestPool* ZScriptLua::Request::GetRequestPool() {
+	assert(GetScript()->GetLockCount() == 1);
+
+	lua_rawgetp(L, LUA_REGISTRYINDEX, LUA_RIDX_REQUEST_POOL_KEY);
+	lua_pushthread(L);
+	lua_rawget(L, -2);
+
+	IScript::RequestPool* p = reinterpret_cast<IScript::RequestPool*>(lua_touserdata(L, -1));
+	lua_pop(L, 1);
+
+	return p;
 }
 
 ZScriptLua::Request::~Request() {

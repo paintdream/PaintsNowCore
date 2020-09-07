@@ -124,8 +124,8 @@ namespace PaintsNow {
 			virtual void DoLock();
 			virtual void UnLock();
 
-			RequestPool* GetRequestPool();
-			void SetRequestPool(RequestPool* pool);
+			virtual RequestPool* GetRequestPool();
+			virtual void SetRequestPool(RequestPool* pool);
 
 			struct Arguments {
 				Arguments() : count(0) {}
