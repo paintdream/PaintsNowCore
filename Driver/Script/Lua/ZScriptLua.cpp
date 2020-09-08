@@ -20,7 +20,7 @@ extern "C" {
 using namespace PaintsNow;
 
 #define CUSTOM_TABLE(k) \
-	static const int _Storage_##k; \
+	static int _Storage_##k; \
 	static const void* k = (const void*)&_Storage_##k;
 
 CUSTOM_TABLE(LUA_RIDX_BIND_KEY);

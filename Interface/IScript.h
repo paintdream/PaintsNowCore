@@ -811,7 +811,7 @@ namespace PaintsNow {
 			public:
 				Type(const Type& rhs) {
 					name.~String();
-					memcpy(this, &rhs, sizeof(*this));
+					memcpy((void*)this, (const void*)&rhs, sizeof(*this));
 					new (&name) String(rhs.name);
 				}
 
