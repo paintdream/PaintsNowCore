@@ -60,35 +60,39 @@ namespace PaintsNow {
 		}
 
 		inline void* Allocate() {
-			ControlBlock* p = (ControlBlock*)controlBlock.exchange(nullptr, std::memory_order_acquire);
+			while (true) {
+				ControlBlock* p = (ControlBlock*)controlBlock.exchange(nullptr, std::memory_order_acquire);
 
-			if (p == nullptr) {
-				p = reinterpret_cast<ControlBlock*>(IMemory::AllocAligned(SIZE, SIZE));
-				memset(p, 0, sizeof(ControlBlock));
+				if (p == nullptr) {
+					p = reinterpret_cast<ControlBlock*>(IMemory::AllocAligned(SIZE, SIZE));
+					memset(p, 0, sizeof(ControlBlock));
 #ifdef _DEBUG
-				SpinLock(critical);
-				marked.insert(p);
-				SpinUnLock(critical);
+					SpinLock(critical);
+					marked.insert(p);
+					SpinUnLock(critical);
 #endif
-				p->allocator = this;
-			}
+					p->allocator = this;
+				}
 
-			ControlBlock* expected = nullptr;
-			for (size_t k = 0; k < BITMAPSIZE; k++) {
-				std::atomic<size_t>& s = p->bitmap[k];
-				size_t mask = s.load(std::memory_order_relaxed);
-				if (mask != ~(size_t)0) {
-					size_t bit = Math::Alignment(mask + 1);
-					size_t index = Math::Log2(bit) + OFFSET + k * 8 * sizeof(size_t);
-					if (index < N && s.compare_exchange_strong(mask, mask | bit, std::memory_order_release)) {
-						size_t count = p->allocCount.fetch_add(1, std::memory_order_relaxed);
-						if (count == 0) {
-							BaseClass::ReferenceObject();
-						} else if (count != N - 1) { // full?
-							controlBlock.compare_exchange_strong(expected, p);
+				ControlBlock* expected = nullptr;
+				for (size_t k = 0; k < BITMAPSIZE; k++) {
+					std::atomic<size_t>& s = p->bitmap[k];
+					size_t mask = s.load(std::memory_order_relaxed);
+					if (mask != ~(size_t)0) {
+						size_t bit = Math::Alignment(mask + 1);
+						size_t index = Math::Log2(bit) + OFFSET + k * 8 * sizeof(size_t);
+						if (index < N && !(s.fetch_or(bit, std::memory_order_release) & bit)) {
+							size_t count = p->allocCount.fetch_add(1, std::memory_order_relaxed);
+							if (count == 0) {
+								BaseClass::ReferenceObject();
+							}
+
+							if (count != N - 1) { // full?
+								controlBlock.compare_exchange_strong(expected, p);
+							}
+
+							return reinterpret_cast<char*>(p) + index * K;
 						}
-
-						return reinterpret_cast<char*>(p) + index * K;
 					}
 				}
 			}
@@ -117,8 +121,9 @@ namespace PaintsNow {
 				ControlBlock* t = (ControlBlock*)controlBlock.exchange(p, std::memory_order_acquire);
 				if (t != nullptr && t != p && t->allocCount.load(std::memory_order_acquire) == 0) {
 					IMemory::FreeAligned(t);
-					BaseClass::ReleaseObject();
 				}
+				
+				BaseClass::ReleaseObject();
 			} else {
 				p->bitmap[id / BITS].fetch_and(~((size_t)1 << (id & MASK)));
 				ControlBlock* expected = nullptr;
