@@ -12,7 +12,8 @@
 #include <utility>
 
 namespace PaintsNow {
-	template <size_t K, size_t M = 8192>
+	// K = element size, M = block size, R = max recycled block count, 0 for not limited
+	template <size_t K, size_t M = 8192, size_t R = 0>
 	class_aligned(64) TAllocator : public TReflected<TAllocator<K, M>, SharedTiny> {
 	public:
 		typedef TReflected<TAllocator<K, M>, SharedTiny> BaseClass;
@@ -134,13 +135,20 @@ namespace PaintsNow {
 				if (p->recycled.exchange(1, std::memory_order_acquire) == 0) {
 					SpinLock(critical);
 					// add to recycle
-					recycled.emplace_back(p);
-					p->recycled.store(1, std::memory_order_relaxed);
+					bool r = R == 0 ? true : recycled.size() < R;
+					if (r) {
+						recycled.emplace_back(p);
+						p->recycled.store(1, std::memory_order_relaxed);
+					}
 					SpinUnLock(critical, 2u);
-				} else {
-					// not referenced by root pointers
-					TryFree(p);
+
+					if (r) {
+						return;
+					}
 				}
+
+				// not referenced by root pointers
+				TryFree(p);
 			}
 		}
 
