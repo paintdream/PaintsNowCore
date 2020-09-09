@@ -80,18 +80,20 @@ namespace PaintsNow {
 					size_t mask = s.load(std::memory_order_relaxed);
 					if (mask != ~(size_t)0) {
 						size_t bit = Math::Alignment(mask + 1);
-						size_t index = Math::Log2(bit) + OFFSET + k * 8 * sizeof(size_t);
-						if (index < N && !(s.fetch_or(bit, std::memory_order_release) & bit)) {
-							size_t count = p->allocCount.fetch_add(1, std::memory_order_relaxed);
-							if (count == 0) {
-								BaseClass::ReferenceObject();
-							}
+						if (!(s.fetch_or(bit, std::memory_order_release) & bit)) {
+							size_t index = Math::Log2(bit) + OFFSET + k * 8 * sizeof(size_t);
+							if (index < N) {
+								size_t count = p->allocCount.fetch_add(1, std::memory_order_relaxed);
+								if (count == 0) {
+									BaseClass::ReferenceObject();
+								}
 
-							if (count != N - 1) { // full?
-								controlBlock.compare_exchange_strong(expected, p);
-							}
+								if (count != N - 1) { // full?
+									controlBlock.compare_exchange_strong(expected, p);
+								}
 
-							return reinterpret_cast<char*>(p) + index * K;
+								return reinterpret_cast<char*>(p) + index * K;
+							}
 						}
 					}
 				}
