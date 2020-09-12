@@ -9,40 +9,56 @@
 #include <string>
 
 namespace PaintsNow {
-	template <class T, uint32_t N = (sizeof(T*) * 4 - sizeof(uint32_t)) / sizeof(T)>
+	template <class T, size_t N = (sizeof(T*) * 4 - sizeof(size_t)) / sizeof(T)>
 	class TBuffer {
 	public:
-		enum { STOCK_MASK = (uint32_t)1 << (sizeof(uint32_t) * 8 - 1) };
-		TBuffer(uint32_t initSize = 0) {
-			memset(this, 0, sizeof(*this));
+		enum
+#if !defined(_MSC_VER) || _MSC_VER > 1200
+			: size_t
+#endif
+		{
+			EXT_STORE_MASK = ((size_t)1 << (sizeof(size_t) * 8 - 1))
+		};
+
+		TBuffer() : size(0) {}
+
+		TBuffer(size_t initSize) : size(0) {
 			if (initSize != 0) {
 				Resize(initSize);
 			}
 		}
 
-		TBuffer(const TBuffer& rhs) {
-			memset(this, 0, sizeof(*this));
+		TBuffer(const T* p, size_t initSize) : size(0) {
+			if (initSize != 0) {
+				Resize(initSize);
+				memcpy(GetData(), p, initSize * sizeof(T));
+			}
+		}
+
+		TBuffer(const TBuffer& rhs) : size(0) {
 			Copy(rhs);
 		}
 
 		~TBuffer() {
-			Clear();
+			if (!IsStockStorage()) {
+				assert(buffer != nullptr);
+				free(buffer);
+			}
 		}
 
 		inline void Clear() {
-			if (!IsStockStorage() && buffer != nullptr) {
+			if (!IsStockStorage()) {
+				assert(buffer != nullptr);
 				free(buffer);
 			}
 
 			size = 0;
-			buffer = nullptr;
 		}
 
 		inline TBuffer& operator = (const std::basic_string<T, std::char_traits<T>, std::allocator<T> >& str) {
-			Clear();
-
 			Resize(str.size());
-			memcpy(GetData(), str.data(), str.size());
+			memcpy(GetData(), str.data(), str.size() * sizeof(T));
+			return *this;
 		}
 
 		TBuffer& operator = (const TBuffer& rhs) {
@@ -56,15 +72,13 @@ namespace PaintsNow {
 		TBuffer(rvalue<TBuffer> rv) {
 			TBuffer& rhs = rv;
 			memcpy(this, &rhs, sizeof(*this));
-			memset(&rhs, 0, sizeof(*this));
+			rhs.size = 0;
 		}
 
 		TBuffer& operator = (rvalue<TBuffer> rv) {
-			Clear();
-
 			TBuffer& rhs = rv;
 			memcpy(this, &rhs, sizeof(*this));
-			memset(&rhs, 0, sizeof(*this));
+			rhs.size = 0;
 
 			return *this;
 		}
@@ -74,33 +88,31 @@ namespace PaintsNow {
 			return empty;
 		}
 
-		inline uint32_t GetSize() const { return size & ~STOCK_MASK; }
+		inline bool IsStockStorage() const { return !(size & EXT_STORE_MASK); }
+		inline size_t GetSize() const { assert(size <= N || (size & ~EXT_STORE_MASK) > N); return size & ~EXT_STORE_MASK; }
 		inline const T* GetData() const { return IsStockStorage() ? stockStorage : buffer; }
-		inline T* GetData() { return Empty() ? nullptr : IsStockStorage() ? stockStorage : buffer; }
+		inline T* GetData() { return IsStockStorage() ? stockStorage : buffer; }
 
-		inline bool Empty() const { return GetSize() == 0; }
+		inline bool Empty() const { return size == 0; }
 		inline bool operator == (const TBuffer& rhs) const {
-			uint32_t size = GetSize();
-			if (size != rhs.GetSize()) return false;
+			if (size != rhs.size) return false;
 			if (size == 0) return true;
-
-			return memcmp(GetData(), rhs.GetData(), size * sizeof(T)) == 0;
+			return memcmp(GetData(), rhs.GetData(), GetSize() * sizeof(T)) == 0;
 		}
 
 		inline bool operator < (const TBuffer& rhs) const {
-			uint32_t size = GetSize();
 			if (size == 0) {
-				return rhs.GetSize() != 0;
+				return rhs.size != 0;
 			} else {
-				uint32_t rsize = rhs.GetSize();
-				uint32_t minSize = Math::Min(size, rsize);
+				bool less = size < rhs.size;
+				size_t minSize = (less ? size : rhs.size) & (~EXT_STORE_MASK);
 				int result = memcmp(GetData(), rhs.GetData(), minSize * sizeof(T));
-				return result != 0 ? result < 0 : size < rsize;
+				return result != 0 ? result < 0 : less;
 			}
 		}
 
-		inline void Resize(uint32_t s, const T& init) {
-			uint32_t orgSize = GetSize();
+		inline void Resize(size_t s, const T& init) {
+			size_t orgSize = GetSize();
 			Resize(s);
 
 			if (s > orgSize) {
@@ -109,91 +121,79 @@ namespace PaintsNow {
 			}
 		}
 
-		inline void Resize(uint32_t s) {
+		inline void Resize(size_t s) {
 			if (IsStockStorage()) {
 				if (s > N) { // out of bound
 					T* newBuffer = reinterpret_cast<T*>(malloc(s * sizeof(T)));
 					memcpy(newBuffer, stockStorage, GetSize() * sizeof(T));
 					buffer = newBuffer;
-					size = s;
+					size = s | EXT_STORE_MASK;
 				} else {
-					size = s | STOCK_MASK;
+					size = s;
 				}
 			} else {
 				if (s > N) {
-					if (s > size) {
+					if (s > GetSize()) {
 						buffer = reinterpret_cast<T*>(realloc(buffer, s * sizeof(T)));
 					}
 
-					size = s;
+					size = s | EXT_STORE_MASK;
 				} else {
 					T* orgBuffer = buffer;
-					if (orgBuffer != nullptr) {
-						memcpy(stockStorage, orgBuffer, s * sizeof(T));
-						free(orgBuffer);
-					}
+					memcpy(stockStorage, orgBuffer, s * sizeof(T));
+					free(orgBuffer);
 
-					size = s | STOCK_MASK;
+					size = s;
 				}
 			}
 		}
 
 		inline void Swap(TBuffer& rhs) {
 			std::swap(size, rhs.size);
-			T t[N];
-			memcpy(t, stockStorage, sizeof(T) * N);
-			memcpy(stockStorage, rhs.stockStorage, sizeof(T) * N);
-			memcpy(rhs.stockStorage, t, sizeof(T) * N);
+			for (size_t i = 0; i < N; i++) {
+				std::swap(stockStorage[i], rhs.stockStorage[i]);
+			}
 		}
 
 		inline TBuffer& Append(const TBuffer& rhs) {
 			return Append(rhs.GetData(), rhs.GetSize());
 		}
 
-		inline TBuffer& Append(const T* buffer, uint32_t appendSize) {
+		inline TBuffer& Append(const T* buffer, size_t appendSize) {
 			if (appendSize != 0) {
-				uint32_t orgSize = GetSize();
+				size_t orgSize = GetSize();
 				Resize(orgSize + appendSize);
-				memcpy(GetData() + orgSize, buffer, appendSize);
+				memcpy(GetData() + orgSize, buffer, appendSize * sizeof(T));
 			}
 
 			return *this;
 		}
 
-		inline TBuffer& Assign(const T* buffer, uint32_t n) {
+		inline TBuffer& Assign(const T* buffer, size_t n) {
 			Resize(n);
 			if (n != 0) {
-				memcpy(GetData(), buffer, n);
+				memcpy(GetData(), buffer, n * sizeof(T));
 			}
 
 			return *this;
 		}
 
-		inline bool IsStockStorage() const { return !!(size & STOCK_MASK); }
 	protected:
 		inline void Copy(const TBuffer& rhs) {
-			uint32_t s = rhs.GetSize();
+			size_t s = rhs.GetSize();
 			Resize(s);
-			memcpy(GetData(), rhs.GetData(), s);
+			memcpy(GetData(), rhs.GetData(), s * sizeof(T));
 		}
 
+		size_t size;
 		union {
 			T* buffer;
 			T stockStorage[N];
 		};
-
-		uint32_t size;
 	};
 
 	typedef TBuffer<uint8_t> Bytes;
 
-	template <class T, size_t N>
-	struct TBlock {
-		enum { size = N};
-		TBlock() : count(0) {}
-
-		uint32_t count;
-		T data[N];
-	};
+#define StaticBytes(f) Bytes((const uint8_t*)#f, sizeof(#f))
 }
 
