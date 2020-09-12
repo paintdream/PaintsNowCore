@@ -65,12 +65,14 @@ namespace PaintsNow {
 	class UniqueAllocator {
 	public:
 		UniqueAllocator();
+		~UniqueAllocator();
 		static UniqueAllocator& GetInstance();
 		UniqueInfo* Create(const String& name, size_t size = 0);
 
 	protected:
+		UniqueAllocator(const UniqueAllocator& rhs);
 		std::atomic<int32_t> critical;
-		std::unordered_map<String, UniqueInfo> mapType;
+		std::unordered_map<String, UniqueInfo*> mapType;
 	};
 
 	// Quick wrapper for runtime class info

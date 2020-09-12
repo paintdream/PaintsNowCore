@@ -340,19 +340,25 @@ UniqueAllocator::UniqueAllocator() {
 	critical.store(0, std::memory_order_relaxed);
 }
 
+UniqueAllocator::~UniqueAllocator() {
+	for (std::unordered_map<String, UniqueInfo*>::iterator it = mapType.begin(); it != mapType.end(); ++it) {
+		delete (*it).second;
+	}
+}
+
 UniqueInfo* UniqueAllocator::Create(const String& key, size_t size) {
 	SpinLock(critical);
 
-	std::unordered_map<String, UniqueInfo>::iterator it = mapType.find(key);
+	std::unordered_map<String, UniqueInfo*>::iterator it = mapType.find(key);
 	UniqueInfo* ret = nullptr;
 	if (it == mapType.end()) {
-		UniqueInfo info;
-		info.typeName = key;
-		info.size = size;
-		info.allocator = this;
-		ret = &(mapType[key] = info);
+		ret = new UniqueInfo();
+		ret->typeName = key;
+		ret->size = size;
+		ret->allocator = this;
+		mapType[key] = ret;
 	} else {
-		ret = &(mapType[key]);
+		ret = (*it).second;
 		if (size != 0) {
 			ret->size = size;
 		}

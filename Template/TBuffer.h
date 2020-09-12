@@ -76,6 +76,8 @@ namespace PaintsNow {
 		}
 
 		TBuffer& operator = (rvalue<TBuffer> rv) {
+			Clear();
+
 			TBuffer& rhs = rv;
 			memcpy(this, &rhs, sizeof(*this));
 			rhs.size = 0;
