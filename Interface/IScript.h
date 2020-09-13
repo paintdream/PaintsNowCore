@@ -524,8 +524,8 @@ namespace PaintsNow {
 			virtual Request& operator << (const AutoWrapperBase& wrapper) = 0;
 
 			virtual Request& operator << (Library& module);
-			virtual Request& operator >> (IReflectObject& reflectObject);
-			virtual Request& operator << (const IReflectObject& reflectObject);
+			virtual Request& operator >> (IReflectObjectComplex& reflectObject);
+			virtual Request& operator << (const IReflectObjectComplex& reflectObject);
 			virtual Request& operator << (Unique str);
 			virtual Request& operator >> (Unique& str);
 
@@ -670,8 +670,17 @@ namespace PaintsNow {
 				return request;
 			}
 
-			template <class T>
-			Request& operator >> (std::pair<T, T>& pair) {
+			template <class T, class D>
+			Request& operator << (const std::pair<T, D>& pair) {
+				Request& request = *this;
+				static ArrayStart beginarray;
+				static ArrayEnd endarray;
+				request << beginarray << pair.first << pair.second << endarray;
+				return request;
+			}
+
+			template <class T, class D>
+			Request& operator >> (std::pair<T, D>& pair) {
 				Request& request = *this;
 				static ArrayStart beginarray;
 				static ArrayEnd endarray;
@@ -734,7 +743,7 @@ namespace PaintsNow {
 			}
 
 			template <class T, size_t n, size_t m>
-			Request& operator << (TMatrix<T, n, m>& mat) {
+			Request& operator << (const TMatrix<T, n, m>& mat) {
 				Request& request = *this;
 				static ArrayStart beginarray;
 				static ArrayEnd endarray;
@@ -758,15 +767,6 @@ namespace PaintsNow {
 					request << vec[i];
 				}
 				request << endarray;
-				return request;
-			}
-
-			template <class T>
-			Request& operator << (const std::pair<T, T>& pair) {
-				Request& request = *this;
-				static ArrayStart beginarray;
-				static ArrayEnd endarray;
-				request << beginarray << pair.first << pair.second << endarray;
 				return request;
 			}
 		};
@@ -1070,53 +1070,50 @@ namespace PaintsNow {
 				}
 			};
 
-			template <class RR, class FF, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M>
-			static TWrapper<void> Make(const TWrapper<RR, FF, A, B, C, D, E, F, G, H, I, J, K, L, M>& wp) {
+			template <class RR, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M>
+			static TWrapper<void> Make(const TWrapper<RR, const Request::AutoWrapperBase&, Request&, A, B, C, D, E, F, G, H, I, J, K, L, M>& wp) {
 				Dispatcher<A, B, C, D, E, F, G, H, I, J, K, L, M>* ptr = nullptr;
-				switch (wp.GetCount()) {
+				switch (wp.GetCount() - 2) {
 				case 0:
-					assert(false);
-					break;
-				case 1:
 					return Convert(Wrap(ptr, &Dispatcher<A, B, C, D, E, F, G, H, I, J, K, L, M>::Invoke0));
 					break;
-				case 2:
+				case 1:
 					return Convert(Wrap(ptr, &Dispatcher<A, B, C, D, E, F, G, H, I, J, K, L, M>::Invoke1));
 					break;
-				case 3:
+				case 2:
 					return Convert(Wrap(ptr, &Dispatcher<A, B, C, D, E, F, G, H, I, J, K, L, M>::Invoke2));
 					break;
-				case 4:
+				case 3:
 					return Convert(Wrap(ptr, &Dispatcher<A, B, C, D, E, F, G, H, I, J, K, L, M>::Invoke3));
 					break;
-				case 5:
+				case 4:
 					return Convert(Wrap(ptr, &Dispatcher<A, B, C, D, E, F, G, H, I, J, K, L, M>::Invoke4));
 					break;
-				case 6:
+				case 5:
 					return Convert(Wrap(ptr, &Dispatcher<A, B, C, D, E, F, G, H, I, J, K, L, M>::Invoke5));
 					break;
-				case 7:
+				case 6:
 					return Convert(Wrap(ptr, &Dispatcher<A, B, C, D, E, F, G, H, I, J, K, L, M>::Invoke6));
 					break;
-				case 8:
+				case 7:
 					return Convert(Wrap(ptr, &Dispatcher<A, B, C, D, E, F, G, H, I, J, K, L, M>::Invoke7));
 					break;
-				case 9:
+				case 8:
 					return Convert(Wrap(ptr, &Dispatcher<A, B, C, D, E, F, G, H, I, J, K, L, M>::Invoke8));
 					break;
-				case 10:
+				case 9:
 					return Convert(Wrap(ptr, &Dispatcher<A, B, C, D, E, F, G, H, I, J, K, L, M>::Invoke9));
 					break;
-				case 11:
+				case 10:
 					return Convert(Wrap(ptr, &Dispatcher<A, B, C, D, E, F, G, H, I, J, K, L, M>::Invoke10));
 					break;
-				case 12:
+				case 11:
 					return Convert(Wrap(ptr, &Dispatcher<A, B, C, D, E, F, G, H, I, J, K, L, M>::Invoke11));
 					break;
-				case 13:
+				case 12:
 					return Convert(Wrap(ptr, &Dispatcher<A, B, C, D, E, F, G, H, I, J, K, L, M>::Invoke12));
 					break;
-				case 14:
+				case 13:
 					return Convert(Wrap(ptr, &Dispatcher<A, B, C, D, E, F, G, H, I, J, K, L, M>::Invoke13));
 					break;
 				}

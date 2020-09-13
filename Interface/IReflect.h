@@ -106,7 +106,8 @@ namespace PaintsNow {
 
 			className = (status == 0) ? res.get() : name;
 #else
-			className = name;
+			size_t len = strlen(name);
+			className = String(name, len > 1024 ? 1024 : len);
 #endif
 
 			// remove 'class ' or 'struct ' prefix

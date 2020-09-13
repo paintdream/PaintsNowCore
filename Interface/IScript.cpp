@@ -406,7 +406,7 @@ IScript::Request& IScript::Request::operator >> (float& value) {
 	return *this;
 }
 
-IScript::Request& IScript::Request::operator >> (IReflectObject& object) {
+IScript::Request& IScript::Request::operator >> (IReflectObjectComplex& object) {
 	assert(!object.IsBasicObject());
 	*this >> begintable;
 	Serializer<true> s(*this);
@@ -416,11 +416,11 @@ IScript::Request& IScript::Request::operator >> (IReflectObject& object) {
 	return *this;
 }
 
-IScript::Request& IScript::Request::operator << (const IReflectObject& object) {
+IScript::Request& IScript::Request::operator << (const IReflectObjectComplex& object) {
 	assert(!object.IsBasicObject());
 	*this << begintable;
 	Serializer<false> s(*this);
-	(const_cast<IReflectObject&>(object))(s);
+	(const_cast<IReflectObjectComplex&>(object))(s);
 	*this << endtable;
 
 	return *this;

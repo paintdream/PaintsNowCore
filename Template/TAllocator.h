@@ -74,7 +74,9 @@ namespace PaintsNow {
 
 						recycleCount.fetch_sub(1, std::memory_order_relaxed);
 						// no elements?
-						assert(p->refCount.load(std::memory_order_acquire) >= 1);
+						if (p != nullptr) {
+							assert(p->refCount.load(std::memory_order_acquire) >= 1);
+						}
 					}
 
 					if (p == nullptr) {
