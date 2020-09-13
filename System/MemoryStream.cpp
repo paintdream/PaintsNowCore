@@ -29,11 +29,6 @@ const void* MemoryStream::GetBuffer() const {
 	return buffer;
 }
 
-void MemoryStream::Clear() {
-	offset = 0;
-	totalSize = 0;
-}
-
 bool MemoryStream::Read(void* p, size_t& len) {
 	// printf("READ OFFSET: %d\n", offset);
 	if (len + offset > totalSize) {

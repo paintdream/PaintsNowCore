@@ -28,7 +28,6 @@ namespace PaintsNow {
 
 		virtual bool Transfer(IStreamBase& stream, size_t& len);
 		virtual IReflectObject* Clone() const;
-		void Clear();
 		bool Extend(size_t len);
 
 	private:
