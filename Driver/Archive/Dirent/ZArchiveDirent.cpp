@@ -19,9 +19,9 @@ public:
 	FileStream(FILE* p, rvalue<String> path) : fp(p), filePath(std::move(path)) {
 
 	}
-	virtual ~FileStream() { fclose(fp);}
+	~FileStream() override { fclose(fp);}
 
-	virtual IReflectObject* Clone() const {
+	IReflectObject* Clone() const override {
 		FILE* fp = fopen(filePath.c_str(), "rb");
 		if (fp != nullptr) {
 			return new FileStream(fp, String(filePath));
@@ -30,15 +30,15 @@ public:
 		}
 	}
 
-	virtual bool Read(void* p, size_t& len) {
+	bool Read(void* p, size_t& len) override {
 		return (len = fread(p, 1, len, fp)) != 0;
 	}
 
-	virtual bool Write(const void* p, size_t& len) {
+	bool Write(const void* p, size_t& len) override {
 		return (len = fwrite(p, 1, len, fp)) != 0;
 	}
 
-	virtual bool Seek(SEEK_OPTION option, int64_t offset) {
+	bool Seek(SEEK_OPTION option, int64_t offset) override {
 		int s = SEEK_CUR;
 		switch (option) {
 		case BEGIN:
@@ -56,7 +56,7 @@ public:
 		return fseek(fp, (long)offset, s) == 0;
 	}
 
-	virtual bool Transfer(IStreamBase& stream, size_t& len) {
+	bool Transfer(IStreamBase& stream, size_t& len) override {
 		const size_t SIZE = 512;
 		char buffer[SIZE];
 		size_t rl = Math::Min(SIZE, len);
@@ -70,7 +70,7 @@ public:
 		return len == 0;
 	}
 
-	virtual bool WriteDummy(size_t& len) {
+	bool WriteDummy(size_t& len) override {
 		return fseek(fp, (long)len, SEEK_CUR) == 0;
 	}
 
@@ -78,7 +78,7 @@ public:
 		return ftell(fp);
 	}
 
-	virtual void Flush() {
+	void Flush() override {
 		fflush(fp);
 	}
 

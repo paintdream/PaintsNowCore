@@ -28,7 +28,7 @@ namespace PaintsNow {
 		std::atomic<FLAG>& Flag();
 		FLAG Flag() const;
 
-		virtual TObject<IReflect>& operator () (IReflect& reflect) override;
+		TObject<IReflect>& operator () (IReflect& reflect) override;
 
 	protected:
 		std::atomic<FLAG> flag;
@@ -45,14 +45,14 @@ namespace PaintsNow {
 		static void DebugAttach(SharedTiny* host, SharedTiny* tiny) {}
 		static void DebugDetach(SharedTiny* tiny) {}
 #endif
-		virtual ~SharedTiny() { SharedTiny::DebugDetach(this); }
+		~SharedTiny() override { SharedTiny::DebugDetach(this); }
 
 		// Make a reference when script object initialized.
-		virtual void ScriptInitialize(IScript::Request& request) override {
+		void ScriptInitialize(IScript::Request& request) override {
 			ReferenceObject();
 		}
 
-		virtual void ReleaseObject() override {
+		void ReleaseObject() override {
 			if (extReferCount.load(std::memory_order_relaxed) == 0) {
 				Tiny::ReleaseObject();
 			} else {

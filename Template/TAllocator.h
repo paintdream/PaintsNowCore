@@ -44,7 +44,7 @@ namespace PaintsNow {
 			controlBlock.store(nullptr, std::memory_order_release);
 		}
 
-		virtual ~TAllocator() {
+		~TAllocator() override {
 			ControlBlock* p = (ControlBlock*)controlBlock.load(std::memory_order_acquire);
 			if (p != nullptr) {
 				IMemory::FreeAligned(p);
@@ -174,11 +174,11 @@ namespace PaintsNow {
 			Base::Deallocate(object);
 		}
 
-		virtual void ReferenceObject() override {
+		void ReferenceObject() override {
 			Base::ReferenceObject();
 		}
 
-		virtual void ReleaseObject() override {
+		void ReleaseObject() override {
 			Base::ReleaseObject();
 		}
 
@@ -320,7 +320,7 @@ namespace PaintsNow {
 		TAllocatedTiny(Args&&... args) : TReflected<T, B>(std::forward<Args>(args)...) {}
 #endif
 
-		virtual void FinalDestroy() override {
+		void FinalDestroy() override {
 			Allocator::Delete(static_cast<T*>(this));
 		}
 	};

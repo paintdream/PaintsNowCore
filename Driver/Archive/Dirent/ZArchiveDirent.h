@@ -11,15 +11,15 @@ namespace PaintsNow {
 	class ZArchiveDirent final : public IArchive {
 	public:
 		ZArchiveDirent(const String& root = ".", bool sandBox = false);
-		virtual ~ZArchiveDirent();
+		~ZArchiveDirent() override;
 
-		virtual const String& GetRootPath() const;
-		virtual void SetRootPath(const String& path);
+		const String& GetRootPath() const override;
+		void SetRootPath(const String& path) override;
 
-		virtual IStreamBase* Open(const String& uri, bool write, size_t& length, uint64_t* lastModifiedTime = nullptr);
-		virtual void Query(const String& uri, const TWrapper<void, bool, const String&>& wrapper) const;
-		virtual bool IsReadOnly() const;
-		virtual bool Delete(const String& uri);
+		IStreamBase* Open(const String& uri, bool write, size_t& length, uint64_t* lastModifiedTime = nullptr) override;
+		void Query(const String& uri, const TWrapper<void, bool, const String&>& wrapper) const override;
+		bool IsReadOnly() const override;
+		bool Delete(const String& uri) override;
 
 	private:
 		bool FilterSandBox(const String& uri) const;

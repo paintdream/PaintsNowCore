@@ -37,7 +37,7 @@ namespace PaintsNow {
 		class Object : public TReflected<Object, IReflectObjectComplex> {
 		public:
 			Object();
-			virtual ~Object();
+			~Object() override;
 			virtual void ScriptInitialize(Request& request);
 			virtual void ScriptUninitialize(Request& request);
 		};
@@ -51,13 +51,13 @@ namespace PaintsNow {
 		class Library : public Object {
 		public:
 			Library();
-			virtual ~Library();
+			~Library() override;
 			virtual void TickDevice(IDevice& device);
 			virtual void Initialize();
 			virtual void Uninitialize();
 			virtual void Require(Request& request);
-			virtual void ScriptInitialize(Request& request) override;
-			virtual void ScriptUninitialize(Request& request) override;
+			void ScriptInitialize(Request& request) override;
+			void ScriptUninitialize(Request& request) override;
 
 			void Register(Request& request);
 		};
@@ -111,7 +111,7 @@ namespace PaintsNow {
 
 		// thread support for requests
 		IScript(IThread& api);
-		virtual ~IScript();
+		~IScript() override;
 
 		class RequestPool;
 		class Request : public TReflected<Request, IReflectObjectComplex> {
@@ -120,7 +120,7 @@ namespace PaintsNow {
 
 		public:
 			Request();
-			virtual ~Request();
+			~Request() override;
 			virtual void DoLock();
 			virtual void UnLock();
 
@@ -152,16 +152,16 @@ namespace PaintsNow {
 
 			class Sync : public AutoWrapperBase {
 			public:
-				virtual bool IsSync() const;
-				virtual void Execute(Request& request) const;
-				virtual AutoWrapperBase* Clone() const;
+				bool IsSync() const override;
+				void Execute(Request& request) const override;
+				AutoWrapperBase* Clone() const override;
 			};
 
 			class Deferred : public AutoWrapperBase {
 			public:
-				virtual bool IsSync() const;
-				virtual void Execute(Request& request) const;
-				virtual AutoWrapperBase* Clone() const;
+				bool IsSync() const override;
+				void Execute(Request& request) const override;
+				AutoWrapperBase* Clone() const override;
 			};
 
 #if (defined(_MSC_VER) && _MSC_VER < 1800)
@@ -404,7 +404,7 @@ namespace PaintsNow {
 			class AutoWrapper : public AutoWrapperBase, public TWrapper<R, Request&, Args...> {
 			public:
 				AutoWrapper(const TWrapper<R, Request&, Args...>& m) : TWrapper<R, Request&, Args...>(m) {}
-				virtual AutoWrapperBase* Clone() const {
+				AutoWrapperBase* Clone() const override {
 					return new AutoWrapper(*this);
 				}
 
@@ -445,7 +445,7 @@ namespace PaintsNow {
 					Apply<R>(request, arg, gen_seq<sizeof...(Args)>());
 				}
 
-				virtual void Execute(Request& request) const {
+				void Execute(Request& request) const override {
 					IScript* script = request.GetScript();
 					if (script != nullptr) { // hook
 						const TWrapper<void, Request&, IHost*, size_t, const TWrapper<void, Request&>& >& dispatcher = script->GetDispatcher();
@@ -788,14 +788,14 @@ namespace PaintsNow {
 
 			typedef MetaLibrary Type;
 
-			virtual TObject<IReflect>& operator () (IReflect& reflect) override;
+			TObject<IReflect>& operator () (IReflect& reflect) override;
 			const String& name;
 		};
 
 		class MetaMethod : public TReflected<MetaMethod, MetaNodeBase> {
 		public:
 			MetaMethod(const String& key = "");
-			virtual ~MetaMethod();
+			~MetaMethod() override;
 			MetaMethod operator = (const String& key);
 
 			struct TypedBase : public TReflected<TypedBase, MetaNodeBase> {
@@ -815,12 +815,12 @@ namespace PaintsNow {
 					new (&name) String(rhs.name);
 				}
 
-				virtual Request& Register(Request& request, const String& defName) const {
+				Request& Register(Request& request, const String& defName) const override {
 					assert(false);
 					return request;
 				}
 
-				virtual Request::AutoWrapperBase* CreateWrapper() const {
+				Request::AutoWrapperBase* CreateWrapper() const override {
 					assert(false);
 					return nullptr;
 				}
@@ -836,13 +836,13 @@ namespace PaintsNow {
 					name = n;
 				}
 
-				virtual Request& Register(Request& request, const String& defName) const {
+				Request& Register(Request& request, const String& defName) const override {
 					request << IScript::Request::Key(name.empty() ? defName : name) << Request::Adapt(Wrap(pointer, *member));
 
 					return request;
 				}
 
-				virtual Request::AutoWrapperBase* CreateWrapper() const {
+				Request::AutoWrapperBase* CreateWrapper() const override {
 					return Request::Adapt(Wrap(pointer, *member)).Clone();
 				}
 
@@ -874,7 +874,7 @@ namespace PaintsNow {
 		class MetaVariable : public TReflected<MetaVariable, MetaNodeBase> {
 		public:
 			MetaVariable(const String& key = "");
-			virtual ~MetaVariable();
+			~MetaVariable() override;
 			MetaVariable operator = (const String& key);
 
 			class TypedBase : public TReflected<TypedBase, MetaNodeBase> {
@@ -891,16 +891,16 @@ namespace PaintsNow {
 					name = rhs.name;
 				}
 
-				virtual IReflectObject* Clone() const override {
+				IReflectObject* Clone() const override {
 					assert(false);
 					return nullptr;
 				}
-				virtual Request& Read(Request& request, bool hasKey, const String& defName, void* overrideObject) {
+				Request& Read(Request& request, bool hasKey, const String& defName, void* overrideObject) override {
 					assert(false);
 					return request;
 				}
 
-				virtual Request& Write(Request& request, bool hasKey, const String& defName, void* overrideObject) {
+				Request& Write(Request& request, bool hasKey, const String& defName, void* overrideObject) override {
 					assert(false);
 					return request;
 				}
@@ -912,12 +912,12 @@ namespace PaintsNow {
 			class Typed : public TypedBase {
 			public:
 				Typed(const String& s, T* o = nullptr) : object(o) { name = s; }
-				virtual ~Typed() {}
+				~Typed() override {}
 
-				virtual IReflectObject* Clone() const override {
+				IReflectObject* Clone() const override {
 					return new Typed(name, object);
 				}
-				virtual Request& Read(Request& request, bool hasKey, const String& defName, void* overrideObject) {
+				Request& Read(Request& request, bool hasKey, const String& defName, void* overrideObject) override {
 					if (hasKey) {
 						request >> Request::Key(name.empty() ? defName : name);
 					}
@@ -926,7 +926,7 @@ namespace PaintsNow {
 					return request;
 				}
 
-				virtual Request& Write(Request& request, bool hasKey, const String& defName, void* overrideObject) {
+				Request& Write(Request& request, bool hasKey, const String& defName, void* overrideObject) override {
 					if (hasKey) {
 						request << Request::Key(name.empty() ? defName : name);
 					}
@@ -1137,7 +1137,7 @@ namespace PaintsNow {
 			}
 #endif
 
-			virtual IReflectObject* Clone() const override {
+			IReflectObject* Clone() const override {
 				return new MetaRemoteEntry(*this);
 			}
 

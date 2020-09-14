@@ -47,7 +47,7 @@ namespace PaintsNow {
 			links.clear();
 		}
 
-		TObject<IReflect>& operator () (IReflect& reflect) {
+		TObject<IReflect>& operator () (IReflect& reflect) override {
 			BaseClass::operator () (reflect);
 			return *this;
 		}
@@ -88,7 +88,7 @@ namespace PaintsNow {
 		class PortsReflector : public IReflect {
 		public:
 			PortsReflector(GraphNode* t, std::vector<PortInfo>& ports, bool r) : IReflect(true, false), thisNode(t), nodePorts(ports), recursive(r) {}
-			virtual void Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta) {
+			void Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta) override {
 				if (!s.IsBasicObject()) {
 					if (s.IsIterator()) {
 						IIterator& it = static_cast<IIterator&>(s);
@@ -120,7 +120,7 @@ namespace PaintsNow {
 				}
 			}
 
-			virtual void Method(Unique typeID, const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) {}
+			void Method(Unique typeID, const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) override {}
 
 		private:
 			std::vector<PortInfo>& nodePorts;

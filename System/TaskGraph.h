@@ -12,7 +12,7 @@ namespace PaintsNow {
 	class TaskGraph : public TReflected<TaskGraph, Tiny> {
 	public:
 		TaskGraph(Kernel& kernel);
-		virtual ~TaskGraph();
+		~TaskGraph() override;
 		uint32_t Insert(WarpTiny* host, ITask* task);
 		void Next(uint32_t from, uint32_t to);
 		void Commit(const TWrapper<void>& completion = TWrapper<void>());
@@ -20,11 +20,11 @@ namespace PaintsNow {
 	protected:
 		class TaskNode : public ITask {
 		public:
-			virtual void Execute(void* context) override;
-			virtual void Suspend(void* context) override final;
-			virtual void Resume(void* context) override final;
-			virtual void Abort(void* context) override;
-			virtual bool Continue() const override final;
+			void Execute(void* context) override;
+			void Suspend(void* context) final;
+			void Resume(void* context) final;
+			void Abort(void* context) override;
+			bool Continue() const final;
 
 			TaskGraph* taskGraph;
 			WarpTiny* host;

@@ -10,33 +10,33 @@ namespace PaintsNow {
 	class ZThreadPthread : public IThread {
 	public:
 		ZThreadPthread(bool initOnWin32 = true);
-		virtual ~ZThreadPthread();
-		virtual void AttachLocalThread() const;
-		virtual void DetachLocalThread() const;
-		virtual IThread::Thread* NewThread(const TWrapper<bool, IThread::Thread*, size_t>& wrapper, size_t index, bool realtime);
-		virtual bool IsThreadRunning(Thread* thread) const;
-		virtual void Wait(Thread* thread);
-		virtual void DeleteThread(Thread* thread);
-		virtual IThread::Thread* OpenCurrentThread() const;
-		virtual bool EqualThread(Thread* lhs, Thread* rhs) const;
+		~ZThreadPthread() override;
+		void AttachLocalThread() const override;
+		void DetachLocalThread() const override;
+		IThread::Thread* NewThread(const TWrapper<bool, IThread::Thread*, size_t>& wrapper, size_t index, bool realtime) override;
+		bool IsThreadRunning(Thread* thread) const override;
+		void Wait(Thread* thread) override;
+		void DeleteThread(Thread* thread) override;
+		IThread::Thread* OpenCurrentThread() const override;
+		bool EqualThread(Thread* lhs, Thread* rhs) const override;
 
-		virtual IThread::Lock* NewLock();
-		virtual bool DoLock(Lock* lock);
-		virtual bool UnLock(Lock* lock);
-		virtual bool TryLock(Lock* lock);
-		virtual void DeleteLock(Lock* lock);
-		virtual size_t GetLockCount(Lock* lock);
+		IThread::Lock* NewLock() override;
+		bool DoLock(Lock* lock) override;
+		bool UnLock(Lock* lock) override;
+		bool TryLock(Lock* lock) override;
+		void DeleteLock(Lock* lock) override;
+		size_t GetLockCount(Lock* lock) override;
 
-		virtual IThread::Semaphore* NewSemaphore(int initValue);
-		virtual void Signal(Semaphore* semaphore);
-		virtual void Wait(Semaphore* semaphore);
-		virtual void DeleteSemaphore(Semaphore* semphore);
+		IThread::Semaphore* NewSemaphore(int initValue) override;
+		void Signal(Semaphore* semaphore) override;
+		void Wait(Semaphore* semaphore) override;
+		void DeleteSemaphore(Semaphore* semphore) override;
 
-		virtual Event* NewEvent();
-		virtual void Signal(Event* event, bool broadcast);
-		virtual void Wait(Event* event, Lock* lock);
-		virtual void Wait(Event* event, Lock* lock, size_t timeout);
-		virtual void DeleteEvent(Event* event);
+		Event* NewEvent() override;
+		void Signal(Event* event, bool broadcast) override;
+		void Wait(Event* event, Lock* lock) override;
+		void Wait(Event* event, Lock* lock, size_t timeout) override;
+		void DeleteEvent(Event* event) override;
 
 	protected:
 		int maxPriority;

@@ -18,7 +18,7 @@ namespace PaintsNow {
 	class TaskQueue : public ITask {
 	public:
 		TaskQueue(uint32_t idCount);
-		virtual ~TaskQueue();
+		~TaskQueue() override;
 		void Push(uint32_t id, ITask* task, void* tag);
 		void Flush(ThreadPool& threadPool);
 		typedef TQueueList<std::pair<ITask*, void*>, 8> RingBuffer;
@@ -27,11 +27,11 @@ namespace PaintsNow {
 	protected:
 		virtual bool InvokeOperation(std::pair<ITask*, void*>& task, void (ITask::*operation)(void*), void* context);
 
-		virtual void Execute(void* context) override;
-		virtual void Suspend(void* context) override final;
-		virtual void Resume(void* context) override final;
-		virtual void Abort(void* context) override;
-		virtual bool Continue() const override final;
+		void Execute(void* context) override;
+		void Suspend(void* context) final;
+		void Resume(void* context) final;
+		void Abort(void* context) override;
+		bool Continue() const final;
 
 	protected:
 		void OnOperation(void (ITask::*operation)(void*), void* context);

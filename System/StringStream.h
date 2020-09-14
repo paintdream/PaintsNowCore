@@ -11,14 +11,14 @@ namespace PaintsNow {
 	class StringStream : public IStreamBase {
 	public:
 		StringStream(String& str, int64_t pos = 0);
-		virtual ~StringStream();
+		~StringStream() override;
 
-		virtual bool Read(void* p, size_t& len) override;
-		virtual bool Write(const void* p, size_t& len) override;
-		virtual bool WriteDummy(size_t& len) override;
-		virtual bool Seek(SEEK_OPTION option, int64_t offset) override;
-		virtual void Flush() override;
-		virtual bool Transfer(IStreamBase& stream, size_t& len) override;
+		bool Read(void* p, size_t& len) override;
+		bool Write(const void* p, size_t& len) override;
+		bool WriteDummy(size_t& len) override;
+		bool Seek(SEEK_OPTION option, int64_t offset) override;
+		void Flush() override;
+		bool Transfer(IStreamBase& stream, size_t& len) override;
 	
 	protected:
 		int64_t location;

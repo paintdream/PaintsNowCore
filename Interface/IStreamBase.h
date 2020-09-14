@@ -8,7 +8,7 @@
 namespace PaintsNow {
 	class IStreamBase : public TReflected<IStreamBase, IReflectObjectComplex> {
 	protected:
-		virtual ~IStreamBase();
+		~IStreamBase() override;
 
 	public:
 		IStreamBase();
@@ -131,12 +131,12 @@ namespace PaintsNow {
 	class StreamBaseMeasure : public IStreamBase {
 	public:
 		StreamBaseMeasure(IStreamBase& base);
-		virtual void Flush() override;
-		virtual bool Read(void* p, size_t& len) override;
-		virtual bool Write(const void* p, size_t& len) override;
-		virtual bool Transfer(IStreamBase& stream, size_t& len) override;
-		virtual bool WriteDummy(size_t& len) override;
-		virtual bool Seek(SEEK_OPTION option, int64_t offset) override;
+		void Flush() override;
+		bool Read(void* p, size_t& len) override;
+		bool Write(const void* p, size_t& len) override;
+		bool Transfer(IStreamBase& stream, size_t& len) override;
+		bool WriteDummy(size_t& len) override;
+		bool Seek(SEEK_OPTION option, int64_t offset) override;
 
 		IStreamBase& stream;
 		int64_t transition;

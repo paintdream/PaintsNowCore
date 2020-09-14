@@ -20,20 +20,20 @@ namespace PaintsNow {
 
 	class TaskOnce : public ITask {
 	public:
-		virtual void Execute(void* context) = 0;
-		virtual void Suspend(void* context);
-		virtual void Resume(void* context);
-		virtual void Abort(void* context);
-		virtual bool Continue() const;
+		void Execute(void* context) override = 0;
+		void Suspend(void* context) override;
+		void Resume(void* context) override;
+		void Abort(void* context) override;
+		bool Continue() const override;
 	};
 
 	class TaskRepeat : public ITask {
 	public:
-		virtual void Execute(void* context) = 0;
-		virtual void Suspend(void* context);
-		virtual void Resume(void* context);
-		virtual void Abort(void* context) = 0;
-		virtual bool Continue() const;
+		void Execute(void* context) override = 0;
+		void Suspend(void* context) override;
+		void Resume(void* context) override;
+		void Abort(void* context) override = 0;
+		bool Continue() const override;
 	};
 
 #if defined(_MSC_VER) && _MSC_VER <= 1200
@@ -411,12 +411,12 @@ namespace PaintsNow {
 			callback(context, run, std::move(std::get<S>(arguments))...);
 		}
 
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			Apply(request, true, gen_seq<sizeof...(Args)>());
 			delete this;
 		}
 
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			Apply(request, false, gen_seq<sizeof...(Args)>());
 			delete this;
 		}
@@ -441,7 +441,7 @@ namespace PaintsNow {
 			callback(std::get<S>(arguments)...);
 		}
 
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			Apply(gen_seq<sizeof...(Args)>());
 			delete this;
 		}

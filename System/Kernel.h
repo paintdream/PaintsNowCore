@@ -67,7 +67,7 @@ namespace PaintsNow {
 			SubTaskQueue(Kernel* kernel, uint32_t idCount);
 			SubTaskQueue(const SubTaskQueue& rhs);
 			SubTaskQueue& operator = (const SubTaskQueue& rhs);
-			virtual ~SubTaskQueue();
+			~SubTaskQueue() override;
 
 			// Take execution atomically, returns true on success
 			bool PreemptExecution();
@@ -87,9 +87,9 @@ namespace PaintsNow {
 
 		protected:
 			friend class Kernel;
-			virtual bool InvokeOperation(std::pair<ITask*, void*>& task, void (ITask::*operation)(void*), void* context) override;
-			virtual void Execute(void* context) override;
-			virtual void Abort(void* context) override;
+			bool InvokeOperation(std::pair<ITask*, void*>& task, void (ITask::*operation)(void*), void* context) override;
+			void Execute(void* context) override;
+			void Abort(void* context) override;
 
 			Kernel* kernel;
 			std::atomic<uint32_t*> threadWarp;
@@ -661,12 +661,12 @@ namespace PaintsNow {
 			kernel.ResumeWarp(warp);
 		}
 
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			Apply(request, true, gen_seq<sizeof...(Args)>());
 			delete this;
 		}
 
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			Apply(request, false, gen_seq<sizeof...(Args)>());
 			delete this;
 		}
@@ -697,12 +697,12 @@ namespace PaintsNow {
 			callback(std::move(std::get<S>(arguments))...);
 		}
 
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			Apply(gen_seq<sizeof...(Args)>());
 			Abort(request);
 		}
 
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			kernel.ResumeWarp(warp);
 
 			delete this;

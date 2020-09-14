@@ -18,7 +18,7 @@ namespace PaintsNow {
 		ThreadPool(IThread& threadApi, uint32_t threadCount);
 
 	public:
-		virtual ~ThreadPool();
+		~ThreadPool() override;
 		bool Push(ITask* task);
 		uint32_t GetThreadCount() const;
 		uint32_t GetCurrentThreadIndex() const;

@@ -145,8 +145,8 @@ namespace PaintsNow {
 		template <class T>
 		IReflectObject(const T& t) {}
 
-		virtual ~IReflectObject();
-		virtual TObject<IReflect>& operator () (IReflect& reflect) override;
+		~IReflectObject() override;
+		TObject<IReflect>& operator () (IReflect& reflect) override;
 		virtual const TObject<IReflect>& operator () (IReflect& reflect) const; // Just forward to non-const one 
 		virtual bool IsBasicObject() const; // returns true, any sub-classes should return false;
 		virtual bool IsIterator() const; // only for IIterators
@@ -206,20 +206,20 @@ namespace PaintsNow {
 	// Non-pods base object
 	class IReflectObjectComplex : public IReflectObject {
 	public:
-		virtual bool IsBasicObject() const;
+		bool IsBasicObject() const override;
 		virtual size_t ReportMemoryUsage() const;
-		virtual String ToString() const;
-		virtual TObject<IReflect>& operator () (IReflect& reflect) override;
+		String ToString() const override;
+		TObject<IReflect>& operator () (IReflect& reflect) override;
 	};
 
 	// IIterator is for all iterators, usually created by IterateVector
 	class IIterator : public IReflectObject {
 	public:
 		IIterator();
-		virtual ~IIterator();
-		virtual String ToString() const;
-		virtual bool IsBasicObject() const;
-		virtual bool IsIterator() const;
+		~IIterator() override;
+		String ToString() const override;
+		bool IsBasicObject() const override;
+		bool IsIterator() const override;
 		virtual IIterator* New() const = 0;
 		virtual void Attach(void* base) = 0;
 		virtual void* GetHost() const = 0;
@@ -244,21 +244,21 @@ namespace PaintsNow {
 		typedef typename T::value_type value_type;
 #endif
 		VectorIterator(T* p) : base(p), i(0) {}
-		virtual void Initialize(size_t c) {
+		void Initialize(size_t c) override {
 			assert(base != nullptr);
 			base->resize(c);
 		}
 
-		virtual size_t GetTotalCount() const override {
+		size_t GetTotalCount() const override {
 			assert(base != nullptr);
 			return base->size();
 		}
 
-		virtual Unique GetPrototypeUnique() const override {
+		Unique GetPrototypeUnique() const override {
 			return UniqueType<value_type>::Get();
 		}
 
-		virtual Unique GetPrototypeReferenceUnique() const override {
+		Unique GetPrototypeReferenceUnique() const override {
 #if defined(_MSC_VER) && _MSC_VER <= 1200
 			return UniqueType<std::remove_pointer<value_type>::type>::Get();
 #else
@@ -266,18 +266,18 @@ namespace PaintsNow {
 #endif
 		}
 
-		virtual const IReflectObject& GetPrototype() const override {
+		const IReflectObject& GetPrototype() const override {
 			static const value_type t = value_type();
 			static const IReflectObject& object = IReflectObject::TransformReflectObject(t);
 			return object;
 		}
 
-		virtual void* Get() override {
+		void* Get() override {
 			assert(i != 0);
 			return &(*base)[i - 1];
 		}
 
-		virtual bool Next() override {
+		bool Next() override {
 			if (i >= (*base).size()) {
 				return false;
 			}
@@ -286,28 +286,28 @@ namespace PaintsNow {
 			return true;
 		}
 
-		virtual IIterator* New() const override {
+		IIterator* New() const override {
 			return new VectorIterator(base);
 		}
 
-		virtual void Attach(void* p) override {
+		void Attach(void* p) override {
 			base = reinterpret_cast<T*>(p);
 			i = 0;
 		}
 
-		virtual bool IsLayoutLinear() const override {
+		bool IsLayoutLinear() const override {
 			return true;
 		}
 
-		virtual bool IsLayoutPinned() const override {
+		bool IsLayoutPinned() const override {
 			return false;
 		}
 
-		virtual void* GetHost() const override {
+		void* GetHost() const override {
 			return base;
 		}
 
-		virtual Unique GetUnique() const override {
+		Unique GetUnique() const override {
 			typedef VectorIterator<T> Class;
 			return UniqueType<Class>::Get();
 		}
@@ -325,7 +325,7 @@ namespace PaintsNow {
 
 	class MetaNodeBase : public IReflectObjectComplex {
 	public:
-		virtual TObject<IReflect>& operator () (IReflect& reflect) {
+		TObject<IReflect>& operator () (IReflect& reflect) override {
 			return *this;
 		}
 	};
@@ -348,7 +348,7 @@ namespace PaintsNow {
 		}
 
 	private:
-		virtual TObject<IReflect>& operator () (IReflect& reflect) {
+		TObject<IReflect>& operator () (IReflect& reflect) override {
 			assert(false);
 			return *this;
 		}
@@ -375,15 +375,15 @@ namespace PaintsNow {
 			return true;
 		}
 
-		virtual const MetaChainBase* GetNext() const {
+		const MetaChainBase* GetNext() const override {
 			return base.IsChain() ? &base : nullptr;
 		}
 
-		virtual const MetaNodeBase* GetNode() const {
+		const MetaNodeBase* GetNode() const override {
 			return &chainNode;
 		}
 
-		virtual const MetaNodeBase* GetRawNode() const {
+		const MetaNodeBase* GetRawNode() const override {
 			return rawChainNodePtr;
 		}
 
@@ -565,7 +565,7 @@ namespace PaintsNow {
 
 		typedef MetaNote Type;
 
-		virtual TObject<IReflect>& operator () (IReflect& reflect) override;
+		TObject<IReflect>& operator () (IReflect& reflect) override;
 		const String& value;
 	};
 
@@ -575,7 +575,7 @@ namespace PaintsNow {
 	class WriterBase : public MetaChainBase {
 	public:
 		WriterBase(IReflect& r, T* p, D* v, const char* n) : reflect(r), object(p), member(v), name(n) {}
-		virtual ~WriterBase() {}
+		~WriterBase() override {}
 
 		inline bool IsChain() const { return false; }
 
@@ -629,13 +629,13 @@ namespace PaintsNow {
 	class PropertyWriter : public WriterBase<T, D> {
 	public:
 		PropertyWriter(IReflect& r, T* p, D* v, const char* n) : WriterBase<T, D>(r, p, v, n) {}
-		~PropertyWriter() {}
+		~PropertyWriter() override {}
 
 		void operator * () {
 			Finish(nullptr);
 		}
 
-		virtual void Finish(const MetaChainBase* head) {
+		void Finish(const MetaChainBase* head) override {
 #if defined(_MSC_VER) && _MSC_VER <= 1200
 			WriterBase<T, D>::reflect.OnProperty(VectorIteratorHelper<std::is_vector<std::decay<D>::type>::type>::Transform(WriterBase<T, D>::member), WriterBase<T, D>::name, WriterBase<T, D>::object, head == this ? nullptr : head);
 #else
@@ -657,13 +657,13 @@ namespace PaintsNow {
 	class MethodWriter : public WriterBase<T, D> {
 	public:
 		MethodWriter(IReflect& r, T* p, D* v, const char* n) : WriterBase<T, D>(r, p, v, n) {}
-		virtual ~MethodWriter() {}
+		~MethodWriter() override {}
 
 		void operator * () {
 			Finish(nullptr);
 		}
 
-		virtual void Finish(const MetaChainBase* head) {
+		void Finish(const MetaChainBase* head) override {
 			WriterBase<T, D>::reflect.OnMethod(Wrap(WriterBase<T, D>::object, *WriterBase<T, D>::member), WriterBase<T, D>::name, head == this ? nullptr : head);
 		}
 	};
@@ -677,13 +677,13 @@ namespace PaintsNow {
 	class ClassWriter : public WriterBase<T, const char>  {
 	public:
 		ClassWriter(IReflect& r, T* p, const char* l) : WriterBase<T, const char>(r, p, l, "Class") {}
-		virtual ~ClassWriter() {}
+		~ClassWriter() override {}
 
 		void operator * () {
 			Finish(nullptr);
 		}
 
-		virtual void Finish(const MetaChainBase* head) {
+		void Finish(const MetaChainBase* head) override {
 			WriterBase<T, const char>::reflect.OnClass(*WriterBase<T, const char>::object, UniqueType<T>::Get()->GetName().c_str(), WriterBase<T, const char>::member, head);
 		}
 	};
@@ -697,13 +697,13 @@ namespace PaintsNow {
 	class EnumWriter : public WriterBase<T, T>  {
 	public:
 		EnumWriter(IReflect& r, T v, const char* n) : value(v), WriterBase<T, T>(r, &value, &value, n) {}
-		virtual ~EnumWriter() {}
+		~EnumWriter() override {}
 
 		void operator * () {
 			Finish(nullptr);
 		}
 
-		virtual void Finish(const MetaChainBase* head) {
+		void Finish(const MetaChainBase* head) override {
 			WriterBase<T, T>::reflect.OnEnum(value, WriterBase<T, T>::name, head);
 		}
 
@@ -744,7 +744,7 @@ namespace PaintsNow {
 		};
 
 		typedef MetaConstructable Type;
-		virtual Unique GetUnique() const override;
+		Unique GetUnique() const override;
 	};
 
 	extern MetaConstructable Constructable;
@@ -810,7 +810,7 @@ namespace PaintsNow {
 
 		typedef MetaInterface<P> Type;
 
-		virtual TObject<IReflect>& operator () (IReflect& reflect) {
+		TObject<IReflect>& operator () (IReflect& reflect) override {
 			return object.P::operator () (reflect);
 		}
 	};
@@ -862,8 +862,8 @@ namespace PaintsNow {
 		}
 
 		virtual void* Find(Unique unique, const String& key) const;
-		virtual void Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta);
-		virtual void Method(Unique typeID, const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta);
+		void Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta) override;
+		void Method(Unique typeID, const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) override;
 
 	private:
 		std::map<Unique, std::map<String, void*> > entries;
@@ -882,7 +882,7 @@ namespace PaintsNow {
 		};
 
 		typedef MetaRuntime Type;
-		virtual TObject<IReflect>& operator () (IReflect& reflect) override;
+		TObject<IReflect>& operator () (IReflect& reflect) override;
 	};
 
 	extern MetaRuntime Runtime;
@@ -900,7 +900,7 @@ namespace PaintsNow {
 		};
 
 		typedef MetaVoid Type;
-		virtual Unique GetUnique() const override;
+		Unique GetUnique() const override;
 	};
 
 	// Helper class for implement rtti by simple inheriance.
@@ -934,13 +934,13 @@ namespace PaintsNow {
 		typedef TReflected BaseClass;
 		typedef Base NativeBaseClass;
 
-		virtual TObject<IReflect>& operator () (IReflect& reflect) override {
+		TObject<IReflect>& operator () (IReflect& reflect) override {
 			static MetaOption option;
 			ReflectClass(Class)[ReflectInterface(NativeBaseClass)][option];
 			return *this;
 		}
 
-		virtual Unique GetUnique() const override {
+		Unique GetUnique() const override {
 			static Unique unique = IReflectObject::GetUnique();
 			return unique;
 		}

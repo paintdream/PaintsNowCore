@@ -9,7 +9,7 @@ public:
 		ReflectNodePorts();
 	}
 
-	virtual TObject<IReflect>& operator () (IReflect& reflect) {
+	TObject<IReflect>& operator () (IReflect& reflect) override {
 		BaseClass::operator () (reflect);
 
 		if (reflect.IsReflectProperty()) {

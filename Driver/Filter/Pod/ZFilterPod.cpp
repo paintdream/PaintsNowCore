@@ -16,27 +16,27 @@ using namespace PaintsNow;
 class FilterPodImpl : public IStreamBase, public IReflect {
 public:
 	FilterPodImpl(IStreamBase& streamBase);
-	virtual ~FilterPodImpl();
+	~FilterPodImpl() override;
 
-	virtual bool Read(void* p, size_t& len);
-	virtual bool Write(const void* p, size_t& len);
-	virtual bool Transfer(IStreamBase& stream, size_t& len);
-	virtual bool WriteDummy(size_t& len);
-	virtual void Flush();
-	virtual bool Seek(IStreamBase::SEEK_OPTION option, int64_t offset);
+	bool Read(void* p, size_t& len) override;
+	bool Write(const void* p, size_t& len) override;
+	bool Transfer(IStreamBase& stream, size_t& len) override;
+	bool WriteDummy(size_t& len) override;
+	void Flush() override;
+	bool Seek(IStreamBase::SEEK_OPTION option, int64_t offset) override;
 
 	// object writing/reading routine
-	virtual bool Write(IReflectObject& a, Unique type, void* ptr, size_t length);
-	virtual bool Read(IReflectObject& a, Unique type, void* ptr, size_t length);
+	bool Write(IReflectObject& a, Unique type, void* ptr, size_t length) override;
+	bool Read(IReflectObject& a, Unique type, void* ptr, size_t length) override;
 
 	IStreamBase& GetBaseStreamImpl();
-	virtual IStreamBase& GetBaseStream();
+	IStreamBase& GetBaseStream() override;
 
 public:
 	// IReflect
-	virtual void Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta);
-	virtual void Method(Unique typeID, const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta);
-	virtual void Class(IReflectObject& host, Unique id, const char* name, const char* path, const MetaChainBase* meta);
+	void Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta) override;
+	void Method(Unique typeID, const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) override;
+	void Class(IReflectObject& host, Unique id, const char* name, const char* path, const MetaChainBase* meta) override;
 
 	IReflectObjectComplex* CreateObjectFromMeta(const String& metaData);
 	String GetMetaFromObject(IReflectObjectComplex& object);

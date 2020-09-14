@@ -74,7 +74,7 @@ class Generic : public IReflect {
 public:
 	Generic(const String& k, Unique u, IReflectObject& object) : IReflect(true, false), key(k), targetUnique(u), target(nullptr) {}
 
-	virtual void Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta) {
+	void Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta) override {
 		if (typeID == targetUnique && (key.empty() || key == name)) {
 			if (s.IsBasicObject()) {
 				target = ptr;
@@ -85,7 +85,7 @@ public:
 	}
 
 	void* GetTarget() const { return target; }
-	virtual void Method(Unique typeID, const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) {}
+	void Method(Unique typeID, const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) override {}
 	
 
 private:
@@ -149,7 +149,7 @@ public:
 		(const_cast<IReflectObject&>(object))(*this);
 	}
 
-	virtual void Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta) {
+	void Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta) override {
 		static Unique uniqueString = UniqueType<String>::Get();
 		static Unique uniqueBytes = UniqueType<Bytes>::Get();
 
@@ -297,9 +297,9 @@ public:
 	}
 
 public:
-	virtual void Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta);
-	virtual void Method(Unique typeID, const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta);
-	virtual void Class(IReflectObject& host, Unique id, const char* name, const char* path, const MetaChainBase* meta);
+	void Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta) override;
+	void Method(Unique typeID, const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) override;
+	void Class(IReflectObject& host, Unique id, const char* name, const char* path, const MetaChainBase* meta) override;
 
 private:
 	Unique type;

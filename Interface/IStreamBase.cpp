@@ -122,7 +122,7 @@ template <bool read>
 class Reflect : public IReflect {
 public:
 	Reflect(IStreamBase& s) : IReflect(true, false), stream(s), result(true) {}
-	virtual void Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta) {
+	void Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta) override {
 		if (!result)
 			return;
 
@@ -254,7 +254,7 @@ public:
 			s(*this); // continue to reflect sub fields
 		}
 	}
-	virtual void Method(Unique typeID, const char* name, const TProxy<>* p, const IReflect::Param& retValue, const std::vector<IReflect::Param>& params, const MetaChainBase* meta) {}
+	void Method(Unique typeID, const char* name, const TProxy<>* p, const IReflect::Param& retValue, const std::vector<IReflect::Param>& params, const MetaChainBase* meta) override {}
 	
 	bool GetResult() const { return result; }
 

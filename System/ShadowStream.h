@@ -12,17 +12,17 @@ namespace PaintsNow {
 	class ShadowStream : public IStreamBase {
 	public:
 		ShadowStream();
-		virtual ~ShadowStream();
+		~ShadowStream() override;
 
-		virtual bool operator << (IStreamBase& stream) override;
-		virtual bool operator >> (IStreamBase& stream) const override;
+		bool operator << (IStreamBase& stream) override;
+		bool operator >> (IStreamBase& stream) const override;
 
-		virtual bool Read(void* p, size_t& len) override;
-		virtual bool Write(const void* p, size_t& len) override;
-		virtual bool WriteDummy(size_t& len) override;
-		virtual bool Seek(SEEK_OPTION option, int64_t offset) override;
-		virtual void Flush() override;
-		virtual bool Transfer(IStreamBase& stream, size_t& len) override;
+		bool Read(void* p, size_t& len) override;
+		bool Write(const void* p, size_t& len) override;
+		bool WriteDummy(size_t& len) override;
+		bool Seek(SEEK_OPTION option, int64_t offset) override;
+		void Flush() override;
+		bool Transfer(IStreamBase& stream, size_t& len) override;
 
 		Bytes& GetPayload();
 		const Bytes& GetPayload() const;

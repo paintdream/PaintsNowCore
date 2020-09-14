@@ -7,12 +7,12 @@ IFilterBase::~IFilterBase() {}
 class NoFilterImpl : public IStreamBase {
 public:
 	NoFilterImpl(IStreamBase& streamBase);
-	virtual void Flush();
-	virtual bool Read(void* p, size_t& len);
-	virtual bool Write(const void* p, size_t& len);
-	virtual bool Transfer(IStreamBase& stream, size_t& len);
-	virtual bool WriteDummy(size_t& len);
-	virtual bool Seek(SEEK_OPTION option, int64_t offset);
+	void Flush() override;
+	bool Read(void* p, size_t& len) override;
+	bool Write(const void* p, size_t& len) override;
+	bool Transfer(IStreamBase& stream, size_t& len) override;
+	bool WriteDummy(size_t& len) override;
+	bool Seek(SEEK_OPTION option, int64_t offset) override;
 
 private:
 	IStreamBase& stream;

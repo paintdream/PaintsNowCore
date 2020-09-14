@@ -88,7 +88,7 @@ template <class T>
 class ForwardRoutine : public TaskOnce {
 public:
 	ForwardRoutine(T& k, WarpTiny* tn, ITask* tk) : kernel(k), tiny(tn), task(tk) {}
-	virtual void Execute(void* context) override {
+	void Execute(void* context) override {
 		// requeue it
 		uint32_t warpIndex = tiny->GetWarpIndex();
 		kernel.QueueRoutine(tiny, task);
@@ -96,7 +96,7 @@ public:
 		delete this;
 	}
 
-	virtual void Abort(void* context) override {
+	void Abort(void* context) override {
 		// force
 		WarpIndex = tiny->GetWarpIndex();
 		task->Abort(context);

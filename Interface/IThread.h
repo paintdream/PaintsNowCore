@@ -42,7 +42,7 @@ inline void YieldThreadFast() {
 namespace PaintsNow {
 	class IThread : public IDevice {
 	public:
-		virtual ~IThread();
+		~IThread() override;
 		class Lock {};
 		class Semaphore {};
 		class Thread {};

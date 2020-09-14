@@ -12,14 +12,14 @@
 namespace PaintsNow {
 	class IFilterBase : public IDevice {
 	public:
-		virtual ~IFilterBase();
+		~IFilterBase() override;
 		// attach a stream, which all read operations depend on.
 		virtual IStreamBase* CreateFilter(IStreamBase& inputStream) = 0;
 	};
 
 	class NoFilter : public IFilterBase {
 	public:
-		virtual IStreamBase* CreateFilter(IStreamBase& inputStream);
+		IStreamBase* CreateFilter(IStreamBase& inputStream) override;
 	};
 }
 
