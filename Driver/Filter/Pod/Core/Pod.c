@@ -228,7 +228,7 @@ static void WriteField(Field* field, PodList* list) {
 	field->isInteger = list->isInteger;
 	field->isDynamic = list->isDynamic;
 	strncpy((char*)field->name, (const char*)list->name, MAX_FIELDNAME_LENGTH);
-	field->nameLength = (uint16_t)strlen(field->name) + 1;
+	field->nameLength = (uint16_t)strlen((const char*)field->name) + 1;
 }
 
 int PodIsPlain(const Pod* p) {
@@ -721,7 +721,7 @@ int PodWriteData(const Pod* type, const PodStream* stream, const void* base, voi
 	memcpy(header.magic, ".DAT", 4);
 	header.type = type->type;
 	strncpy((char*)header.id, (const char*)type->id, MAX_TYPENAME_LENGTH);
-	header.idLength = (uint16_t)strlen(header.id) + 1;
+	header.idLength = (uint16_t)strlen((const char*)header.id) + 1;
 	if ((status = WriteDataHeaderStream(stream, &header, context)) != POD_SUCCESS)
 		return status;
 	size = TellStream(stream, context);
@@ -789,7 +789,7 @@ int PodWriteSpec(const Pod* type, const PodStream* stream, void* context) {
 	header.fieldCount = type->fieldCount;
 	header.type = type->type;
 	strncpy((char*)header.id, (const char*)type->id, MAX_TYPENAME_LENGTH);
-	header.idLength = (uint16_t)strlen(header.id) + 1;
+	header.idLength = (uint16_t)strlen((const char*)header.id) + 1;
 	if ((status = WriteHeaderStream(stream, &header, context)) != POD_SUCCESS)
 		return status;
 

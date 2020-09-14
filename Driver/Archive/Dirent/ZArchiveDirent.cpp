@@ -52,7 +52,6 @@ public:
 			break;
 		}
 
-		assert(abs(offset) < 0x7FFFFFFF);
 		return fseek(fp, (long)offset, s) == 0;
 	}
 
