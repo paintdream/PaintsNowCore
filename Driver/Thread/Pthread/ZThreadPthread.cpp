@@ -172,9 +172,6 @@ IThread::Thread* ZThreadPthread::NewThread(const TWrapper<bool, IThread::Thread*
 	pthread_create(&t->thread, nullptr, _ThreadProc, t);
 	pthread_attr_destroy(&attr);
 
-#if defined(_WIN32) || defined(WIN32)
-	pthread_detach(t->thread);
-#endif
 #endif
 
 	return t;
