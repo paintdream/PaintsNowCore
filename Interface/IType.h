@@ -12,6 +12,7 @@
 #include "../PaintsNow.h"
 #include "../Template/TVector.h"
 #include "../Template/TMatrix.h"
+#include <cmath>
 #include <string>
 #include <vector>
 #include <stdexcept>

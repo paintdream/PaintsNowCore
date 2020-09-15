@@ -151,12 +151,14 @@ namespace PaintsNow {
 			return *this;
 		}
 
-		TShared(rvalue<TShared> s) {
+		TShared(rvalue<TShared> t) {
+			TShared& s = t;
 			tiny = s.tiny;
 			s.tiny = nullptr;
 		}
 
-		TShared& operator = (rvalue<TShared> s) {
+		TShared& operator = (rvalue<TShared> t) {
+			TShared& s = t;
 			std::swap(tiny, s.tiny);
 			return *this;
 		}
