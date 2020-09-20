@@ -196,6 +196,6 @@ namespace PaintsNow {
 
 	typedef TBuffer<uint8_t> Bytes;
 
-#define StaticBytes(f) Bytes((const uint8_t*)#f, sizeof(#f))
+#define StaticBytes(f) Bytes((const uint8_t*)#f, sizeof(#f) - 1)
 }
 
