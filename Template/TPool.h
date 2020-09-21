@@ -71,7 +71,7 @@ namespace PaintsNow {
 
 	protected:
 		size_t maxCount;
-		std::atomic<uint32_t> critical;
+		std::atomic<size_t> critical;
 		std::vector<T> freeItems;
 	};
 }
