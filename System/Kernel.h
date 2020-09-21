@@ -62,7 +62,7 @@ namespace PaintsNow {
 
 	public:
 		// Do not touch it unless you know what you are doing.
-		class SubTaskQueue : protected TaskQueue {
+		class_aligned(64) SubTaskQueue : protected TaskQueue {
 		public:
 			SubTaskQueue(Kernel* kernel, uint32_t idCount);
 			SubTaskQueue(const SubTaskQueue& rhs);
