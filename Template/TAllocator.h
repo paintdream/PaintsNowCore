@@ -12,8 +12,83 @@
 #include <utility>
 
 namespace PaintsNow {
+	template <size_t N, size_t K>
+	class TRootAllocator {
+	public:
+		void* Allocate() {
+			static_assert(K < sizeof(size_t) * 8, "K is too large for root allocators.");
+
+			SpinLock(critical);
+			for (size_t i = 0; i < blocks.size(); i++) {
+				Block& block = blocks[i];
+				if (block.bitmap != ((size_t)1 << K) - 1) {
+					size_t bit = block.bitmap + 1;
+					bit = bit & (~bit + 1);
+					size_t index = Math::Log2(bit);
+					block.bitmap |= bit;
+
+					SpinUnLock(critical);
+					return block.address + index * N;
+				}
+			}
+
+			SpinUnLock(critical);
+			Block block;
+			block.address = reinterpret_cast<uint8_t*>(IMemory::AllocAligned(N * K, N));
+			block.bitmap = 1;
+
+			SpinLock(critical);
+			blocks.emplace_back(block);
+			SpinUnLock(critical);
+
+			return block.address;
+		}
+
+		void Deallocate(void* p) {
+			void* t = nullptr;
+
+			SpinLock(critical);
+			for (size_t i = 0; i < blocks.size(); i++) {
+				Block& block = blocks[i];
+				if (p >= block.address && p < block.address + N * K) {
+					size_t index = (reinterpret_cast<uint8_t*>(p) - block.address) / N;
+					assert(block.bitmap & ((size_t)1 << index));
+					block.bitmap &= ~((size_t)1 << index);
+
+					if (block.bitmap == 0) {
+						t = block.address;
+						blocks.erase(blocks.begin() + i);
+					}
+
+					break;
+				}
+			}
+
+			SpinUnLock(critical);
+
+			if (t != nullptr) {
+				IMemory::FreeAligned(t);
+			}
+		}
+
+		static TRootAllocator& Get() {
+			static TRootAllocator allocator;
+			return allocator;
+		}
+
+	protected:
+		struct Block {
+			uint8_t* address;
+			size_t bitmap;
+		};
+
+	protected:
+		std::atomic<size_t> critical;
+		std::vector<Block> blocks;
+	};
+
 	// K = element size, M = block size, R = max recycled block count, 0 for not limited
-	template <size_t K, size_t M = 8192, size_t R = 8>
+	template <size_t K, size_t M = 8192, size_t R = 8, size_t S = sizeof(size_t) * 8 - 1>
 	class TAllocator : public TReflected<TAllocator<K, M, R>, SharedTiny> {
 	public:
 		typedef TReflected<TAllocator<K, M, R>, SharedTiny> BaseClass;
@@ -46,13 +121,14 @@ namespace PaintsNow {
 
 		~TAllocator() override {
 			ControlBlock* p = (ControlBlock*)controlBlock.load(std::memory_order_acquire);
+			TRootAllocator<M, S>& allocator = TRootAllocator<M, S>::Get();
 			if (p != nullptr) {
-				IMemory::FreeAligned(p);
+				allocator.Deallocate(p);
 			}
 
 			for (size_t i = 0; i < recycled.size(); i++) {
 				if (recycled[i] != p) {
-					IMemory::FreeAligned(recycled[i]);
+					allocator.Deallocate(recycled[i]);
 				}
 			}
 		}
@@ -80,7 +156,7 @@ namespace PaintsNow {
 					}
 
 					if (p == nullptr) {
-						p = reinterpret_cast<ControlBlock*>(IMemory::AllocAligned(SIZE, SIZE));
+						p = reinterpret_cast<ControlBlock*>(TRootAllocator<M, S>::Get().Allocate());
 						memset(p, 0, sizeof(ControlBlock));
 						p->allocator = this;
 						p->refCount.store(1, std::memory_order_relaxed);
@@ -126,7 +202,7 @@ namespace PaintsNow {
 			assert(p->refCount.load(std::memory_order_acquire) != 0);
 			if (p->refCount.fetch_sub(1, std::memory_order_release) == 1) {
 				assert(controlBlock.load(std::memory_order_acquire) != p);
-				IMemory::FreeAligned(p);
+				TRootAllocator<M, S>::Get().Deallocate(p);
 			}
 		}
 
