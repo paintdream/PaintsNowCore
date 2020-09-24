@@ -24,11 +24,8 @@ bool ThreadPool::IsInitialized() const {
 
 void ThreadPool::Initialize() {
 	// Initialize thread pool states.
-	queuedTaskCount.store(0, std::memory_order_relaxed);
-	readCritical.store(0, std::memory_order_relaxed);
-	writeCritical.store(0, std::memory_order_relaxed);
+	taskHead.store(nullptr, std::memory_order_relaxed);
 	liveThreadCount.store(0, std::memory_order_relaxed);
-	activeThreadCount.store(0, std::memory_order_relaxed);
 	runningToken.store(1, std::memory_order_release);
 	waitEventCounter = 0;
 
@@ -39,7 +36,6 @@ void ThreadPool::Initialize() {
 	for (size_t i = 0; i < threadInfos.size(); i++) {
 		ThreadInfo& info = threadInfos[i];
 		info.threadHandle = threadApi.NewThread(Wrap(this, &ThreadPool::Run), i, true);
-		info.stockNode = new ThreadTaskQueue::Node();
 		info.context = nullptr;
 	}
 }
@@ -90,22 +86,15 @@ void ThreadPool::Uninitialize() {
 		}
 
 		// abort remaining tasks
-		ThreadTaskQueue::Node* deleted = nullptr;
-		while (!taskQueue.Empty()) {
-			ITask* task = taskQueue.Top();
-			deleted = taskQueue.QuickPop();
-			queuedTaskCount.fetch_sub(1, std::memory_order_release);
-			task->Abort(nullptr);
-
-			if (deleted != nullptr) {
-				delete deleted;
-			}
+		ITask* p = (ITask*)taskHead.exchange(nullptr, std::memory_order_acquire);
+		while (p != nullptr) {
+			p->Abort(nullptr);
+			p = p->next;
 		}
 
 		for (size_t k = 0; k < threadCount; k++) {
 			ThreadInfo& info = threadInfos[k];
 			threadApi.DeleteThread(info.threadHandle);
-			delete info.stockNode;
 		}
 
 		threadInfos.clear();
@@ -124,27 +113,14 @@ ThreadPool::~ThreadPool() {
 
 bool ThreadPool::Push(ITask* task) {
 	assert(task != nullptr);
-	if (runningToken.load(std::memory_order_acquire) != 0) {
-		uint32_t index = GetCurrentThreadIndex();
-		if (index != (uint32_t)~0) {
-			// Avoid memory allocation inside SpinLock
-			ThreadInfo& threadInfo = threadInfos[index];
-			SpinLock(writeCritical);
-			threadInfo.stockNode = taskQueue.QuickPush(task, threadInfo.stockNode);
-			SpinUnLock(writeCritical);
-			queuedTaskCount.fetch_add(1, std::memory_order_release);
+	std::atomic_thread_fence(std::memory_order_acquire);
+	if (task->next != nullptr) // already pushed
+		return true;
 
-			if (threadInfo.stockNode == nullptr) {
-				threadInfo.stockNode = new ThreadTaskQueue::Node();
-			}
-		} else {
-			SpinLock(writeCritical);
-			taskQueue.Push(task);
-			SpinUnLock(writeCritical);
-			queuedTaskCount.fetch_add(1, std::memory_order_release);
-		}
+	if (runningToken.load(std::memory_order_relaxed) != 0) {
+		task->next = (ITask*)taskHead.exchange(task, std::memory_order_relaxed);
 
-		if (waitEventCounter > threadCount / 4) {
+		if (waitEventCounter * 4 > threadCount) {
 			threadApi.Signal(eventPump, false);
 		}
 
@@ -157,29 +133,29 @@ bool ThreadPool::Push(ITask* task) {
 
 bool ThreadPool::PollRoutine(uint32_t index) {
 	for (uint32_t k = 0; k < MAX_YIELD_COUNT; k++) {
-		if (queuedTaskCount.load(std::memory_order_acquire) == 0) {
+		if (taskHead.load(std::memory_order_acquire) == 0) {
 			YieldThread();
 		} else {
 			break;
 		}
 	}
 
-	ITask* p = nullptr;
-	ThreadTaskQueue::Node* deleted = nullptr;
-	SpinLock(readCritical);
-	if (queuedTaskCount.load(std::memory_order_acquire) != 0) {
-		p = taskQueue.Top();
-		deleted = taskQueue.QuickPop();
-		queuedTaskCount.fetch_sub(1, std::memory_order_release);
-	}
-	SpinUnLock(readCritical);
-
-	if (deleted != nullptr) {
-		delete deleted;
-	}
-
+	ITask* p = (ITask*)taskHead.exchange(nullptr, std::memory_order_acquire);
 	if (p != nullptr) {
-		activeThreadCount.fetch_add(1, std::memory_order_acquire);
+		ITask* next = p->next;
+
+		if (next != nullptr) {
+			ITask* t = (ITask*)taskHead.exchange(next, std::memory_order_release);
+			while (t != nullptr) {
+				ITask* q = t;
+				t = t->next;
+				q->next = nullptr;
+
+				q->next = (ITask*)taskHead.exchange(q, std::memory_order_relaxed);
+			}
+		}
+
+		p->next = nullptr;
 
 		void* context = threadInfos[index].context;
 		// Exited?
@@ -188,8 +164,6 @@ bool ThreadPool::PollRoutine(uint32_t index) {
 		} else {
 			p->Execute(context);
 		}
-
-		activeThreadCount.fetch_sub(1, std::memory_order_release);
 
 		return true;
 	} else {
@@ -206,6 +180,7 @@ bool ThreadPool::Run(IThread::Thread* thread, size_t index) {
 		if (!PollRoutine(safe_cast<uint32_t>(index)) && runningToken.load(std::memory_order_acquire) != 0) {
 			threadApi.DoLock(mutex);
 			++waitEventCounter;
+			std::atomic_thread_fence(std::memory_order_release);
 			threadApi.Wait(eventPump, mutex, MAX_WAIT_MILLISECONDS);
 			--waitEventCounter;
 			threadApi.UnLock(mutex);

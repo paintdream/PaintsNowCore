@@ -2,6 +2,7 @@
 
 using namespace PaintsNow;
 
+ITask::ITask() : next(nullptr) {}
 ITask::~ITask() {}
 
 void TaskOnce::Suspend(void* context) {}

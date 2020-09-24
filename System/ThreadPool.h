@@ -38,15 +38,9 @@ namespace PaintsNow {
 		bool Run(IThread::Thread* thread, size_t threadID);
 
 	protected:
-		typedef TQueueList<ITask*> ThreadTaskQueue;
-		ThreadTaskQueue taskQueue;
-		std::atomic<int32_t> queuedTaskCount;
-		std::atomic<int32_t> readCritical;
-		std::atomic<int32_t> writeCritical;
-
+		std::atomic<ITask*> taskHead;
 		std::atomic<int32_t> liveThreadCount;
 		std::atomic<int32_t> runningToken;
-		std::atomic<int32_t> activeThreadCount;
 		uint32_t waitEventCounter;
 		uint32_t threadCount;
 		IThread::Event* eventPump;
@@ -54,7 +48,6 @@ namespace PaintsNow {
 		struct ThreadInfo {
 			IThread::Thread* threadHandle;
 			void* context;
-			ThreadTaskQueue::Node* stockNode;
 		};
 
 		std::vector<ThreadInfo> threadInfos;

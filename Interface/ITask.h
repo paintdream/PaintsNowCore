@@ -10,12 +10,15 @@
 namespace PaintsNow {
 	class ITask {
 	public:
+		ITask();
 		virtual ~ITask();
 		virtual void Execute(void* context) = 0;
 		virtual void Suspend(void* context) = 0;
 		virtual void Resume(void* context) = 0;
 		virtual void Abort(void* context) = 0;
 		virtual bool Continue() const = 0;
+
+		ITask* next;
 	};
 
 	class TaskOnce : public ITask {
