@@ -179,7 +179,6 @@ namespace PaintsNow {
 		}
 
 		virtual TEvent& operator -= (const W& t) {
-			// assert(callbacks.count(t) != 0);
 			std::binary_erase(callbacks, t);
 			return *this;
 		}

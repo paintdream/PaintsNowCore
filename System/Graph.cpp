@@ -2,6 +2,7 @@
 #include <iostream>
 using namespace PaintsNow;
 
+/*
 typedef GraphPort<Tiny> Port;
 class Entity : public TReflected<Entity, GraphNode<SharedTiny, Port> > {
 public:
@@ -68,4 +69,4 @@ int testex(void) {
 	g.IterateTopological(IterateNodeEx, Finish);
 
 	return 0;
-}
+}*/

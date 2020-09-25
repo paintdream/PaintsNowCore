@@ -13,8 +13,8 @@ namespace PaintsNow {
 	public:
 		TaskGraph(Kernel& kernel);
 		~TaskGraph() override;
-		uint32_t Insert(WarpTiny* host, ITask* task);
-		void Next(uint32_t from, uint32_t to);
+		size_t Insert(WarpTiny* host, ITask* task);
+		void Next(size_t from, size_t to);
 		void Commit(const TWrapper<void>& completion = TWrapper<void>());
 
 	protected:
@@ -29,7 +29,7 @@ namespace PaintsNow {
 			TaskGraph* taskGraph;
 			WarpTiny* host;
 			ITask* task;
-			uint32_t refCount;
+			size_t refCount;
 			std::vector<TaskNode*> nextNodes;
 		};
 
@@ -38,7 +38,7 @@ namespace PaintsNow {
 
 		Kernel& kernel;
 		std::vector<TaskNode> taskNodes;
-		std::atomic<uint32_t> completedCount;
+		std::atomic<size_t> completedCount;
 		TWrapper<void> completion;
 	};
 }

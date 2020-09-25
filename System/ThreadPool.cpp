@@ -118,7 +118,10 @@ bool ThreadPool::Push(ITask* task) {
 		return true;
 
 	if (runningToken.load(std::memory_order_relaxed) != 0) {
-		task->next = (ITask*)taskHead.exchange(task, std::memory_order_relaxed);
+		task->next = taskHead.load(std::memory_order_acquire);
+		while (!taskHead.compare_exchange_weak(task->next, task, std::memory_order_release)) {
+			YieldThreadFast();
+		}
 
 		if (waitEventCounter * 4 > threadCount) {
 			threadApi.Signal(eventPump, false);

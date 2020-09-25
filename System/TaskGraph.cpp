@@ -7,7 +7,7 @@ void TaskGraph::TaskNode::Execute(void* context) {
 
 	for (size_t i = 0; i < nextNodes.size(); i++) {
 		TaskNode* node = nextNodes[i];
-		std::atomic<uint32_t>& refCount = (std::atomic<uint32_t>&)node->refCount;
+		std::atomic<size_t>& refCount = (std::atomic<size_t>&)node->refCount;
 		if (refCount.fetch_sub(1, std::memory_order_relaxed) == 1) {
 			taskGraph->kernel.QueueRoutine(host, node);
 		}
@@ -29,7 +29,7 @@ void TaskGraph::TaskNode::Abort(void* context) {
 
 	for (size_t i = 0; i < nextNodes.size(); i++) {
 		TaskNode* node = nextNodes[i];
-		std::atomic<uint32_t>& refCount = (std::atomic<uint32_t>&)node->refCount;
+		std::atomic<size_t>& refCount = (std::atomic<size_t>&)node->refCount;
 		if (refCount.fetch_sub(1, std::memory_order_relaxed) == 1) {
 			node->task->Abort(context);
 		}
@@ -58,19 +58,19 @@ void TaskGraph::Complete() {
 	}
 }
 
-uint32_t TaskGraph::Insert(WarpTiny* host, ITask* task) {
+size_t TaskGraph::Insert(WarpTiny* host, ITask* task) {
 	TaskNode node;
 	node.taskGraph = this;
 	node.host = host;
 	node.task = task;
 	node.refCount = 0;
 
-	uint32_t id = safe_cast<uint32_t>(taskNodes.size());
+	size_t id = safe_cast<size_t>(taskNodes.size());
 	taskNodes.emplace_back(node);
 	return id;
 }
 
-void TaskGraph::Next(uint32_t from, uint32_t to) {
+void TaskGraph::Next(size_t from, size_t to) {
 	assert(from < taskNodes.size());
 	assert(to < taskNodes.size());
 
