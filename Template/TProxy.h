@@ -2098,7 +2098,7 @@ namespace PaintsNow {
 		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee, F ff, G gg, H hh, I ii, J jj, K kk, L ll, M mm, N nn, O oo) : func(fun), a(aa), b(bb), c(cc), d(dd), e(ee), f(ff), g(gg), h(hh), i(ii), j(jj), k(kk), l(ll), m(mm), n(nn), O(oo) {}
 		TBinder(const TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>& fun, A aa, B bb, C cc, D dd, E ee, F ff, G gg, H hh, I ii, J jj, K kk, L ll, M mm, N nn, O oo, P pp) : func(fun), a(aa), b(bb), c(cc), d(dd), e(ee), f(ff), g(gg), h(hh), i(ii), j(jj), k(kk), l(ll), m(mm), n(nn), O(oo), P(pp) {}
 
-		typename ReturnType<R>::type operator () () const {
+		typename ReturnType<R>::type operator () () {
 			switch (func.GetCount()) {
 			case 0:
 				return func();
@@ -2392,13 +2392,13 @@ namespace PaintsNow {
 		template <typename... Params>
 		explicit TBinder(TWrapper<R, Args...>&& f, Params&&... params) : func(std::forward<TWrapper<R, Args...>>(f)), args(std::forward<Params>(params)...) {}
 		
-		typename ReturnType<R>::type operator () () const {
+		typename ReturnType<R>::type operator () () {
 			return Apply(gen_seq<sizeof...(Args)>());
 		}
 	
 	protected:
 		template <size_t... I>
-		typename ReturnType<R>::type Apply(seq<I...>) const {
+		typename ReturnType<R>::type Apply(seq<I...>) {
 			return func(std::get<I>(args)...);
 		}
 	

@@ -15,8 +15,7 @@
 
 inline void YieldThread() {
 	if (!SwitchToThread()) {
-		for (int i = 0; i < 16; i++)
-		{
+		for (int i = 0; i < 16; i++) {
 			YieldProcessor();
 		}
 	}
