@@ -153,7 +153,7 @@ bool ThreadPool::PollRoutine(uint32_t index) {
 				ITask* q = t;
 				t = t->next;
 				q->next = taskHead.load(std::memory_order_acquire);
-				while (!(ITask*)taskHead.compare_exchange_weak(q->next, q, std::memory_order_relaxed)) {
+				while (!taskHead.compare_exchange_weak(q->next, q, std::memory_order_release)) {
 					YieldThreadFast();
 				}
 			}
