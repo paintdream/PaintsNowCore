@@ -89,7 +89,9 @@ void ThreadPool::Uninitialize() {
 		ITask* p = (ITask*)taskHead.exchange(nullptr, std::memory_order_acquire);
 		while (p != nullptr) {
 			p->Abort(nullptr);
+			ITask* q = p;
 			p = p->next;
+			q->next = (ITask*)(size_t)~0;
 		}
 
 		for (size_t k = 0; k < threadCount; k++) {
@@ -98,6 +100,7 @@ void ThreadPool::Uninitialize() {
 		}
 
 		threadInfos.clear();
+		std::atomic_thread_fence(std::memory_order_release);
 	}
 
 	UnLock();
@@ -113,18 +116,21 @@ ThreadPool::~ThreadPool() {
 
 bool ThreadPool::Push(ITask* task) {
 	assert(task != nullptr);
-	std::atomic_thread_fence(std::memory_order_acquire);
-	if (task->next != nullptr) // already pushed
+	std::atomic<ITask*>& next = *reinterpret_cast<std::atomic<ITask*>*>(&task->next);
+	if (next.load(std::memory_order_acquire) != (ITask*)(size_t)~0) // already pushed
 		return true;
 
 	if (runningToken.load(std::memory_order_relaxed) != 0) {
-		task->next = taskHead.load(std::memory_order_acquire);
-		while (!taskHead.compare_exchange_weak(task->next, task, std::memory_order_release)) {
-			YieldThreadFast();
-		}
+		ITask* expected = (ITask*)(size_t)~0;
+		if (next.compare_exchange_strong(expected, taskHead.load(std::memory_order_acquire), std::memory_order_acq_rel)) {
+			task->next = taskHead.load(std::memory_order_acquire);
+			while (!taskHead.compare_exchange_weak(task->next, task, std::memory_order_release)) {
+				YieldThreadFast();
+			}
 
-		if (waitEventCounter * 4 > threadCount) {
-			threadApi.Signal(eventPump, false);
+			if (waitEventCounter * 4 > threadCount) {
+				threadApi.Signal(eventPump, false);
+			}
 		}
 
 		return true;
@@ -146,6 +152,8 @@ bool ThreadPool::PollRoutine(uint32_t index) {
 	ITask* p = (ITask*)taskHead.exchange(nullptr, std::memory_order_acquire);
 	if (p != nullptr) {
 		ITask* next = p->next;
+		assert(next != (ITask*)(size_t)~0);
+		p->next = (ITask*)(size_t)~0;
 
 		if (next != nullptr) {
 			ITask* t = (ITask*)taskHead.exchange(next, std::memory_order_release);
@@ -159,8 +167,7 @@ bool ThreadPool::PollRoutine(uint32_t index) {
 			}
 		}
 
-		p->next = nullptr;
-
+		std::atomic_thread_fence(std::memory_order_release);
 		void* context = threadInfos[index].context;
 		// Exited?
 		if (runningToken.load(std::memory_order_relaxed) == 0) {
