@@ -470,17 +470,9 @@ inline void Write(lua_State* L, int& tableLevel, int& idx, String& key, F f, con
 			f(L, value);
 			lua_rawseti(L, -3, index);
 		} else {
-			lua_pushvalue(L, lua_upvalueindex(0));
-			bool isGlobal = lua_compare(L, -1, -3, LUA_OPEQ);
-			lua_pop(L, 1);
-			if (isGlobal) {
-				f(L, value);
-				lua_setglobal(L, key.c_str());
-			} else {
-				lua_pushstring(L, key.c_str());
-				f(L, value);
-				lua_rawset(L, -4);
-			}
+			lua_pushstring(L, key.c_str());
+			f(L, value);
+			lua_rawset(L, -4);
 			key = "";
 		}
 	} else {
@@ -519,8 +511,7 @@ IScript::Request& ZScriptLua::Request::operator >> (Arguments& args) {
 
 IScript::Request& ZScriptLua::Request::operator << (const IScript::Request::Global&) {
 	assert(GetScript()->GetLockCount() == 1);
-	//	lua_pushvalue(L, lua_upvalueindex(0));
-	lua_pushvalue(L, lua_upvalueindex(0));
+	lua_pushglobaltable(L);
 	// now the top of stack is object table
 	// push index
 	lua_pushlightuserdata(L, (void*)0);
@@ -652,17 +643,8 @@ IScript::Request& ZScriptLua::Request::operator >> (IScript::Request::TableStart
 			int index = IncreaseTableIndex(L);
 			lua_rawgeti(L, -2, index);
 		} else {
-			lua_pushvalue(L, lua_upvalueindex(0));
-			bool isGlobal = lua_compare(L, -1, -3, LUA_OPEQ);
-			lua_pop(L, 1);
-
-			if (isGlobal) {
-				lua_getglobal(L, key.c_str());
-			} else {
-				lua_pushstring(L, key.c_str());
-				lua_rawget(L, -3);
-			}
-
+			lua_pushstring(L, key.c_str());
+			lua_rawget(L, -3);
 			key = "";
 		}
 	}
@@ -706,19 +688,10 @@ IScript::Request& ZScriptLua::Request::operator << (const IScript::Request::Tabl
 			lua_pushvalue(L, -1);
 			lua_rawseti(L, -4, index);
 		} else {
-			lua_pushvalue(L, lua_upvalueindex(0));
-			bool isGlobal = lua_compare(L, -1, -3, LUA_OPEQ);
-			lua_pop(L, 1);
-
 			lua_newtable(L);
-			if (isGlobal) {
-				lua_pushvalue(L, -1);
-				lua_setglobal(L, key.c_str());
-			} else {
-				lua_pushstring(L, key.c_str());
-				lua_pushvalue(L, -2);
-				lua_rawset(L, -5);
-			}
+			lua_pushstring(L, key.c_str());
+			lua_pushvalue(L, -2);
+			lua_rawset(L, -5);
 			key = "";
 		}
 	} else {
@@ -956,16 +929,8 @@ IScript::Request& ZScriptLua::Request::operator >> (const IScript::Request::Key&
 	int type;
 	if (tableLevel != 0) {
 		// try to read the value
-		lua_pushvalue(L, lua_upvalueindex(0));
-		bool isGlobal = lua_compare(L, -1, -3, LUA_OPEQ);
-		lua_pop(L, 1);
-
-		if (isGlobal) {
-			lua_getglobal(L, k.name.c_str());
-		} else {
-			lua_pushstring(L, k.name.c_str());
-			lua_rawget(L, -3);
-		}
+		lua_pushstring(L, k.name.c_str());
+		lua_rawget(L, -3);
 
 		type = lua_typex(L, -1);
 		lua_pop(L, 1);
