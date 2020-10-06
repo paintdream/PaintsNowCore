@@ -203,11 +203,12 @@ bool ZScriptLua::IsHosting() const {
 void ZScriptLua::Clear() {
 	// Wait for all active routines finished.
 	DoLock();
-	closing.store(1, std::memory_order_seq_cst);
+	closing.store(1, std::memory_order_release);
 
 	if (callCounter != 0) {
 		IThread::Event* e = threadApi.NewEvent();
 		runningEvent = e;
+		std::atomic_thread_fence(std::memory_order_release);
 		threadApi.Wait(runningEvent, mutex);
 		assert(runningEvent == nullptr);
 		threadApi.DeleteEvent(e);
@@ -324,9 +325,12 @@ bool ZScriptLua::BeforeCall() {
 
 void ZScriptLua::AfterCall() {
 	assert(GetLockCount() == 1);
-	if (--callCounter == 0 && runningEvent != nullptr) {
-		threadApi.Signal(runningEvent, false);
-		runningEvent = nullptr;
+	if (--callCounter == 0) {
+		std::atomic_thread_fence(std::memory_order_acquire);
+		if (runningEvent != nullptr) {
+			threadApi.Signal(runningEvent, false);
+			runningEvent = nullptr;
+		}
 	}
 }
 
