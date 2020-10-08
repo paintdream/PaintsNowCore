@@ -6,6 +6,7 @@ using namespace PaintsNow;
 
 Tape::Tape(IStreamBase& s) : stream(s), location(0), maxLocation(0), lastOffset(0) {}
 
+// get full length at given location
 inline int Tape::FullLength(int64_t location, int64_t& length) {
 	for (int c = 0, d; c < 32; c++) {
 		if (c >= (d = (int)Math::SiteCount(location >> PACKAGE_MIN_ALIGN_LEVEL, (int64_t)((location + length + c * sizeof(PacketHeader) + PACKAGE_MIN_ALIGN - 1) >> PACKAGE_MIN_ALIGN_LEVEL)))) {
@@ -31,6 +32,7 @@ bool Tape::WritePacket(int64_t seq, IStreamBase& source, int64_t length) {
 	int64_t mid = Math::AlignmentRange(location, alignedEnd);
 	int64_t remaining = alignedEnd;
 
+	// splitted into several segments
  	while (length > 0) {
 		int64_t alignment = safe_cast<int64_t>(location < mid ? Math::Alignment(location | mid) : Math::AlignmentTop(remaining - mid));
 		if (location >= mid) remaining -= alignment;
@@ -92,6 +94,7 @@ bool Tape::ReadPacket(int64_t& seq, IStreamBase& target, int64_t& totalLength) {
 	int64_t mid = 0;
 	int64_t remaining = 0;
 
+	// read segments
 	do {
 		size_t rl = sizeof(PacketHeader);
 		if (!stream.Read(&header, rl)) {
@@ -130,6 +133,7 @@ bool Tape::ReadPacket(int64_t& seq, IStreamBase& target, int64_t& totalLength) {
 			return false;
 		}
 
+		// commit bytes
 		totalLength += size;
 		length -= size + sizeof(PacketHeader) + extra;
 		location += alignment;

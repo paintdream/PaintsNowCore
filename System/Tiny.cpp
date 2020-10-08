@@ -4,20 +4,13 @@ using namespace PaintsNow;
 
 TObject<IReflect>& Tiny::operator () (IReflect& reflect) {
 	BaseClass::operator () (reflect);
+
 	if (reflect.IsReflectProperty()) {
 		// static_assert(sizeof(flag) == sizeof(uint32_t), "Unsupported compiler.");
 		ReflectProperty(flag)[Runtime];
 	}
 
 	return *this;
-}
-
-std::atomic<Tiny::FLAG>& Tiny::Flag() {
-	return flag;
-}
-
-Tiny::FLAG Tiny::Flag() const {
-	return flag.load();
 }
 
 Tiny::Tiny(FLAG fl) : flag(fl) {}

@@ -35,6 +35,7 @@ namespace PaintsNow {
 		}
 	};
 
+	// KdTree with custom spatial structure
 	template <class K, class Base = Void, class P = TOverlap<K>, size_t KEY_BITS = 3>
 	class TKdTree : public Base {
 	public:

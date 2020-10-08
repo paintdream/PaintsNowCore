@@ -74,6 +74,7 @@ void ThreadPool::Uninitialize() {
 
 	if (threadCount != 0) {
 		uint32_t yieldCount = 0;
+		// wait for live thread exit
 		while (liveThreadCount.load(std::memory_order_acquire) != 0) {
 			if (yieldCount++ < MAX_YIELD_COUNT) {
 				YieldThread();
@@ -122,7 +123,10 @@ bool ThreadPool::Push(ITask* task) {
 
 	if (runningToken.load(std::memory_order_relaxed) != 0) {
 		ITask* expected = (ITask*)(size_t)~0;
+		
+		// guard for repush the same task
 		if (next.compare_exchange_strong(expected, taskHead.load(std::memory_order_acquire), std::memory_order_acq_rel)) {
+			// Chain task
 			task->next = taskHead.load(std::memory_order_acquire);
 			while (!taskHead.compare_exchange_weak(task->next, task, std::memory_order_release)) {
 				YieldThreadFast();
@@ -141,6 +145,7 @@ bool ThreadPool::Push(ITask* task) {
 }
 
 bool ThreadPool::PollRoutine(uint32_t index) {
+	// Wait for a moment
 	for (uint32_t k = 0; k < MAX_YIELD_COUNT; k++) {
 		if (taskHead.load(std::memory_order_acquire) == 0) {
 			YieldThread();
@@ -150,6 +155,7 @@ bool ThreadPool::PollRoutine(uint32_t index) {
 	}
 
 	ITask* p = (ITask*)taskHead.exchange(nullptr, std::memory_order_acquire);
+	// Has task?
 	if (p != nullptr) {
 		ITask* next = p->next;
 		assert(next != (ITask*)(size_t)~0);
@@ -157,6 +163,8 @@ bool ThreadPool::PollRoutine(uint32_t index) {
 
 		if (next != nullptr) {
 			ITask* t = (ITask*)taskHead.exchange(next, std::memory_order_release);
+			// Someone has pushed some new tasks at the same time.
+			// So rechain remaining tasks proceeding to the current one to new task head atomically.
 			while (t != nullptr) {
 				ITask* q = t;
 				t = t->next;
@@ -168,7 +176,10 @@ bool ThreadPool::PollRoutine(uint32_t index) {
 		}
 
 		std::atomic_thread_fence(std::memory_order_release);
+
+		// OK. now we can execute the task
 		void* context = threadInfos[index].context;
+
 		// Exited?
 		if (runningToken.load(std::memory_order_relaxed) == 0) {
 			p->Abort(context);

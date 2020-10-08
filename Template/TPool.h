@@ -8,6 +8,7 @@
 #include <stack>
 
 namespace PaintsNow {
+	// Simple object pool
 	template <class D, class T>
 	class TPool {
 	public:

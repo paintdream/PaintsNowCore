@@ -9,6 +9,7 @@
 #include <string>
 
 namespace PaintsNow {
+	// Memory buffer with some internal storage.
 	template <class T, size_t N = (sizeof(T*) * 4 - sizeof(size_t)) / sizeof(T)>
 	class TBuffer {
 	public:

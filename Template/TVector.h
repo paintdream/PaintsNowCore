@@ -12,15 +12,19 @@
 #include <algorithm>
 
 namespace PaintsNow {
+	// Fixed-size vector
 	template <class T, size_t n>
 	class TVector {
 	public:
 		typedef T type;
+
+		// Construct from half pair
 		TVector(const std::pair<TVector<T, n / 2>, TVector<T, n / 2> >& p) {
 			memcpy(data, &p.first.data[0], n * sizeof(T) / 2);
 			memcpy(data + n / 2, &p.second.data[0], n * sizeof(T) / 2);
 		}
 
+		// Construct from element array
 		TVector(T* v = nullptr) {
 			if (v != nullptr) {
 				std::copy(v, v + n, data);
@@ -78,7 +82,7 @@ namespace PaintsNow {
 		inline TVector<T, n> operator - () const {
 			TVector<T, n> ret;
 			for (size_t i = 0; i < n; i++) {
-				ret[i] = - data[i];
+				ret[i] = -data[i];
 			}
 
 			return ret;

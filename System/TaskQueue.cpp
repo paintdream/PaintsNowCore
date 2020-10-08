@@ -20,6 +20,7 @@ const std::vector<TaskQueue::RingBuffer>& TaskQueue::GetRingBuffers() const {
 }
 
 void TaskQueue::OnOperation(void (ITask::*operation)(void*), void* context) {
+	// iterate all ring buffers and do corresponding operations
 	for (size_t i = 0; i < ringBuffers.size(); i++) {
 		RingBuffer& ringBuffer = ringBuffers[i];
 		while (!ringBuffer.Empty()) {

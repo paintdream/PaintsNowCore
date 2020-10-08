@@ -12,12 +12,14 @@
 #include <utility>
 
 namespace PaintsNow {
+	// Global allocator that allocates memory blocks to local allocators.
 	template <size_t N, size_t K>
 	class TRootAllocator {
 	public:
 		void* Allocate() {
 			static_assert(K < sizeof(size_t) * 8, "K is too large for root allocators.");
 
+			// do fast operations in critical section
 			SpinLock(critical);
 			for (size_t i = 0; i < blocks.size(); i++) {
 				Block& block = blocks[i];
@@ -33,10 +35,13 @@ namespace PaintsNow {
 			}
 
 			SpinUnLock(critical);
+
+			// real allocation, release the critical.
 			Block block;
 			block.address = reinterpret_cast<uint8_t*>(IMemory::AllocAligned(N * K, N));
 			block.bitmap = 1;
 
+			// write result back
 			SpinLock(critical);
 			blocks.emplace_back(block);
 			SpinUnLock(critical);
@@ -48,6 +53,8 @@ namespace PaintsNow {
 			void* t = nullptr;
 
 			SpinLock(critical);
+
+			// loop to find required one.
 			for (size_t i = 0; i < blocks.size(); i++) {
 				Block& block = blocks[i];
 				if (p >= block.address && p < block.address + N * K) {
@@ -67,10 +74,12 @@ namespace PaintsNow {
 			SpinUnLock(critical);
 
 			if (t != nullptr) {
+				// do free
 				IMemory::FreeAligned(t);
 			}
 		}
 
+		// We are not dll-friendly, as always.
 		static TRootAllocator& Get() {
 			static TRootAllocator allocator;
 			return allocator;
@@ -87,6 +96,7 @@ namespace PaintsNow {
 		std::vector<Block> blocks;
 	};
 
+	// Local allocator, allocate memory with specified alignment requirements.
 	// K = element size, M = block size, R = max recycled block count, 0 for not limited
 	template <size_t K, size_t M = 8192, size_t R = 8, size_t S = sizeof(size_t) * 8 - 1>
 	class TAllocator : public TReflected<TAllocator<K, M, R>, SharedTiny> {
@@ -121,6 +131,8 @@ namespace PaintsNow {
 
 		~TAllocator() override {
 			ControlBlock* p = (ControlBlock*)controlBlock.load(std::memory_order_acquire);
+
+			// deallocate all caches
 			TRootAllocator<M, S>& allocator = TRootAllocator<M, S>::Get();
 			if (p != nullptr) {
 				allocator.Deallocate(p);
@@ -138,6 +150,7 @@ namespace PaintsNow {
 				ControlBlock* p = (ControlBlock*)controlBlock.exchange(nullptr, std::memory_order_acquire);
 
 				if (p == nullptr) {
+					// need a new block
 					if (critical.load(std::memory_order_acquire) == 2u) {
 						SpinLock(critical);
 						if (!recycled.empty()) {
@@ -159,21 +172,24 @@ namespace PaintsNow {
 						p = reinterpret_cast<ControlBlock*>(TRootAllocator<M, S>::Get().Allocate());
 						memset(p, 0, sizeof(ControlBlock));
 						p->allocator = this;
-						p->refCount.store(1, std::memory_order_relaxed);
+						p->refCount.store(1, std::memory_order_relaxed); // newly allocated one, just set it to 1
 					}
 				}
 
+				// search for an empty slot
 				for (size_t k = 0; k < BITMAPSIZE; k++) {
 					std::atomic<size_t>& s = p->bitmap[k];
 					size_t mask = s.load(std::memory_order_acquire);
 					if (mask != ~(size_t)0) {
 						size_t bit = Math::Alignment(mask + 1);
 						if (!(s.fetch_or(bit, std::memory_order_relaxed) & bit)) {
+							// get index of bitmap
 							size_t index = Math::Log2(bit) + OFFSET + k * 8 * sizeof(size_t);
 							if (index < N) {
 								p->refCount.fetch_add(1, std::memory_order_relaxed);
 
 								BaseClass::ReferenceObject();
+								// add to recycle system if needed
 								Recycle(p);
 
 								return reinterpret_cast<char*>(p) + index * K;
@@ -211,12 +227,15 @@ namespace PaintsNow {
 
 			ControlBlock* expected = nullptr;
 			if (!controlBlock.compare_exchange_strong(expected, p, std::memory_order_relaxed)) {
+				// search for recycled
 				if (recycleCount.load(std::memory_order_acquire) < R && p->recycled.load(std::memory_order_acquire) == 0) {
 					SpinLock(critical);
 					if (p->recycled.exchange(1, std::memory_order_acquire) == 0) {
 						std::binary_insert(recycled, p);
 						recycleCount.fetch_add(1, std::memory_order_relaxed);
 						SpinUnLock(critical, (size_t)2u);
+
+						// recycled succeed
 						return;
 					}
 					SpinUnLock(critical, (size_t)(recycled.empty() ? 0u : 2u));
@@ -241,6 +260,7 @@ namespace PaintsNow {
 		std::vector<ControlBlock*> recycled;
 	};
 
+	// Allocate for objects
 	template <class T, size_t M = 8192, size_t Align = 64, size_t R = 8>
 	class TObjectAllocator : protected TAllocator<(sizeof(T) + Align - 1) & ~(Align - 1), M, R> {
 	public:

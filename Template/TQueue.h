@@ -1,5 +1,5 @@
 // TQueue.h
-// One to one queue
+// One to one queue, kfifo.
 // PaintDream (paintdream@paintdream.com)
 //
 

@@ -131,6 +131,7 @@ namespace PaintsNow {
 }
 
 namespace std {
+	// Binary find / insert / remove extension of std::vector<> like containers.
 	template <class K, class V>
 	struct key_value : public pair<K, V> {
 		typedef pair<K, V> base;

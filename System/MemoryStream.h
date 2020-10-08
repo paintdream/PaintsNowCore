@@ -8,6 +8,7 @@
 #include "../../Core/Interface/IStreamBase.h"
 
 namespace PaintsNow {
+	// A resizable aligned memory block stream.
 	class MemoryStream : public IStreamBase {
 	public:
 		MemoryStream(size_t maxSize, uint32_t alignment = 8);

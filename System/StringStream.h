@@ -8,6 +8,7 @@
 #include "../../Core/Interface/IStreamBase.h"
 
 namespace PaintsNow {
+	// A on-fly string-stream adapter, decorates a string like a stream.
 	class StringStream : public IStreamBase {
 	public:
 		StringStream(String& str, int64_t pos = 0);

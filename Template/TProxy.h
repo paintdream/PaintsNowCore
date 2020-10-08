@@ -18,9 +18,9 @@ namespace PaintsNow {
 	struct TypeParam {};
 
 	class IHost; // Just a type monitor, no defination.
-	// Any pointer to member function of a multi-Interfaced class will takes 2 * sizeof(void*) size.
-	// However, when it comes to single-Interfaced class or native class, MSVC compiler need only half storage of it.
-	// So we must create Void in forced multi-Interfaced way to prevent possible memory corruption in TWrapper<> layout.
+	// Any pointer to member function of a multi-derived class takes 2 * sizeof(void*) size.
+	// However, when it comes to single-derived class or native class, MSVC compiler requires only half storage of it.
+	// So we must create Void in forced multi-Interfaced way to prevent possible memory corruptions in TWrapper<>'s memory layout.
 
 	template <class T>
 	struct ReturnType {
@@ -1795,12 +1795,14 @@ namespace PaintsNow {
 		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>(d);
 	}
 #else
+	// Base class of proxies
 	template <typename R = Void, typename... Args>
 	class TProxy {
 	public:
 		static inline size_t GetCount() { return sizeof...(Args); }
 	};
 
+	// Dispatch calls to generic wrapper, with non-void returning value
 	template <class T, class M, class Z, class... Args>
 	struct Dispatch {
 		Dispatch(const M& t) : p(t) {}
@@ -1812,6 +1814,7 @@ namespace PaintsNow {
 		const M& p;
 	};
 
+	// Also with void returning value
 	template <class T, class M, class... Args>
 	struct Dispatch<T, M, void, Args...> {
 		Dispatch(const M& t) : p(t) {}
@@ -1824,12 +1827,15 @@ namespace PaintsNow {
 		const M& p;
 	};
 
+	// Wraps member functions (methods), strictly memory overridden of TWrapper<>
 	template <bool manageHost, typename T, typename R = Void, typename... Args>
 	class TMethod : public TProxy<R, Args...> {
 	public:
 		typedef R(T::*FUNC)(Args...);
 		struct Table {
+			// call function
 			typename ReturnType<R>::type(*invoker)(const TMethod*, Args&&... args);
+			// duplicate TWrapper
 			void(*duplicator)(TMethod& output, const TMethod& input);
 			void(*destructor)(TMethod& input);
 		};
@@ -1857,6 +1863,7 @@ namespace PaintsNow {
 			tablePointer->destructor(*this);
 		}
 
+		// Copy with none-hosted
 		template <bool host>
 		static typename std::enable_if<!host>::type CopyImpl(TMethod& output, const TMethod& input) {
 			output.~TMethod();
@@ -1865,6 +1872,7 @@ namespace PaintsNow {
 			output.p = input.p;
 		}
 
+		// Copy with hosted
 		template <bool host>
 		static typename std::enable_if<host>::type CopyImpl(TMethod& output, const TMethod& input) {
 			output.~TMethod();
@@ -1873,15 +1881,20 @@ namespace PaintsNow {
 			output.p = input.p;
 		}
 
+		// Generic copy
 		static void Copy(TMethod& output, const TMethod& input) {
 			CopyImpl<manageHost>(output, input);
 		}
 
+		// Destroy with non-hosted
 		template <bool host>
 		static typename std::enable_if<!host>::type DestroyImpl(TMethod& input) {}
+
+		// Destroy with hosted
 		template <bool host>
 		static typename std::enable_if<host>::type DestroyImpl(TMethod& input) {
 			if (input.host != nullptr) {
+				// holding the host instance?
 				delete reinterpret_cast<T*>(input.host);
 			}
 		}
@@ -1890,11 +1903,12 @@ namespace PaintsNow {
 			DestroyImpl<manageHost>(input);
 		}
 
+		// Dispatch call, regardless of return type (void or non-void)
 		static typename ReturnType<R>::type Invoke(const TMethod* m, Args&&... args) {
 			return Dispatch<T, TMethod<manageHost, T, R, Args...>, R, Args...>(*m).Invoke(std::forward<Args>(args)...);
 		}
 
-		// virtual size_t GetLength() const { return sizeof(*this); }
+		// Dynamic call with invoker
 		typename ReturnType<R>::type operator () (Args&&... args) const {
 			return tablePointer->invoker(this, std::forward<Args>(args)...);
 		}
@@ -1918,6 +1932,7 @@ namespace PaintsNow {
 		FUNC p;
 	};
 
+	// Wraps C-functions, strictly memory overridden of TWrapper<>
 	template <typename R = Void, typename... Args>
 	class TFunction : public TProxy<R, Args...> {
 	public:
@@ -1933,6 +1948,7 @@ namespace PaintsNow {
 			output.host = input.host;
 			output.p = input.p;
 		}
+
 		static void Destroy(TFunction& input) {}
 
 		TFunction(FUNC func = nullptr) : tablePointer(nullptr), host(nullptr), p(func) {
@@ -1944,6 +1960,7 @@ namespace PaintsNow {
 			static Table tab = { Invoke, Copy, Destroy };
 			tablePointer = &tab;
 		}
+
 #ifdef _MSC_VER
 		template <>
 #endif
@@ -1966,6 +1983,7 @@ namespace PaintsNow {
 		FUNC p;
 	};
 
+	// Generic Wrapper structure, accepts both TMethod and TFunction
 	template <typename R, typename... Args>
 	class TWrapper {
 	public:
@@ -2069,7 +2087,7 @@ namespace PaintsNow {
 		return TWrapper<R, Args...>(TMethod<true, T, R, Args...>(new T(*t), (org)d));
 	}
 
-	// be aware of object's life-scope !!!
+	// Wraps lambdas. Be aware of object's life-scope !!!
 	template <typename T>
 	auto WrapClosure(const T& object) -> decltype(WrapClosure(&object, &T::operator())) {
 		return WrapClosure(&object, &T::operator());
@@ -2384,6 +2402,8 @@ namespace PaintsNow {
 		return WrapClosure(&binder, &TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>::operator ());
 	}
 #else
+
+	// Wraps arguments passed into TWrapper<> call. Just as std::bind.
 	template <typename R, typename... Args>
 	class TBinder {
 	public:
@@ -2415,5 +2435,6 @@ namespace PaintsNow {
 	static TWrapper<T*> WrapFactory(TypeParam<T>, Params&&... params) {
 		return WrapClosure(TBinder<T*, Params...>(Wrap(&_New<T, Params...>), std::forward<Params>(params)...));
 	}
-	#endif
+
+#endif
 }

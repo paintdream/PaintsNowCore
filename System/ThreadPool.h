@@ -8,7 +8,6 @@
 #include "../Interface/ITask.h"
 #include "../Template/TProxy.h"
 #include "../Template/TAtomic.h"
-#include "../Template/TQueue.h"
 #include <vector>
 
 namespace PaintsNow {
@@ -19,6 +18,8 @@ namespace PaintsNow {
 
 	public:
 		~ThreadPool() override;
+
+		// Push a task. Notice that a task will be ignored if it has been pushed before and not be executed yet.
 		bool Push(ITask* task);
 		uint32_t GetThreadCount() const;
 		uint32_t GetCurrentThreadIndex() const;
@@ -26,6 +27,8 @@ namespace PaintsNow {
 		// Custom thread context
 		void SetThreadContext(uint32_t index, void* context);
 		void* GetThreadContext(uint32_t index) const;
+
+		// Pool specified thread task on current thread. (can be run with non-pooled thread)
 		bool PollRoutine(uint32_t index);
 
 		IThread& GetThreadApi();

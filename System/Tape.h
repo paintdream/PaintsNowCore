@@ -5,11 +5,11 @@
 
 #pragma once 
 
-
 #include "../../Core/Interface/IStreamBase.h"
 #include "../../Core/Interface/IType.h"
 
 namespace PaintsNow {
+	// A timestamp/sequence-id tagged data recorder
 	class Tape {
 	private:
 		struct PacketHeader {

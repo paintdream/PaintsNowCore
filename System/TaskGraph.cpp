@@ -5,9 +5,12 @@ using namespace PaintsNow;
 void TaskGraph::TaskNode::Execute(void* context) {
 	task->Execute(context);
 
+	// release the proceedings
 	for (size_t i = 0; i < nextNodes.size(); i++) {
 		TaskNode* node = nextNodes[i];
 		std::atomic<size_t>& refCount = (std::atomic<size_t>&)node->refCount;
+
+		// can be executed?
 		if (refCount.fetch_sub(1, std::memory_order_relaxed) == 1) {
 			taskGraph->kernel.QueueRoutine(host, node);
 		}
@@ -49,6 +52,7 @@ TaskGraph::TaskGraph(Kernel& k) : kernel(k) {
 TaskGraph::~TaskGraph() {}
 
 void TaskGraph::Complete() {
+	// all tasks finished
 	if (completedCount.fetch_add(1, std::memory_order_relaxed) + 1 == taskNodes.size()) {
 		if (completion) {
 			completion();
@@ -79,13 +83,22 @@ void TaskGraph::Next(size_t from, size_t to) {
 	nextTask->refCount++;
 }
 
-void TaskGraph::Commit(const TWrapper<void>& w) {
+bool TaskGraph::Commit(const TWrapper<void>& w) {
 	completion = w;
 
+	bool committed = false;
 	for (size_t i = 0; i < taskNodes.size(); i++) {
 		TaskNode& node = taskNodes[i];
 		if (node.refCount == 0) {
 			kernel.QueueRoutine(node.host, &node);
+			committed = true;
 		}
 	}
+
+	// check cycle and empty tasks
+	if (committed) {
+		ReferenceObject();
+	}
+
+	return committed;
 }

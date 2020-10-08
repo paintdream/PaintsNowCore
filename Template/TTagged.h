@@ -7,6 +7,8 @@
 #include "../Interface/IType.h"
 
 namespace PaintsNow {
+	// Tagged pointer class. The pointer must be N bit aligned.
+	// T must be a pointer type.
 	template <class T, size_t N>
 	class TTagged {
 	public:
