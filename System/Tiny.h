@@ -36,7 +36,7 @@ namespace PaintsNow {
 
 	class SharedTiny : public TReflected<SharedTiny, Tiny> {
 	public:
-		// For faster initialization, we do not counting the reference on creating Tiny
+		// For faster initialization, we do not count the reference on creating Tiny
 		SharedTiny(FLAG f = 0) : BaseClass(f), extReferCount(0) {}
 #ifdef _DEBUG
 		static void DebugAttach(SharedTiny* host, SharedTiny* tiny);
@@ -56,12 +56,12 @@ namespace PaintsNow {
 			if (extReferCount.load(std::memory_order_relaxed) == 0) {
 				Tiny::ReleaseObject();
 			} else {
-				extReferCount.fetch_sub(1, std::memory_order_release);
+				extReferCount.fetch_sub(1, std::memory_order_relaxed);
 			}
 		}
 
 		virtual void ReferenceObject() {
-			extReferCount.fetch_add(1, std::memory_order_acq_rel);
+			extReferCount.fetch_add(1, std::memory_order_relaxed);
 		}
 
 		uint32_t GetExtReferCount() const {
