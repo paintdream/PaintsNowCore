@@ -67,7 +67,7 @@ namespace PaintsNow {
 			extReferCount.fetch_add(1, std::memory_order_relaxed);
 		}
 
-		// Get external refer count, the result is not consistant.
+		// Get external refer count, the result is not reliable.
 		uint32_t GetExtReferCount() const {
 			return extReferCount.load(std::memory_order_relaxed);
 		}

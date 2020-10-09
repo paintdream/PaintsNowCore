@@ -40,12 +40,13 @@ namespace PaintsNow {
 	struct UniqueInfo {
 		UniqueInfo() : size(0), allocator(nullptr) {}
 		size_t GetSize() const { return size; }
-		const String& GetName() const { return typeName; }
-		IReflectObject* Create() const { return creator(); }
-		bool IsCreatable() const { return creator; }
-		String GetBriefName() const;
-		UniqueAllocator* GetAllocator() const { return allocator; }
+		const String& GetName() const { return typeName; } // Get full name (demangled)
+		IReflectObject* Create() const { return creator(); } // Create instance, notice that not all uniques support this action
+		bool IsCreatable() const { return creator; } // Check if it supports creation
+		String GetBriefName() const; // Get brief name, without namespace specifier
+		UniqueAllocator* GetAllocator() const { return allocator; } // Get the allocator of this type, note that not all uniques share the same allocator.
 
+		// Check if it is derived from unique specified by `info`
 		bool IsClass(UniqueInfo* info) const {
 			return std::binary_find(interfaces.begin(), interfaces.end(), info) != interfaces.end();
 		}
@@ -59,14 +60,19 @@ namespace PaintsNow {
 
 	public:
 		TWrapper<IReflectObject*> creator;
-		std::vector<std::key_value<UniqueInfo*, size_t> > interfaces; // Derivations
+		std::vector<std::key_value<UniqueInfo*, size_t> > interfaces; // Derivations, managed with flatmap
 	};
 
+	// Allocator that allocates uniques.
 	class UniqueAllocator {
 	public:
 		UniqueAllocator();
 		~UniqueAllocator();
+
+		// Return the global allocator.
 		static UniqueAllocator& GetInstance();
+
+		// Create unique structure
 		UniqueInfo* Create(const String& name, size_t size = 0);
 
 	protected:
@@ -79,6 +85,7 @@ namespace PaintsNow {
 	struct Unique {
 		Unique(UniqueInfo* f = nullptr) : info(f) {}
 		Unique(const String& name) : info(UniqueAllocator::GetInstance().Create(name)) {}
+
 		bool operator == (const Unique& unique) const { return info == unique.info; }
 		bool operator != (const Unique& unique) const { return info != unique.info; }
 		bool operator < (const Unique& unique) const { return info < unique.info; }
@@ -92,6 +99,7 @@ namespace PaintsNow {
 		UniqueInfo* info;
 	};
 
+	// Generic UniqueType<> for template induction
 	template <class T>
 	struct UniqueType : public TypeParam<T> {
 		static String Demangle(const char* name) {
@@ -150,9 +158,9 @@ namespace PaintsNow {
 		virtual const TObject<IReflect>& operator () (IReflect& reflect) const; // Just forward to non-const one 
 		virtual bool IsBasicObject() const; // returns true, any sub-classes should return false;
 		virtual bool IsIterator() const; // only for IIterators
-		virtual Unique GetUnique() const;
-		virtual IReflectObject* Clone() const;
-		virtual String ToString() const;
+		virtual Unique GetUnique() const; // get unique of this object
+		virtual IReflectObject* Clone() const; // clone this object, the default behaviour is not implemented
+		virtual String ToString() const; // convert this to string, usually a string that represents the type
 
 		// Query interface, may be slow.
 		// Same purpose as dynamic_cast<>
@@ -168,6 +176,8 @@ namespace PaintsNow {
 			return it != vec.end() ? reinterpret_cast<T*>((uint8_t*)object + it->second) : nullptr;
 		}
 
+		// Query specified interface. Usage: T* inter = p->QueryInterface(UniqueType<T>());
+		// This is a workaround for old compilers that do not support p->QueryInterface<T>();
 		template <class T>
 		T* QueryInterface(UniqueType<T> t) {
 			return QueryInterfaceEx(this, GetUnique(), t);
@@ -178,7 +188,7 @@ namespace PaintsNow {
 			return QueryInterfaceEx(const_cast<IReflectObject*>(this), GetUnique(), t);
 		}
 
-		virtual void ReleaseObject(); // call delete this by default.
+		virtual void ReleaseObject(); // call `FinalDestroy` by default.
 		virtual void FinalDestroy();
 
 		// These two functions are work-arounds for gcc compiler.
@@ -191,7 +201,7 @@ namespace PaintsNow {
 			return t.IsBasicObject() ? s : t;
 		}
 		
-		// Not recommended for frequently calls
+		// Slow path, not recommended for frequently calls
 		template <class T>
 		T* Inspect(UniqueType<T> unique, const String& key = "") {
 			static Unique u = UniqueType<T>::Get();
@@ -199,6 +209,8 @@ namespace PaintsNow {
 		}
 
 		virtual void* InspectEx(Unique unique, const String& key);
+
+		// Serialization
 		virtual bool operator >> (IStreamBase& stream) const;
 		virtual bool operator << (IStreamBase& stream);
 	};
@@ -208,11 +220,12 @@ namespace PaintsNow {
 	public:
 		bool IsBasicObject() const override;
 		virtual size_t ReportMemoryUsage() const;
+
 		String ToString() const override;
 		TObject<IReflect>& operator () (IReflect& reflect) override;
 	};
 
-	// IIterator is for all iterators, usually created by IterateVector
+	// IIterator is for all linear container iterators
 	class IIterator : public IReflectObject {
 	public:
 		IIterator();
@@ -220,18 +233,18 @@ namespace PaintsNow {
 		String ToString() const override;
 		bool IsBasicObject() const override;
 		bool IsIterator() const override;
-		virtual IIterator* New() const = 0;
-		virtual void Attach(void* base) = 0;
-		virtual void* GetHost() const = 0;
-		virtual void Initialize(size_t count) = 0;
-		virtual size_t GetTotalCount() const = 0;
-		virtual void* Get() = 0;
-		virtual const IReflectObject& GetPrototype() const = 0;
-		virtual Unique GetPrototypeUnique() const = 0;
-		virtual Unique GetPrototypeReferenceUnique() const = 0;
-		virtual bool IsLayoutLinear() const = 0;
-		virtual bool IsLayoutPinned() const = 0;
-		virtual bool Next() = 0;
+		virtual IIterator* New() const = 0; // create new iterator
+		virtual void Attach(void* base) = 0; // attach to an existing instance
+		virtual void* GetHost() const = 0; // get instanced attached
+		virtual void Initialize(size_t count) = 0; // initialize container with specified count of elements
+		virtual size_t GetTotalCount() const = 0; // get count of elements
+		virtual void* Get() = 0; // get current element address
+		virtual const IReflectObject& GetPrototype() const = 0; // get a element prototype
+		virtual Unique GetPrototypeUnique() const = 0; // get unique of element
+		virtual Unique GetPrototypeReferenceUnique() const = 0; // get reference unique of element, usually used on container that hold pointers
+		virtual bool IsLayoutLinear() const = 0; // check if the memory layout is linear
+		virtual bool IsLayoutPinned() const = 0; // check if it is addressable from prototype element
+		virtual bool Next() = 0; // iterate next element
 	};
 
 	// IIterator for vector arrays
@@ -354,6 +367,7 @@ namespace PaintsNow {
 		}
 	};
 
+	// Implement meta chain structure
 	template <class T, class D, class K, class Base>
 	class MetaChain : public MetaChainBase {
 	public:
@@ -387,6 +401,7 @@ namespace PaintsNow {
 			return rawChainNodePtr;
 		}
 
+		// Finalize all meta chain.
 		inline void operator * () const {
 			Finish(this);
 		}
@@ -431,19 +446,21 @@ namespace PaintsNow {
 			String name;
 		};
 
-		// static size_t GetUniqueLength(Unique id);
+		// For enum reflection
 		template <class T>
 		inline void OnEnum(T& t, const char* name, const MetaChainBase* meta) {
 			static Unique u = UniqueType<T>::Get();
 			Enum(safe_cast<size_t>(t), u, name, meta);
 		}
 
+		// For class reflection
 		template <class T>
 		inline void OnClass(T& t, const char* name, const char* path, const MetaChainBase* meta) {
 			static Unique u = UniqueType<T>::Get();
 			Class(t, u, name, path, meta);
 		}
 
+		// For property reflection
 		template <class T>
 		inline void OnProperty(const T& t, const char* name, void* base, const MetaChainBase* meta) {
 			static Unique u = UniqueType<T>::Get();
@@ -511,6 +528,7 @@ namespace PaintsNow {
 			Method(unique, name, reinterpret_cast<const TProxy<>*>(&t.GetProxy()), retValue, p, meta);
 		}
 #else
+		// For method reflection
 		template <typename R, typename... Args>
 		inline void OnMethod(const TWrapper<R, Args...>& t, const char* name, const MetaChainBase* meta) {
 			std::vector<Param> params;
@@ -534,6 +552,7 @@ namespace PaintsNow {
 		inline void ParseParams(std::vector<Param>& params, const TWrapper<R>&) {}
 #endif
 
+		// override these functions and enable isReflectXXXXX to accept corresponding reflection requests
 		virtual void Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta);
 		virtual void Method(Unique typeID, const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta);
 		virtual void Class(IReflectObject& host, Unique id, const char* name, const char* path, const MetaChainBase* meta);
@@ -547,7 +566,7 @@ namespace PaintsNow {
 	};
 
 	// Here are some sample Meta classes
-
+	// Note is just a note.
 	class MetaNote : public MetaNodeBase {
 	public:
 		MetaNote(const String& v);
@@ -625,6 +644,7 @@ namespace PaintsNow {
 		}
 	};
 
+	// Meta for properties auto conversion (e.g. std::vector<>)
 	template <class T, class D>
 	class PropertyWriter : public WriterBase<T, D> {
 	public:
@@ -673,6 +693,7 @@ namespace PaintsNow {
 		return MethodWriter<T, D>(r, p, const_cast<D*>(&v), name);
 	}
 
+	// Meta for class writer
 	template <class T>
 	class ClassWriter : public WriterBase<T, const char>  {
 	public:
@@ -693,6 +714,7 @@ namespace PaintsNow {
 		return ClassWriter<T>(r, v, line);
 	}
 
+	// Meta for enum writer
 	template <class T>
 	class EnumWriter : public WriterBase<T, T>  {
 	public:
@@ -730,6 +752,7 @@ namespace PaintsNow {
 		}
 	};
 
+	// Meta for constructible (i.e. can be created from Unique::Create)
 	class MetaConstructable : public MetaNodeBase {
 	public:
 		template <class T, class D>
@@ -749,6 +772,7 @@ namespace PaintsNow {
 
 	extern MetaConstructable Constructable;
 
+	// Meta for register derivation relationships
 	template <class T, class P>
 	class RegisterInterface {
 	public:
@@ -781,6 +805,7 @@ namespace PaintsNow {
 		}
 	};
 
+	// Meta for adding interface
 	template <class P>
 	class MetaInterface : public MetaNodeBase {
 	public:
