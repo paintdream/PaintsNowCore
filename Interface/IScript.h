@@ -179,7 +179,7 @@ namespace PaintsNow {
 					std::decay<F>::type f; std::decay<G>::type g; std::decay<H>::type h; std::decay<I>::type i; std::decay<J>::type j;
 					std::decay<K>::type k; std::decay<L>::type l; std::decay<M>::type m; std::decay<N>::type n; std::decay<O>::type o;
 
-					ReturnType<R>::type ret;
+					std::decay<ReturnType<R>::type>::type ret;
 				//	request.AssertUnlocked();
 					switch (GetCount()) {
 					case 0:
