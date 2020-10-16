@@ -237,25 +237,26 @@ namespace PaintsNow {
 
 			// check the diagonal
 			if (j == 0) {
-				w() = tq[0];
-				x() = m(2,1) - m(1,2);
-				y() = m(0,2) - m(2,0);
-				z() = m(1,0) - m(0,1);
+				/* perform instant calculation */
+				this->w() = tq[0];
+				this->x() = m(2,1) - m(1,2);
+				this->y() = m(0,2) - m(2,0);
+				this->z() = m(1,0) - m(0,1);
 			} else if (j == 1) {
-				w() = m(2,1) - m(1,2);
-				x() = tq[1];
-				y() = m(1,0) + m(0,1);
-				z() = m(0,2) + m(2,0);
+				this->w() = m(2,1) - m(1,2);
+				this->x() = tq[1];
+				this->y() = m(1,0) + m(0,1);
+				this->z() = m(0,2) + m(2,0);
 			} else if (j == 2) {
-				w() = m(0,2) - m(2,0);
-				x() = m(1,0) + m(0,1);
-				y() = tq[2];
-				z() = m(2,1) + m(1,2);
+				this->w() = m(0,2) - m(2,0);
+				this->x() = m(1,0) + m(0,1);
+				this->y() = tq[2];
+				this->z() = m(2,1) + m(1,2);
 			} else {
-				w() = m(1,0) - m(0,1);
-				x() = m(0,2) + m(2,0);
-				y() = m(2,1) + m(1,2);
-				z() = tq[3];
+				this->w() = m(1,0) - m(0,1);
+				this->x() = m(0,2) + m(2,0);
+				this->y() = m(2,1) + m(1,2);
+				this->z() = tq[3];
 			}
 
 			Normalize();
@@ -276,9 +277,9 @@ namespace PaintsNow {
 		}
 
 		TType3<T> ToEulerAngle() const {
-			T xx = (T)atan2(2 * (w() * x() + y() * z()), 1 - 2.0 * (x() * x() + y() * y()));
-			T yy = (T)asin(2 * (w() * y() - z() * x()));
-			T zz = (T)atan2(2 * (w() * z() + x() * y()), 1 - 2.0 * (y() * y() + z() * z()));
+			T xx = (T)atan2(2 * (this->w() * this->x() + this->y() * this->z()), 1 - 2.0 * (this->x() * this->x() + this->y() * this->y()));
+			T yy = (T)asin(2 * (this->w() * this->y() - this->z() * this->x()));
+			T zz = (T)atan2(2 * (this->w() * this->z() + this->x() * this->y()), 1 - 2.0 * (this->y() * this->y() + this->z() * this->z()));
 
 			return TType3<T>(xx, yy, zz);
 		}
@@ -294,37 +295,37 @@ namespace PaintsNow {
 			const T fCosPitchCosYaw(fCosPitch * fCosYaw);
 			const T fSinPitchSinYaw(fSinPitch * fSinYaw);
 
-			x() = fSinRoll * fCosPitchCosYaw - fCosRoll * fSinPitchSinYaw;
-			y() = fCosRoll * fSinPitch * fCosYaw + fSinRoll * fCosPitch * fSinYaw;
-			z() = fCosRoll * fCosPitch * fSinYaw - fSinRoll * fSinPitch * fCosYaw;
-			w() = fCosRoll * fCosPitchCosYaw + fSinRoll * fSinPitchSinYaw;
+			this->x() = fSinRoll * fCosPitchCosYaw - fCosRoll * fSinPitchSinYaw;
+			this->y() = fCosRoll * fSinPitch * fCosYaw + fSinRoll * fCosPitch * fSinYaw;
+			this->z() = fCosRoll * fCosPitch * fSinYaw - fSinRoll * fSinPitch * fCosYaw;
+			this->w() = fCosRoll * fCosPitchCosYaw + fSinRoll * fSinPitchSinYaw;
 
 			Normalize();
 		}
 
 		Quaternion& Normalize() {
-			T mag = sqrt(x() * x() + y() * y() + z() * z() + w() * w());
+			T mag = sqrt(this->x() * this->x() + this->y() * this->y() + this->z() * this->z() + this->w() * this->w());
 			if (mag > 1e-6) {
 				mag = 1.0f / mag;
-				x() *= mag;
-				y() *= mag;
-				z() *= mag;
-				w() *= mag;
+				this->x() *= mag;
+				this->y() *= mag;
+				this->z() *= mag;
+				this->w() *= mag;
 			}
 
 			return *this;
 		}
 
 		bool IsFlip() const {
-			return x() == 0 && y() == 0 && z() == 0 && w() == 0;
+			return this->x() == 0 && this->y() == 0 && this->z() == 0 && this->w() == 0;
 		}
 
 		Quaternion operator * (const Quaternion& t) const {
-			assert(!IsFlip() && !t.IsFlip());
-			return Quaternion(w() * t.w() - x() * t.x() - y() * t.y() - z() * t.z(),
-				w() * t.x() + x() * t.w() + y() * t.z() - z() * t.y(),
-				w() * t.y() + y() * t.w() + z() * t.x() - x() * t.z(),
-				w() * t.z() + z() * t.w() + x() * t.y() - y() * t.x());
+			assert(!this->IsFlip() && !t.IsFlip());
+			return Quaternion(this->w() * t.w() - this->x() * t.x() - this->y() * t.y() - this->z() * t.z(),
+				this->w() * t.x() + this->x() * t.w() + this->y() * t.z() - this->z() * t.y(),
+				this->w() * t.y() + this->y() * t.w() + this->z() * t.x() - this->x() * t.z(),
+				this->w() * t.z() + this->z() * t.w() + this->x() * t.y() - this->y() * t.x());
 		}
 
 		Quaternion& operator *= (const Quaternion& t) {
@@ -333,9 +334,9 @@ namespace PaintsNow {
 		}
 
 		Quaternion& Conjugate() {
-			x() = -x();
-			y() = -y();
-			z() = -z();
+			this->x() = -this->x();
+			this->y() = -this->y();
+			this->z() = -this->z();
 
 			return *this;
 		}
@@ -399,17 +400,17 @@ namespace PaintsNow {
 		void WriteMatrix(TMatrix<T, 4U, 4U>& m) const {
 			if (!IsFlip()) {
 				T mat[16];
-				mat[0] = 1 - 2 * (y() * y() + z() * z());
-				mat[1] = 2 * (x() * y() - z() * w());
-				mat[2] = 2 * (x() * z() + y() * w());
+				mat[0] = 1 - 2 * (this->y() * this->y() + this->z() * this->z());
+				mat[1] = 2 * (this->x() * this->y() - this->z() * this->w());
+				mat[2] = 2 * (this->x() * this->z() + this->y() * this->w());
 				mat[3] = 0;
-				mat[4] = 2 * (x() * y() + z() * w());
-				mat[5] = 1 - 2 * (x() * x() + z() * z());
-				mat[6] = 2 * (y() * z() - x() * w());
+				mat[4] = 2 * (this->x() * this->y() + this->z() * this->w());
+				mat[5] = 1 - 2 * (this->x() * this->x() + this->z() * this->z());
+				mat[6] = 2 * (this->y() * this->z() - this->x() * this->w());
 				mat[7] = 0;
-				mat[8] = 2 * (x() * z() - y() * w());
-				mat[9] = 2 * (y() * z() + x() * w());
-				mat[10] = 1 - 2 * (x() * x() + y() * y());
+				mat[8] = 2 * (this->x() * this->z() - this->y() * this->w());
+				mat[9] = 2 * (this->y() * this->z() + this->x() * this->w());
+				mat[10] = 1 - 2 * (this->x() * this->x() + this->y() * this->y());
 				mat[11] = mat[12] = mat[13] = mat[14] = 0;
 				mat[15] = 1;
 
