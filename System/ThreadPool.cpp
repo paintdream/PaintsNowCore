@@ -132,7 +132,8 @@ bool ThreadPool::Push(ITask* task) {
 				YieldThreadFast();
 			}
 
-			if (waitEventCounter * 4 > threadCount) {
+			std::atomic_thread_fence(std::memory_order_acquire);
+			if (waitEventCounter != 0) {
 				threadApi.Signal(eventPump, false);
 			}
 		}

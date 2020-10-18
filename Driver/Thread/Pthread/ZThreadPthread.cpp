@@ -407,26 +407,30 @@ void ZThreadPthread::Wait(Event* event, Lock* lock, size_t timeout) {
 #endif
 
 #if defined(PREFER_NATIVE_THREAD) && defined(_WIN32) && defined(_MSC_VER) && _MSC_VER > 1200
-	::SleepConditionVariableCS(&ev->cond, &l->cs, (DWORD)timeout);
+	::SleepConditionVariableCS(&ev->cond, &l->cs, timeout == 0 ? INFINITE : (DWORD)timeout);
 #else
-	timespec ts;
-	#ifdef _WIN32
-	clock_gettime(CLOCK_MONOTONIC, &ts);
+	if (timeout == 0) {
+		pthread_cond_wait(&ev->cond, &l->lock);
+	} else {
+		timespec ts;
+#ifdef _WIN32
+		clock_gettime(CLOCK_MONOTONIC, &ts);
 
-	ts.tv_sec = ts.tv_sec + (long)(timeout / 1000);
-	ts.tv_nsec = ts.tv_nsec + (timeout % 1000) * 1000000;
-	ts.tv_sec += ts.tv_nsec / 1000000000;
-	ts.tv_nsec = ts.tv_nsec % 1000000000;
-	#else
-	struct timeval now;
-	gettimeofday(&now, NULL);
-	ts.tv_sec = now.tv_sec + (long)(timeout / 1000);
-	ts.tv_nsec = now.tv_usec + (timeout % 1000) * 1000000;
-	ts.tv_sec += ts.tv_nsec / 1000000000;
-	ts.tv_nsec = ts.tv_nsec % 1000000000;
-	#endif
+		ts.tv_sec = ts.tv_sec + (long)(timeout / 1000);
+		ts.tv_nsec = ts.tv_nsec + (timeout % 1000) * 1000000;
+		ts.tv_sec += ts.tv_nsec / 1000000000;
+		ts.tv_nsec = ts.tv_nsec % 1000000000;
+#else
+		struct timeval now;
+		gettimeofday(&now, NULL);
+		ts.tv_sec = now.tv_sec + (long)(timeout / 1000);
+		ts.tv_nsec = now.tv_usec + (timeout % 1000) * 1000000;
+		ts.tv_sec += ts.tv_nsec / 1000000000;
+		ts.tv_nsec = ts.tv_nsec % 1000000000;
+#endif
 
-	pthread_cond_timedwait(&ev->cond, &l->lock, &ts);
+		pthread_cond_timedwait(&ev->cond, &l->lock, &ts);
+	}
 #endif
 	l->lockCount++; // it's also safe because we has already take lock before returning from pthread_cond_wait
 }
@@ -449,7 +453,7 @@ void ZThreadPthread::DeleteEvent(Event* event) {
 	assert(event != nullptr);
 	EventImpl* ev = static_cast<EventImpl*>(event);
 #if defined(PREFER_NATIVE_THREAD) && defined(_WIN32) && defined(_MSC_VER) && _MSC_VER > 1200
-	// Win32 have no DeleteConditionVariable...
+	// Win32 has no DeleteConditionVariable...
 #else
 	pthread_cond_destroy(&ev->cond);
 #endif
