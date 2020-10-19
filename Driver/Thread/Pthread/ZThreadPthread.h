@@ -9,7 +9,7 @@
 namespace PaintsNow {
 	class ZThreadPthread : public IThread {
 	public:
-		ZThreadPthread(bool initOnWin32 = true);
+		ZThreadPthread();
 		~ZThreadPthread() override;
 		void AttachLocalThread() const override;
 		void DetachLocalThread() const override;
@@ -41,7 +41,6 @@ namespace PaintsNow {
 	protected:
 		int maxPriority;
 		int minPriority;
-		bool initOnWin32;
 	};
 }
 
