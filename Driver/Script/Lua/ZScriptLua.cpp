@@ -188,7 +188,7 @@ static int SetIndexer(lua_State* L) {
 }
 
 ZScriptLua::ZScriptLua(IThread& threadApi, lua_State* L) : IScript(threadApi), callCounter(0), runningEvent(nullptr), rawState(L) {
-	closing.store(0, std::memory_order_release);
+	closing.store(0, std::memory_order_relaxed);
 	Init();
 }
 

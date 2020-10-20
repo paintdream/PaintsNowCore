@@ -27,8 +27,7 @@ namespace PaintsNow {
 
 		Tiny(FLAG flag = 0);
 		std::atomic<FLAG>& Flag() { return flag; }
-		FLAG Flag() const { return flag.load(std::memory_order_relaxed); }
-
+		const std::atomic<FLAG>& Flag() const { return flag; }
 		TObject<IReflect>& operator () (IReflect& reflect) override;
 
 	protected:

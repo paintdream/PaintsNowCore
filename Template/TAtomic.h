@@ -109,15 +109,17 @@ namespace std {
 		}
 
 		int32_t operator & (T t) const {
+			MemoryBarrier();
 			return value & (int32_t)t;
 		}
 
 		int32_t operator | (T t) const {
+			MemoryBarrier();
 			return value | (int32_t)t;
 		}
 
 		int32_t operator ^ (T t) const {
-
+			MemoryBarrier();
 			return value ^ (int32_t)t;
 		}
 
