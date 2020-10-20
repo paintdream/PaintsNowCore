@@ -84,10 +84,9 @@ void Kernel::Clear() {
 }
 
 // Make VC6 Happy.
-template <class T>
 class ForwardRoutine : public TaskOnce {
 public:
-	ForwardRoutine(T& k, WarpTiny* tn, ITask* tk) : kernel(k), tiny(tn), task(tk) {}
+	ForwardRoutine(Kernel& k, WarpTiny* tn, ITask* tk) : kernel(k), tiny(tn), task(tk) {}
 	void Execute(void* context) override {
 		// requeue it
 		uint32_t warpIndex = tiny->GetWarpIndex();
@@ -105,7 +104,7 @@ public:
 	}
 
 private:
-	T& kernel;
+	Kernel& kernel;
 	WarpTiny* tiny;
 	ITask* task;
 };
@@ -131,7 +130,7 @@ void Kernel::QueueRoutine(WarpTiny* warpTiny, ITask* task) {
 		assert(threadPool.GetLockCount() != 0);
 		// forward to threadPool directly
 		warpTiny->ReferenceObject();
-		threadPool.Push(new ForwardRoutine<Kernel>(*this, warpTiny, task));
+		threadPool.Push(new ForwardRoutine(*this, warpTiny, task));
 		threadPool.UnLock();
 	} else if (WarpIndex == toWarpIndex && (size_t)q.threadWarp.load(std::memory_order_acquire) == (size_t)&WarpIndex && q.suspendCount.load(std::memory_order_acquire) == 0) {
 		// Just the same warp? Execute at once.
