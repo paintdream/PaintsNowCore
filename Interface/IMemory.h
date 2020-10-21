@@ -46,13 +46,6 @@ namespace PaintsNow {
 		};
 
 		virtual ~IMemory();
-		static inline void MemoryFence(std::memory_order order) {
-#if defined(_MSC_VER) && _MSC_VER <= 1200
-			_mm_mfence();
-#else
-			std::atomic_thread_fence(order);
-#endif
-		}
 
 		static inline void PrefetchRead(const void* address) {
 #ifdef _MSC_VER

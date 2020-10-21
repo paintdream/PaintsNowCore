@@ -10,6 +10,7 @@
 #include "../Interface/IType.h"
 #include <windows.h>
 #include <winbase.h>
+#include <emmintrin.h>
 
 namespace std {
 	enum memory_order {
@@ -22,14 +23,6 @@ namespace std {
 	};
 }
 
-/*
-__forceinline void MemoryBarrier() {
-	LONG Barrier;
-	__asm {
-		xchg Barrier, eax
-	}
-}*/
-
 #else
 #include <atomic>
 #include <thread>
@@ -40,11 +33,30 @@ namespace std {
 	// From Microsoft Visual C++ Header file.
 	// implement std::atomic<> for Visual C++ 6.0
 	// only support 32 bit atomic operations ..
+	inline void atomic_thread_fence(std::memory_order order) {
+		switch (order) {
+		case memory_order_relaxed:
+			break;
+		case memory_order_consume:
+			_mm_lfence();
+			break;
+		case memory_order_acquire:
+			_mm_lfence();
+			break;
+		case memory_order_release:
+			_mm_sfence();
+			break;
+		default:
+			_mm_mfence();
+			break;
+		}
+	}
+
 	template <class T>
 	class atomic {
 	public:
 		atomic(int32_t v = 0) : value(v) {}
-
+	
 		int32_t fetch_add(T arg, std::memory_order order = std::memory_order_seq_cst) {
 			return InterlockedExchangeAdd(&value, (int32_t)arg);
 		}
@@ -90,36 +102,27 @@ namespace std {
 		}
 
 		T load(std::memory_order order = std::memory_order_acquire) const {
-			if (order != std::memory_order_relaxed) {
-				MemoryBarrier();
-			}
-
+			atomic_thread_fence(order);
 			return (T)value;
 		}
 
 		void store(T v, std::memory_order order = std::memory_order_release) {
-			if (order == std::memory_order_seq_cst) {
-				InterlockedExchange(&value, (int32_t)v);
-			} else if (order != std::memory_order_relaxed) {
-				MemoryBarrier();
-				value = (int32_t)v;
-			} else {
-				value = (int32_t)v;
-			}
+			value = (int32_t)v;
+			atomic_thread_fence(order);
 		}
 
 		int32_t operator & (T t) const {
-			MemoryBarrier();
+			atomic_thread_fence(std::memory_order_acquire);
 			return value & (int32_t)t;
 		}
 
 		int32_t operator | (T t) const {
-			MemoryBarrier();
+			atomic_thread_fence(std::memory_order_acquire);
 			return value | (int32_t)t;
 		}
 
 		int32_t operator ^ (T t) const {
-			MemoryBarrier();
+			atomic_thread_fence(std::memory_order_acquire);
 			return value ^ (int32_t)t;
 		}
 
@@ -140,10 +143,6 @@ namespace std {
 	private:
 		volatile LONG value;
 	};
-
-	inline void atomic_thread_fence(std::memory_order) {
-		MemoryBarrier();
-	}
 }
 #endif
 
