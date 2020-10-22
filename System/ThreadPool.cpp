@@ -92,7 +92,7 @@ void ThreadPool::Uninitialize() {
 			p->Abort(nullptr);
 			ITask* q = p;
 			p = p->next;
-			q->next = (ITask*)(size_t)~0;
+			q->next = nullptr;
 		}
 
 		for (size_t k = 0; k < threadCount; k++) {
@@ -118,23 +118,21 @@ ThreadPool::~ThreadPool() {
 bool ThreadPool::Push(ITask* task) {
 	assert(task != nullptr);
 	std::atomic<ITask*>& next = *reinterpret_cast<std::atomic<ITask*>*>(&task->next);
-	if (next.load(std::memory_order_acquire) != (ITask*)(size_t)~0) // already pushed
+	if (next.load(std::memory_order_acquire) != nullptr) // already pushed
 		return true;
 
 	if (runningToken.load(std::memory_order_relaxed) != 0) {
-		ITask* expected = (ITask*)(size_t)~0;
+		ITask* expected = nullptr;
 		
-		// guard for repush the same task
-		if (next.compare_exchange_strong(expected, taskHead.load(std::memory_order_acquire), std::memory_order_acq_rel)) {
-			// Chain task
-			while (!taskHead.compare_exchange_weak(task->next, task, std::memory_order_release)) {
-				YieldThreadFast();
-			}
+		// Chain task
+		task->next = taskHead.load(std::memory_order_acquire);
+		while (!taskHead.compare_exchange_weak(task->next, task, std::memory_order_release)) {
+			YieldThreadFast();
+		}
 
-			std::atomic_thread_fence(std::memory_order_acquire);
-			if (waitEventCounter != 0) {
-				threadApi.Signal(eventPump, false);
-			}
+		std::atomic_thread_fence(std::memory_order_acquire);
+		if (waitEventCounter != 0) {
+			threadApi.Signal(eventPump, false);
 		}
 
 		return true;
@@ -158,10 +156,10 @@ bool ThreadPool::PollRoutine(uint32_t index) {
 	// Has task?
 	if (p != nullptr) {
 		ITask* next = p->next;
-		assert(next != (ITask*)(size_t)~0);
-		p->next = (ITask*)(size_t)~0;
 
 		if (next != nullptr) {
+			p->next = nullptr;
+
 			ITask* t = (ITask*)taskHead.exchange(next, std::memory_order_release);
 			// Someone has pushed some new tasks at the same time.
 			// So rechain remaining tasks proceeding to the current one to new task head atomically.

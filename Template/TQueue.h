@@ -94,6 +94,7 @@ namespace PaintsNow {
 		}
 
 		inline void Pop() {
+			std::atomic_thread_fence(std::memory_order_acquire);
 			popIndex = (popIndex + 1) & Mask;
 		}
 
