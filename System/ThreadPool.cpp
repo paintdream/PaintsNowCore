@@ -127,7 +127,6 @@ bool ThreadPool::Push(ITask* task) {
 		// guard for repush the same task
 		if (next.compare_exchange_strong(expected, taskHead.load(std::memory_order_acquire), std::memory_order_acq_rel)) {
 			// Chain task
-			task->next = taskHead.load(std::memory_order_acquire);
 			while (!taskHead.compare_exchange_weak(task->next, task, std::memory_order_release)) {
 				YieldThreadFast();
 			}
@@ -148,7 +147,7 @@ bool ThreadPool::Push(ITask* task) {
 bool ThreadPool::PollRoutine(uint32_t index) {
 	// Wait for a moment
 	for (uint32_t k = 0; k < MAX_YIELD_COUNT; k++) {
-		if (taskHead.load(std::memory_order_acquire) == 0) {
+		if ((ITask*)taskHead.load(std::memory_order_acquire) == nullptr) {
 			YieldThread();
 		} else {
 			break;
