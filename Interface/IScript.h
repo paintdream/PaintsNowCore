@@ -117,6 +117,8 @@ namespace PaintsNow {
 		class Request : public TReflected<Request, IReflectObjectComplex> {
 		protected:
 			RequestPool* requestPool;
+		public:
+			Request* next;
 
 		public:
 			Request();
@@ -1240,7 +1242,7 @@ namespace PaintsNow {
 		// virtual void DoLock();
 		// virtual void UnLock();
 
-		class RequestPool : public TPool<RequestPool, Request*> {
+		class RequestPool : public TRefPool<RequestPool, Request> {
 		public:
 			RequestPool(IScript& script, size_t size);
 			Request* New();

@@ -223,7 +223,7 @@ IScript::IScript(IThread& api) : ISyncObject(api) {}
 IScript::~IScript() {
 }
 
-IScript::Request::Request() : requestPool(nullptr) {}
+IScript::Request::Request() : requestPool(nullptr), next(nullptr) {}
 
 void IScript::Request::SetRequestPool(IScript::RequestPool* p) {
 	if (p != nullptr) {
