@@ -47,7 +47,7 @@ namespace PaintsNow {
 			}
 		}
 
-		inline void Clear() {
+		void Clear() {
 			if (!IsStockStorage()) {
 				assert(buffer != nullptr);
 				free(buffer);
@@ -56,7 +56,7 @@ namespace PaintsNow {
 			size = 0;
 		}
 
-		inline TBuffer& operator = (const std::basic_string<T, std::char_traits<T>, std::allocator<T> >& str) {
+		TBuffer& operator = (const std::basic_string<T, std::char_traits<T>, std::allocator<T> >& str) {
 			Resize(str.size());
 			memcpy(GetData(), str.data(), str.size() * sizeof(T));
 			return *this;
@@ -86,24 +86,24 @@ namespace PaintsNow {
 			return *this;
 		}
 
-		static inline TBuffer& Null() {
+		static TBuffer& Null() {
 			static TBuffer empty;
 			return empty;
 		}
 
-		inline bool IsStockStorage() const { return !(size & EXT_STORE_MASK); }
-		inline size_t GetSize() const { assert(size <= N || (size & ~EXT_STORE_MASK) > N); return size & ~EXT_STORE_MASK; }
-		inline const T* GetData() const { return IsStockStorage() ? stockStorage : buffer; }
-		inline T* GetData() { return IsStockStorage() ? stockStorage : buffer; }
+		bool IsStockStorage() const { return !(size & EXT_STORE_MASK); }
+		size_t GetSize() const { assert(size <= N || (size & ~EXT_STORE_MASK) > N); return size & ~EXT_STORE_MASK; }
+		const T* GetData() const { return IsStockStorage() ? stockStorage : buffer; }
+		T* GetData() { return IsStockStorage() ? stockStorage : buffer; }
 
-		inline bool Empty() const { return size == 0; }
-		inline bool operator == (const TBuffer& rhs) const {
+		bool Empty() const { return size == 0; }
+		bool operator == (const TBuffer& rhs) const {
 			if (size != rhs.size) return false;
 			if (size == 0) return true;
 			return memcmp(GetData(), rhs.GetData(), GetSize() * sizeof(T)) == 0;
 		}
 
-		inline bool operator < (const TBuffer& rhs) const {
+		bool operator < (const TBuffer& rhs) const {
 			if (size == 0) {
 				return rhs.size != 0;
 			} else {
@@ -114,7 +114,17 @@ namespace PaintsNow {
 			}
 		}
 
-		inline void Resize(size_t s, const T& init) {
+		const T& operator [] (size_t index) const {
+			assert(index < GetSize());
+			return GetData()[index];
+		}
+
+		T& operator [] (size_t index) {
+			assert(index < GetSize());
+			return GetData()[index];
+		}
+
+		void Resize(size_t s, const T& init) {
 			size_t orgSize = GetSize();
 			Resize(s);
 
@@ -124,7 +134,7 @@ namespace PaintsNow {
 			}
 		}
 
-		inline void Resize(size_t s) {
+		void Resize(size_t s) {
 			if (IsStockStorage()) {
 				if (s > N) { // out of bound
 					T* newBuffer = reinterpret_cast<T*>(malloc(s * sizeof(T)));
@@ -151,18 +161,18 @@ namespace PaintsNow {
 			}
 		}
 
-		inline void Swap(TBuffer& rhs) {
+		void Swap(TBuffer& rhs) {
 			std::swap(size, rhs.size);
 			for (size_t i = 0; i < N; i++) {
 				std::swap(stockStorage[i], rhs.stockStorage[i]);
 			}
 		}
 
-		inline TBuffer& Append(const TBuffer& rhs) {
+		TBuffer& Append(const TBuffer& rhs) {
 			return Append(rhs.GetData(), rhs.GetSize());
 		}
 
-		inline TBuffer& Append(const T* buffer, size_t appendSize) {
+		TBuffer& Append(const T* buffer, size_t appendSize) {
 			if (appendSize != 0) {
 				size_t orgSize = GetSize();
 				Resize(orgSize + appendSize);
@@ -172,7 +182,7 @@ namespace PaintsNow {
 			return *this;
 		}
 
-		inline TBuffer& Assign(const T* buffer, size_t n) {
+		TBuffer& Assign(const T* buffer, size_t n) {
 			Resize(n);
 			if (n != 0) {
 				memcpy(GetData(), buffer, n * sizeof(T));
@@ -182,7 +192,7 @@ namespace PaintsNow {
 		}
 
 	protected:
-		inline void Copy(const TBuffer& rhs) {
+		void Copy(const TBuffer& rhs) {
 			size_t s = rhs.GetSize();
 			Resize(s);
 			memcpy(GetData(), rhs.GetData(), s * sizeof(T));
