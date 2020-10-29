@@ -201,9 +201,9 @@ namespace PaintsNow {
 			inverse(1, 1) = mat(1, 1) / yy;
 			inverse(1, 2) = mat(2, 1) / yz;
 			inverse(1, 3) = 0;
-			inverse(2, 0) = mat(0, 2) / xy;
-			inverse(2, 1) = mat(1, 2) / yy;
-			inverse(2, 2) = mat(2, 2) / yz;
+			inverse(2, 0) = mat(0, 2) / xz;
+			inverse(2, 1) = mat(1, 2) / yz;
+			inverse(2, 2) = mat(2, 2) / zz;
 			inverse(2, 3) = 0;
 
 			TType3<T> right = TType3<T>(inverse(0, 0), inverse(1, 0), inverse(2, 0));
