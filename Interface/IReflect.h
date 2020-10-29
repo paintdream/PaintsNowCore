@@ -930,7 +930,7 @@ namespace PaintsNow {
 
 	// Helper class for implement rtti by simple inheriance.
 	template <class T, class Base, class MetaOption = MetaVoid>
-	class TReflected : public Base {
+	class pure_interface TReflected : public Base {
 	protected:
 #if defined(_MSC_VER) && _MSC_VER <= 1200
 		TReflected() {}

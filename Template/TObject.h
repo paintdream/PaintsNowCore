@@ -8,7 +8,7 @@
 
 namespace PaintsNow {
 	template <class T>
-	class TObject {
+	class pure_interface TObject {
 	public:
 		TObject() {}
 		virtual ~TObject() {}

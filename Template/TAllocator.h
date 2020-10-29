@@ -99,7 +99,7 @@ namespace PaintsNow {
 	// Local allocator, allocate memory with specified alignment requirements.
 	// K = element size, M = block size, R = max recycled block count, 0 for not limited
 	template <size_t K, size_t M = 8192, size_t R = 8, size_t S = sizeof(size_t) * 8 - 1>
-	class TAllocator : public TReflected<TAllocator<K, M, R>, SharedTiny> {
+	class pure_interface TAllocator : public TReflected<TAllocator<K, M, R>, SharedTiny> {
 	public:
 		typedef TReflected<TAllocator<K, M, R>, SharedTiny> BaseClass;
 		enum {
@@ -389,7 +389,7 @@ namespace PaintsNow {
 	};
 
 	template <class T, class B, size_t M = 8192, size_t Align = 64>
-	class TAllocatedTiny : public TReflected<T, B> {
+	class pure_interface TAllocatedTiny : public TReflected<T, B> {
 	public:
 		typedef TObjectAllocator<T, M, Align> Allocator;
 		typedef TAllocatedTiny BaseClass;

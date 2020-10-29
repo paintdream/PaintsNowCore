@@ -142,6 +142,12 @@ using rvalue = T&&;
 #define struct_aligned(f) struct alignas(f)
 #endif
 
+#if defined(_MSC_VER) || defined(__clang__)
+#define pure_interface __declspec(novtable)
+#else
+#define pure_interface
+#endif
+
 namespace PaintsNow {
 	template <class T>
 	class TShared; // Forward declaration for TShared<T> in Tiny.h
