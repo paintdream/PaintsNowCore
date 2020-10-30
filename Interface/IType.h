@@ -131,13 +131,13 @@ namespace PaintsNow {
 #endif
 
 	namespace Math {
-		MatrixFloat4x4 Rotate3D(const MatrixFloat4x4& input, float degree, const Float3& d);
+		MatrixFloat4x4 Rotate3D(const MatrixFloat4x4& input, float rad, const Float3& d);
 		MatrixFloat4x4 Translate3D(const MatrixFloat4x4& input, const Float3& v);
 		Float3 Transform3D(const MatrixFloat4x4& input, const Float3& v);
 		MatrixFloat4x4 LookAt(const Float3& position, const Float3& dir, const Float3& u);
 		MatrixFloat4x4 Ortho(const Float3& size);
 		MatrixFloat4x4 Perspective(float d, float rr, float n, float f);
-		MatrixFloat4x4 InverseProjectionMatrix(const MatrixFloat4x4& m);
+		MatrixFloat4x4 InverseProjection(const MatrixFloat4x4& m);
 
 		bool Capture3D(const MatrixFloat4x4& matrix, const Float3Pair& vec, const Float2Pair& size);
 		bool Intersect3D(Float3& res, Float2& uv, const Float3 face[3], const Float3Pair& line);

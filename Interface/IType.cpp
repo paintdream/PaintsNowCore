@@ -51,11 +51,11 @@ namespace PaintsNow {
 	}
 
 	namespace Math {
-		MatrixFloat4x4 Rotate3D(const MatrixFloat4x4& input, float degree, const Float3& d) {
+		MatrixFloat4x4 Rotate3D(const MatrixFloat4x4& input, float rad, const Float3& d) {
 			const TVector<float, 3>& dir = d;
 			const double PI = 3.1415926;
-			float c = (float)cos(degree / 180 * PI);
-			float s = (float)sin(degree / 180 * PI);
+			float c = (float)cos(rad);
+			float s = (float)sin(rad);
 
 			float mat[16] = {
 				c + (1 - c) * dir[0] * dir[0], (1 - c) * dir[1] * dir[0] + s * dir[2], (1 - c) * dir[2] * dir[0] - s * dir[1], 0,
@@ -85,7 +85,7 @@ namespace PaintsNow {
 			return MatrixFloat4x4(trans);
 		}
 
-		MatrixFloat4x4 InverseProjectionMatrix(const MatrixFloat4x4& m) {
+		MatrixFloat4x4 InverseProjection(const MatrixFloat4x4& m) {
 			float a = m(0, 0);
 			float b = m(1, 1);
 			float c = m(2, 2);

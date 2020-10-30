@@ -181,29 +181,22 @@ namespace PaintsNow {
 		template <class T, size_t n, size_t m>
 		TMatrix<T, m, n> QuickInverse(const TMatrix<T, m, n>& mat) {
 			static_assert(m == n && m == 4, "QuickInverse only applies to 4x4 matrix");
-			T x = TType3<T>(mat(0, 0), mat(0, 1), mat(0, 2)).Length();
-			T y = TType3<T>(mat(1, 0), mat(1, 1), mat(1, 2)).Length();
-			T z = TType3<T>(mat(2, 0), mat(2, 1), mat(2, 2)).Length();
-
-			T xx = x * x;
-			T yy = y * y;
-			T zz = z * z;
-			T xy = x * y;
-			T xz = x * z;
-			T yz = y * z;
+			T x = T(1) / TType3<T>(mat(0, 0), mat(0, 1), mat(0, 2)).SquareLength();
+			T y = T(1) / TType3<T>(mat(1, 0), mat(1, 1), mat(1, 2)).SquareLength();
+			T z = T(1) / TType3<T>(mat(2, 0), mat(2, 1), mat(2, 2)).SquareLength();
 
 			TMatrix<T, n, n> inverse;
-			inverse(0, 0) = mat(0, 0) / xx;
-			inverse(0, 1) = mat(1, 0) / xy;
-			inverse(0, 2) = mat(2, 0) / xz;
+			inverse(0, 0) = mat(0, 0) * x;
+			inverse(0, 1) = mat(1, 0) * y;
+			inverse(0, 2) = mat(2, 0) * z;
 			inverse(0, 3) = 0;
-			inverse(1, 0) = mat(0, 1) / xy;
-			inverse(1, 1) = mat(1, 1) / yy;
-			inverse(1, 2) = mat(2, 1) / yz;
+			inverse(1, 0) = mat(0, 1) * x;
+			inverse(1, 1) = mat(1, 1) * y;
+			inverse(1, 2) = mat(2, 1) * z;
 			inverse(1, 3) = 0;
-			inverse(2, 0) = mat(0, 2) / xz;
-			inverse(2, 1) = mat(1, 2) / yz;
-			inverse(2, 2) = mat(2, 2) / zz;
+			inverse(2, 0) = mat(0, 2) * x;
+			inverse(2, 1) = mat(1, 2) * y;
+			inverse(2, 2) = mat(2, 2) * z;
 			inverse(2, 3) = 0;
 
 			TType3<T> right = TType3<T>(inverse(0, 0), inverse(1, 0), inverse(2, 0));
