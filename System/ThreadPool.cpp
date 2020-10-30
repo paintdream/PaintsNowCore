@@ -125,14 +125,15 @@ bool ThreadPool::Push(ITask* task) {
 		ITask* expected = nullptr;
 		
 		// Chain task
-		task->next = taskHead.load(std::memory_order_acquire);
-		while (!taskHead.compare_exchange_weak(task->next, task, std::memory_order_release)) {
-			YieldThreadFast();
-		}
+		if ((ITask*)next.compare_exchange_strong(expected, taskHead.load(std::memory_order_acquire))) {
+			while (!taskHead.compare_exchange_weak(task->next, task, std::memory_order_release)) {
+				YieldThreadFast();
+			}
 
-		std::atomic_thread_fence(std::memory_order_acquire);
-		if (waitEventCounter != 0) {
-			threadApi.Signal(eventPump, false);
+			std::atomic_thread_fence(std::memory_order_acquire);
+			if (waitEventCounter != 0) {
+				threadApi.Signal(eventPump, false);
+			}
 		}
 
 		return true;
