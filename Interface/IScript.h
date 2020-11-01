@@ -1235,6 +1235,8 @@ namespace PaintsNow {
 		virtual IScript* NewScript() const = 0;
 		virtual Request* NewRequest(const String& entry = "") = 0;
 		virtual Request& GetDefaultRequest() = 0;
+		virtual bool IsClosing() const = 0;
+		virtual bool IsHosting() const = 0;
 		virtual bool IsTypeCompatible(Request::TYPE target, Request::TYPE source) const;
 		virtual void SetErrorHandler(const TWrapper<void, Request&, const String&>& errorHandler);
 		virtual void SetDispatcher(const TWrapper<void, Request&, IHost*, size_t, const TWrapper<void, Request&>& >& disp);

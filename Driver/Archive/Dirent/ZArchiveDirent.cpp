@@ -86,18 +86,27 @@ private:
 	String filePath;
 };
 
-const String& ZArchiveDirent::GetRootPath() const {
-	return root;
+String ZArchiveDirent::GetFullPath(const String& path) const {
+	return root + path;
 }
 
-void ZArchiveDirent::SetRootPath(const String& path) {
-	root = path;
-	if (root != "" && (root[root.length() - 1] != '\\' && root[root.length() - 1] != '/'))
-		root += '/';
+bool ZArchiveDirent::Mount(const String& path, const String& fromPath, IArchive* baseArchive) {
+	assert(path == ".");
+	assert(fromPath.empty() || fromPath[fromPath.size() - 1] == '/');
+	root = fromPath;
+
+	return true;
 }
 
-ZArchiveDirent::ZArchiveDirent(const String& r, bool sandBox) : sandBoxEnabled(sandBox) {
-	SetRootPath(r.length() == 0 ? String(".") : r);
+bool ZArchiveDirent::Unmount(const String& path) {
+	assert(path == ".");
+
+	root = "";
+	return true;
+}
+
+ZArchiveDirent::ZArchiveDirent(const String& r) {
+	Mount(".", r.length() == 0 ? String("./") : r, nullptr);
 }
 
 ZArchiveDirent::~ZArchiveDirent() {
@@ -105,14 +114,6 @@ ZArchiveDirent::~ZArchiveDirent() {
 
 bool ZArchiveDirent::IsReadOnly() const {
 	return false;
-}
-
-bool ZArchiveDirent::FilterSandBox(const String& uri) const {
-	if (sandBoxEnabled && uri.find("..") != String::npos) {
-		return true;
-	} else {
-		return false;
-	}
 }
 
 #ifdef _WIN32
@@ -174,10 +175,6 @@ bool ZArchiveDirent::MakeDirectoryForFile(const String& filePath) {
 }
 
 IStreamBase* ZArchiveDirent::Open(const String& uri, bool write, size_t& length, uint64_t* lastModifiedTime) {
-	if (FilterSandBox(uri)) {
-		return nullptr;
-	}
-
 	String path = root + uri;
 
 #if defined(_WIN32) || defined(WIN32)
@@ -254,9 +251,6 @@ IStreamBase* ZArchiveDirent::Open(const String& uri, bool write, size_t& length,
 }
 
 void ZArchiveDirent::Query(const String& uri, const TWrapper<void, bool, const String&>& wrapper) const {
-	if (FilterSandBox(uri)) {
-		return;
-	}
 	String path = root + uri;
 
 #if defined(_WIN32) || defined(WIN32)

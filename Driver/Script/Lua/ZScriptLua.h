@@ -101,8 +101,8 @@ namespace PaintsNow {
 
 		int GetInitDeferCount() const;
 		void SetInitDeferCount(int count);
-		bool IsClosing() const;
-		bool IsHosting() const;
+		bool IsClosing() const override;
+		bool IsHosting() const override;
 
 	private:
 		void Init();

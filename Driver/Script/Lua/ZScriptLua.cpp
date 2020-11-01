@@ -225,12 +225,10 @@ void ZScriptLua::Clear() {
 #ifdef _DEBUG
 	if (totalReference != 0) {
 		for (std::map<size_t, std::pair<uint32_t, String> >::iterator it = debugReferences.begin(); it != debugReferences.end(); ++it) {
-			printf("Leak lua object where: %s\n", (*it).second.second.c_str());
+			printf("Possible leaked lua object at: %s, the object will be auto-released.\n", (*it).second.second.c_str());
 		}
 	}
 #endif
-
-	assert(totalReference == 0);
 }
 
 void ZScriptLua::Init() {

@@ -10,11 +10,12 @@
 namespace PaintsNow {
 	class ZArchiveDirent final : public IArchive {
 	public:
-		ZArchiveDirent(const String& root = ".", bool sandBox = false);
+		ZArchiveDirent(const String& root = "./");
 		~ZArchiveDirent() override;
 
-		const String& GetRootPath() const override;
-		void SetRootPath(const String& path) override;
+		String GetFullPath(const String& path) const override;
+		bool Mount(const String& toPath, const String& fromPath, IArchive* baseArchive) override;
+		bool Unmount(const String& toPath) override;
 
 		IStreamBase* Open(const String& uri, bool write, size_t& length, uint64_t* lastModifiedTime = nullptr) override;
 		void Query(const String& uri, const TWrapper<void, bool, const String&>& wrapper) const override;
@@ -22,13 +23,10 @@ namespace PaintsNow {
 		bool Delete(const String& uri) override;
 
 	private:
-		bool FilterSandBox(const String& uri) const;
 		bool MakeDirectoryForFile(const String& path);
 
 	private:
 		String root;
-		bool sandBoxEnabled;
-		bool reserved[3];
 	};
 }
 

@@ -15,8 +15,9 @@ namespace PaintsNow {
 	class IArchive : public IDevice {
 	public:
 		~IArchive() override;
-		virtual const String& GetRootPath() const = 0;
-		virtual void SetRootPath(const String& path) = 0;
+		virtual String GetFullPath(const String& path) const = 0;
+		virtual bool Mount(const String& toPath, const String& fromPath, IArchive* baseArchive = nullptr) = 0;
+		virtual bool Unmount(const String& toPath) = 0;
 		virtual IStreamBase* Open(const String& uri, bool write, size_t& length, uint64_t* lastModifiedTime = nullptr) = 0;
 		virtual void Query(const String& uri, const TWrapper<void, bool, const String&>& wrapper) const = 0;
 		virtual bool IsReadOnly() const = 0;
