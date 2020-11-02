@@ -90,23 +90,16 @@ String ZArchiveDirent::GetFullPath(const String& path) const {
 	return root + path;
 }
 
-bool ZArchiveDirent::Mount(const String& path, const String& fromPath, IArchive* baseArchive) {
-	assert(path == ".");
-	assert(fromPath.empty() || fromPath[fromPath.size() - 1] == '/');
-	root = fromPath;
-
-	return true;
+bool ZArchiveDirent::Mount(const String& prefix, IArchive* baseArchive) {
+	return false;
 }
 
-bool ZArchiveDirent::Unmount(const String& path) {
-	assert(path == ".");
-
-	root = "";
-	return true;
+bool ZArchiveDirent::Unmount(const String& prefix, IArchive* baseArchive) {
+	return false;
 }
 
 ZArchiveDirent::ZArchiveDirent(const String& r) {
-	Mount(".", r.length() == 0 ? String("./") : r, nullptr);
+	root = r.length() == 0 ? String("./") : r;
 }
 
 ZArchiveDirent::~ZArchiveDirent() {
