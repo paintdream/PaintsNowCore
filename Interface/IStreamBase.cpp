@@ -266,6 +266,10 @@ private:
 IStreamBase::IStreamBase() : environment(nullptr) {}
 IStreamBase::~IStreamBase() {}
 
+bool IStreamBase::Truncate(size_t length) {
+	return false; // not supported
+}
+
 IStreamBase& IStreamBase::GetBaseStream() {
 	return *this;
 }

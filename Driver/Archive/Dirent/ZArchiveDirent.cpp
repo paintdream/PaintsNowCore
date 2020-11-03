@@ -55,6 +55,14 @@ public:
 		return fseek(fp, (long)offset, s) == 0;
 	}
 
+	bool Truncate(size_t length) override {
+#if defined(_WIN32) || defined(WIN32)
+		return _chsize(fileno(fp), length) != 0;
+#else
+		return ftruncate(fileno(fp), length) != 0;
+#endif
+	}
+
 	bool Transfer(IStreamBase& stream, size_t& len) override {
 		const size_t SIZE = 512;
 		char buffer[SIZE];

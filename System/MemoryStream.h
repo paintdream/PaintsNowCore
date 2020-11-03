@@ -22,6 +22,7 @@ namespace PaintsNow {
 		bool Write(const void* p, size_t& len) override;
 		bool WriteDummy(size_t& len) override;
 		bool Seek(SEEK_OPTION option, int64_t offset) override;
+		bool Truncate(size_t length) override;
 		void Flush() override;
 		size_t GetOffset() const;
 		size_t GetTotalLength() const;
