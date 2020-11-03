@@ -13,7 +13,6 @@ namespace PaintsNow {
 		ZArchiveDirent(const String& root = "./");
 		~ZArchiveDirent() override;
 
-		String GetFullPath(const String& path) const override;
 		bool Mount(const String& prefix, IArchive* baseArchive) override;
 		bool Unmount(const String& prefix, IArchive* baseArchive) override;
 

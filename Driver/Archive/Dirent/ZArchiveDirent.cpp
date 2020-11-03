@@ -86,10 +86,6 @@ private:
 	String filePath;
 };
 
-String ZArchiveDirent::GetFullPath(const String& path) const {
-	return root + path;
-}
-
 bool ZArchiveDirent::Mount(const String& prefix, IArchive* baseArchive) {
 	return false;
 }
