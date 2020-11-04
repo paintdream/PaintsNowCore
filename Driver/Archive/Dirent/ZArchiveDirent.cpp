@@ -55,9 +55,10 @@ public:
 		return fseek(fp, (long)offset, s) == 0;
 	}
 
-	bool Truncate(size_t length) override {
+	bool Truncate(uint64_t length) override {
 #if defined(_WIN32) || defined(WIN32)
-		return _chsize(fileno(fp), length) != 0;
+		long size = safe_cast<long>(length);
+		return _chsize(_fileno(fp), size) != 0;
 #else
 		return ftruncate(fileno(fp), length) != 0;
 #endif

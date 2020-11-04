@@ -25,17 +25,18 @@ MemoryStream::~MemoryStream() {
 	IMemory::FreeAligned(buffer);
 }
 
-bool MemoryStream::Truncate(size_t length) {
-	if (length < maxSize) {
-		uint8_t* w = (uint8_t*)IMemory::AllocAligned(length, alignment);
+bool MemoryStream::Truncate(uint64_t length) {
+	size_t len = safe_cast<size_t>(length);
+	if (len < maxSize) {
+		uint8_t* w = (uint8_t*)IMemory::AllocAligned(len, alignment);
 		memcpy(w, buffer, totalSize);
 		std::swap(buffer, w);
 
 		IMemory::FreeAligned(w);
 
-		maxSize = std::min(maxSize, length);
-		totalSize = std::min(totalSize, length);
-		offset = std::min(offset, length);
+		maxSize = std::min(maxSize, len);
+		totalSize = std::min(totalSize, len);
+		offset = std::min(offset, len);
 	}
 
 	return true;

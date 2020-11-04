@@ -266,7 +266,7 @@ private:
 IStreamBase::IStreamBase() : environment(nullptr) {}
 IStreamBase::~IStreamBase() {}
 
-bool IStreamBase::Truncate(size_t length) {
+bool IStreamBase::Truncate(uint64_t length) {
 	return false; // not supported
 }
 
