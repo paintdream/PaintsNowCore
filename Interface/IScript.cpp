@@ -513,7 +513,7 @@ IScript::MetaMethod IScript::MetaMethod::operator = (const String& key) {
 	return MetaMethod(key);
 }
 
-IScript::RequestPool::RequestPool(IScript& pscript, size_t psize) : PoolBase(psize), script(pscript){}
+IScript::RequestPool::RequestPool(IScript& pscript, uint32_t psize) : PoolBase(psize), script(pscript){}
 
 IScript& IScript::RequestPool::GetScript() {
 	return script;

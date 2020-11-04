@@ -1246,7 +1246,7 @@ namespace PaintsNow {
 
 		class RequestPool : public TRefPool<RequestPool, Request> {
 		public:
-			RequestPool(IScript& script, size_t size);
+			RequestPool(IScript& script, uint32_t size);
 			Request* New();
 			void Delete(Request* request);
 			IScript& GetScript();

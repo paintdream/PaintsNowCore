@@ -82,7 +82,7 @@ public:
 		return fseek(fp, (long)len, SEEK_CUR) == 0;
 	}
 
-	virtual long GetOffset() const {
+	long GetOffset() const {
 		return ftell(fp);
 	}
 
@@ -95,6 +95,10 @@ private:
 	String filePath;
 };
 
+String ZArchiveDirent::GetFullPath(const String& path) const {
+	return root + path;
+}
+
 bool ZArchiveDirent::Mount(const String& prefix, IArchive* baseArchive) {
 	return false;
 }
@@ -104,7 +108,7 @@ bool ZArchiveDirent::Unmount(const String& prefix, IArchive* baseArchive) {
 }
 
 ZArchiveDirent::ZArchiveDirent(const String& r) {
-	root = r.length() == 0 ? String("./") : r;
+	root = r.length() == 0 ? String("./") : r[r.size() - 1] == '/' ? r : r + '/';
 }
 
 ZArchiveDirent::~ZArchiveDirent() {

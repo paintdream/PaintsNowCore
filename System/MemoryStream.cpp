@@ -34,9 +34,9 @@ bool MemoryStream::Truncate(uint64_t length) {
 
 		IMemory::FreeAligned(w);
 
-		maxSize = std::min(maxSize, len);
-		totalSize = std::min(totalSize, len);
-		offset = std::min(offset, len);
+		maxSize = Math::Min(maxSize, len);
+		totalSize = Math::Min(totalSize, len);
+		offset = Math::Min(offset, len);
 	}
 
 	return true;
