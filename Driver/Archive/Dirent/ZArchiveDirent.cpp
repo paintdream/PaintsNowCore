@@ -176,7 +176,22 @@ bool ZArchiveDirent::MakeDirectoryForFile(const String& filePath) {
 	#endif
 }
 
-IStreamBase* ZArchiveDirent::Open(const String& uri, bool write, size_t& length, uint64_t* lastModifiedTime) {
+bool ZArchiveDirent::Exists(const String& path) const {
+	if (path.empty()) return false;
+#if defined(_WIN32) || defined(WIN32)
+	String wpath = Utf8ToSystem(root + path);
+	if (path[path.size() - 1] == '/' || path[path.size() - 1] == '\\') {
+		return DirectoryExists((LPCWSTR)wpath.c_str());
+	} else {
+		return GetFileAttributesW((LPCWSTR)wpath.c_str()) != 0xFFFFFFFF;
+	}
+#else
+	struct stat buffer;
+	return stat((root + path).c_str(), &buffer) != 0;
+#endif
+}
+
+IStreamBase* ZArchiveDirent::Open(const String& uri, bool write, uint64_t& length, uint64_t* lastModifiedTime) {
 	String path = root + uri;
 
 #if defined(_WIN32) || defined(WIN32)
@@ -252,7 +267,7 @@ IStreamBase* ZArchiveDirent::Open(const String& uri, bool write, size_t& length,
 	return new FileStream(fp, std::move(path));
 }
 
-void ZArchiveDirent::Query(const String& uri, const TWrapper<void, bool, const String&>& wrapper) const {
+void ZArchiveDirent::Query(const String& uri, const TWrapper<void, const String&>& wrapper) const {
 	String path = root + uri;
 
 #if defined(_WIN32) || defined(WIN32)
@@ -265,7 +280,11 @@ void ZArchiveDirent::Query(const String& uri, const TWrapper<void, bool, const S
 		do {
 			if (findData.cFileName[0] != L'.') {
 				String file = SystemToUtf8(String((const char*)findData.cFileName, wcslen(findData.cFileName) * 2));
-				wrapper(!!(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY), file);
+				if (!!(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+					file += '/';
+				}
+
+				wrapper(file);
 			}
 		} while (::FindNextFileW(hFind, &findData));
 		::FindClose(hFind);
@@ -281,7 +300,9 @@ void ZArchiveDirent::Query(const String& uri, const TWrapper<void, bool, const S
 			if (dp->d_name[0] == '.') continue;
 			// convert to locale
 			String name = SystemToUtf8(String(dp->d_name));
-			wrapper(dp->d_type == DT_DIR, name);
+			if (dp->d_type == DT_DIR) name += '/';
+
+			wrapper(name);
 		}
 
 		closedir(dir);
