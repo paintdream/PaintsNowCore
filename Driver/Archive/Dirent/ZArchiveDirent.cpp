@@ -122,7 +122,7 @@ bool ZArchiveDirent::IsReadOnly() const {
 #include <Shlwapi.h>
 #pragma comment(lib, "Shlwapi.lib")
 
-BOOL DirectoryExists(LPCWSTR szPath) {
+bool DirectoryExists(LPCWSTR szPath) {
 	DWORD dwAttrib = GetFileAttributesW(szPath);
 	return (dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
