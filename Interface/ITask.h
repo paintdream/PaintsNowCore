@@ -5,6 +5,7 @@
 
 #pragma once
 #include "../Template/TAlgorithm.h"
+#include "../Template/TAtomic.h"
 #include "IType.h"
 
 namespace PaintsNow {
@@ -19,6 +20,7 @@ namespace PaintsNow {
 		virtual bool Continue() const = 0;
 
 		ITask* next;
+		size_t queued;
 	};
 
 	class TaskOnce : public ITask {

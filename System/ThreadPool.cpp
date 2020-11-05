@@ -117,23 +117,21 @@ ThreadPool::~ThreadPool() {
 
 bool ThreadPool::Push(ITask* task) {
 	assert(task != nullptr);
-	std::atomic<ITask*>& next = *reinterpret_cast<std::atomic<ITask*>*>(&task->next);
-	if (next.load(std::memory_order_acquire) != nullptr) // already pushed
+	std::atomic<size_t>& queued = *reinterpret_cast<std::atomic<size_t>*>(&task->queued);
+	if (queued.exchange(1, std::memory_order_acquire) == 1) // already pushed
 		return true;
 
 	if (runningToken.load(std::memory_order_relaxed) != 0) {
-		ITask* expected = nullptr;
-		
 		// Chain task
-		if ((ITask*)next.compare_exchange_strong(expected, taskHead.load(std::memory_order_acquire))) {
-			while (!taskHead.compare_exchange_weak(task->next, task, std::memory_order_release)) {
-				YieldThreadFast();
-			}
+		assert(task != taskHead.load(std::memory_order_acquire));
+		task->next = taskHead.load(std::memory_order_acquire);
+		while (!taskHead.compare_exchange_weak(task->next, task, std::memory_order_release)) {
+			YieldThreadFast();
+		}
 
-			std::atomic_thread_fence(std::memory_order_acquire);
-			if (waitEventCounter != 0) {
-				threadApi.Signal(eventPump, false);
-			}
+		std::atomic_thread_fence(std::memory_order_acquire);
+		if (waitEventCounter != 0) {
+			threadApi.Signal(eventPump, false);
 		}
 
 		return true;
@@ -174,6 +172,7 @@ bool ThreadPool::PollRoutine(uint32_t index) {
 			}
 		}
 
+		p->queued = 0;
 		std::atomic_thread_fence(std::memory_order_release);
 
 		// OK. now we can execute the task

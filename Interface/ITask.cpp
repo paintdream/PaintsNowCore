@@ -2,7 +2,10 @@
 
 using namespace PaintsNow;
 
-ITask::ITask() : next(nullptr) {}
+ITask::ITask() : next(nullptr) {
+	queued = 0;
+}
+
 ITask::~ITask() {}
 
 void TaskOnce::Suspend(void* context) {}
