@@ -34,21 +34,8 @@ namespace std {
 	// implement std::atomic<> for Visual C++ 6.0
 	// only support 32 bit atomic operations ..
 	inline void atomic_thread_fence(std::memory_order order) {
-		switch (order) {
-		case memory_order_relaxed:
-			break;
-		case memory_order_consume:
-			_mm_lfence();
-			break;
-		case memory_order_acquire:
-			_mm_lfence();
-			break;
-		case memory_order_release:
-			_mm_sfence();
-			break;
-		default:
-			_mm_mfence();
-			break;
+		if (order != std::memory_order_relaxed) {
+			MemoryBarrier();
 		}
 	}
 
@@ -102,28 +89,30 @@ namespace std {
 		}
 
 		T load(std::memory_order order = std::memory_order_acquire) const {
+			T m = (T)value;
 			atomic_thread_fence(order);
-			return (T)value;
+			return m;
 		}
 
 		void store(T v, std::memory_order order = std::memory_order_release) {
-			value = (int32_t)v;
-			atomic_thread_fence(order);
+			if (order != std::memory_order_seq_cst) {
+				atomic_thread_fence(order);
+				value = (int32_t)v;
+			} else {
+				exchange(v, std::memory_order_seq_cst);
+			}
 		}
 
 		int32_t operator & (T t) const {
-			atomic_thread_fence(std::memory_order_acquire);
-			return value & (int32_t)t;
+			return load(std::memory_order_acquire) & (int32_t)t;
 		}
 
 		int32_t operator | (T t) const {
-			atomic_thread_fence(std::memory_order_acquire);
-			return value | (int32_t)t;
+			return load(std::memory_order_acquire) | (int32_t)t;
 		}
 
 		int32_t operator ^ (T t) const {
-			atomic_thread_fence(std::memory_order_acquire);
-			return value ^ (int32_t)t;
+			return load(std::memory_order_acquire) ^ (int32_t)t;
 		}
 
 		int32_t exchange(T t, std::memory_order order = std::memory_order_seq_cst) {
