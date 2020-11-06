@@ -103,20 +103,20 @@ namespace std {
 			}
 		}
 
-		int32_t operator & (T t) const {
-			return load(std::memory_order_acquire) & (int32_t)t;
+		T operator & (T t) const {
+			return (T)(load(std::memory_order_acquire) & (int32_t)t);
 		}
 
-		int32_t operator | (T t) const {
-			return load(std::memory_order_acquire) | (int32_t)t;
+		T operator | (T t) const {
+			return (T)(load(std::memory_order_acquire) | (int32_t)t);
 		}
 
-		int32_t operator ^ (T t) const {
-			return load(std::memory_order_acquire) ^ (int32_t)t;
+		T operator ^ (T t) const {
+			return (T)(load(std::memory_order_acquire) ^ (int32_t)t);
 		}
 
-		int32_t exchange(T t, std::memory_order order = std::memory_order_seq_cst) {
-			return InterlockedExchange(&value, (int32_t)t);
+		T exchange(T t, std::memory_order order = std::memory_order_seq_cst) {
+			return (T)InterlockedExchange(&value, (int32_t)t);
 		}
 
 		bool compare_exchange_weak(T& old, T u, std::memory_order order = std::memory_order_seq_cst) {

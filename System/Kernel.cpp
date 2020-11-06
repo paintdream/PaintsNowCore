@@ -88,6 +88,8 @@ class ForwardRoutine : public TaskOnce {
 public:
 	ForwardRoutine(Kernel& k, WarpTiny* tn, ITask* tk) : kernel(k), tiny(tn), task(tk) {}
 	void Execute(void* context) override {
+		assert(next == nullptr);
+		assert(queued == 0);
 		// requeue it
 		uint32_t warpIndex = tiny->GetWarpIndex();
 		kernel.QueueRoutine(tiny, task);
@@ -96,6 +98,8 @@ public:
 	}
 
 	void Abort(void* context) override {
+		assert(next == nullptr);
+		assert(queued == 0);
 		// force
 		WarpIndex = tiny->GetWarpIndex();
 		task->Abort(context);
@@ -216,9 +220,19 @@ Kernel::SubTaskQueue::~SubTaskQueue() {}
 
 void Kernel::SubTaskQueue::Flush(ThreadPool& threadPool) {
 	// avoid duplicated flushes
-	if (queueing.exchange(1, std::memory_order_relaxed) == 0) {
-		TaskQueue::Flush(threadPool);
+	if (queueing.load(std::memory_order_acquire) == 0 && queueing.exchange(1, std::memory_order_relaxed) == 0) {
 	}
+		TaskQueue::Flush(threadPool);
+		YieldThread();
+		YieldThread();
+		TaskQueue::Flush(threadPool);
+		YieldThread();
+		TaskQueue::Flush(threadPool);
+		YieldThread();
+		YieldThread();
+		TaskQueue::Flush(threadPool);
+		YieldThread();
+		YieldThread();
 }
 
 bool Kernel::SubTaskQueue::PreemptExecution() {

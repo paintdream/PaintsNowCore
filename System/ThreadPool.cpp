@@ -15,6 +15,9 @@ using namespace PaintsNow;
 
 ThreadPool::ThreadPool(IThread& t, uint32_t tc) : ISyncObject(t), threadCount(tc) {
 	eventPump = threadApi.NewEvent();
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+	critical.store(0, std::memory_order_relaxed);
+#endif
 	Initialize();
 }
 
@@ -87,7 +90,7 @@ void ThreadPool::Uninitialize() {
 		}
 
 		// abort remaining tasks
-		ITask* p = (ITask*)taskHead.exchange(nullptr, std::memory_order_acquire);
+		ITask* p = taskHead.exchange(nullptr, std::memory_order_acquire);
 		while (p != nullptr) {
 			p->Abort(nullptr);
 			ITask* q = p;
@@ -115,19 +118,37 @@ ThreadPool::~ThreadPool() {
 	threadApi.DeleteEvent(eventPump);
 }
 
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+#define USE_PRESERVED_LIST 1
+#else
+#define USE_PRESERVED_LIST 0
+#endif
+
+// #undef assert
+// #define assert(f) if (!(f)) { printf("AT LINE: %d\n", __LINE__); _asm { int 3} }
+
 bool ThreadPool::Push(ITask* task) {
 	assert(task != nullptr);
 	std::atomic<size_t>& queued = *reinterpret_cast<std::atomic<size_t>*>(&task->queued);
-	if (queued.exchange(1, std::memory_order_acquire) == 1) // already pushed
+	if (queued.exchange(1, std::memory_order_acquire) == 1) // already pushe
 		return true;
 
 	if (runningToken.load(std::memory_order_relaxed) != 0) {
 		// Chain task
 		assert(task != taskHead.load(std::memory_order_acquire));
+		assert(task->next == nullptr);
+
+#if USE_PRESERVED_LIST
+		SpinLock(critical);
+		task->next = taskHead.load(std::memory_order_acquire);
+		taskHead.store(task, std::memory_order_relaxed);
+		SpinUnLock(critical); // release
+#else
 		task->next = taskHead.load(std::memory_order_acquire);
 		while (!taskHead.compare_exchange_weak(task->next, task, std::memory_order_release)) {
 			YieldThreadFast();
 		}
+#endif
 
 		std::atomic_thread_fence(std::memory_order_acquire);
 		if (waitEventCounter != 0) {
@@ -151,29 +172,48 @@ bool ThreadPool::PollRoutine(uint32_t index) {
 		}
 	}
 
-	ITask* p = (ITask*)taskHead.exchange(nullptr, std::memory_order_acquire);
+#if USE_PRESERVED_LIST
+	int32_t expected = 0;
+	ITask* p = nullptr;
+	if (critical.compare_exchange_strong(expected, 1, std::memory_order_acquire)) {
+		p = taskHead.load(std::memory_order_acquire);
+		if (p != nullptr) {
+			taskHead.store(p->next, std::memory_order_relaxed);
+		}
+
+		critical.store(0, std::memory_order_release);
+	}
+#else
+	ITask* p = taskHead.exchange(nullptr, std::memory_order_acquire);
+#endif
 	// Has task?
 	if (p != nullptr) {
+#if USE_PRESERVED_LIST
+		p->next = nullptr;
+#else
 		ITask* next = p->next;
 
 		if (next != nullptr) {
 			p->next = nullptr;
 
-			ITask* t = (ITask*)taskHead.exchange(next, std::memory_order_release);
+			ITask* t = taskHead.exchange(next, std::memory_order_release);
 			// Someone has pushed some new tasks at the same time.
 			// So rechain remaining tasks proceeding to the current one to new task head atomically.
 			while (t != nullptr) {
 				ITask* q = t;
 				t = t->next;
+				assert(q != p);
+
 				q->next = taskHead.load(std::memory_order_acquire);
 				while (!taskHead.compare_exchange_weak(q->next, q, std::memory_order_release)) {
 					YieldThreadFast();
 				}
 			}
 		}
-
-		p->queued = 0;
-		std::atomic_thread_fence(std::memory_order_release);
+#endif
+		assert(p->next == nullptr);
+		std::atomic<size_t>& queued = *reinterpret_cast<std::atomic<size_t>*>(&p->queued);
+		queued.store(0, std::memory_order_release);
 
 		// OK. now we can execute the task
 		void* context = threadInfos[index].context;

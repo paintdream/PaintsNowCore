@@ -188,7 +188,7 @@ static int SetIndexer(lua_State* L) {
 }
 
 ZScriptLua::ZScriptLua(IThread& threadApi, lua_State* L) : IScript(threadApi), callCounter(0), runningEvent(nullptr), rawState(L) {
-	closing.store(0, std::memory_order_relaxed);
+	closing.store(1, std::memory_order_relaxed);
 	Init();
 }
 
@@ -219,7 +219,6 @@ void ZScriptLua::Clear() {
 	}
 
 	delete defaultRequest;
-	closing.store(0, std::memory_order_release);
 	UnLock();
 
 #ifdef _DEBUG
@@ -311,6 +310,7 @@ void ZScriptLua::Init() {
 	}
 
 	deferState = lua_newthread(state); // don't pop it from stack unless the state was closed.
+	closing.store(0, std::memory_order_release);
 	UnLock();
 }
 
