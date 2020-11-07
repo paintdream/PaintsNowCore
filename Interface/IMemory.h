@@ -15,8 +15,7 @@
 #endif
 
 namespace PaintsNow {
-	class IMemory {
-	public:
+	namespace IMemory {
 		template <class T>
 		struct ObjectLeakGuard {
 #ifdef _DEBUG
@@ -44,8 +43,6 @@ namespace PaintsNow {
 			}
 #endif
 		};
-
-		virtual ~IMemory();
 
 		static inline void PrefetchRead(const void* address) {
 #ifdef _MSC_VER

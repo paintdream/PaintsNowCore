@@ -12,7 +12,7 @@
 
 namespace PaintsNow {
 	class IStreamBase;
-	class IArchive : public IDevice {
+	class pure_interface IArchive : public IDevice {
 	public:
 		~IArchive() override;
 

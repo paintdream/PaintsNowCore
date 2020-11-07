@@ -431,7 +431,7 @@ namespace PaintsNow {
 	};
 
 	// Reflector
-	class IReflect {
+	class pure_interface IReflect {
 	public:
 		IReflect(bool reflectProperty = true, bool reflectMethod = false, bool reflectInterface = true, bool reflectEnum = false);
 		virtual ~IReflect();

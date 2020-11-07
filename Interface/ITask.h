@@ -9,7 +9,7 @@
 #include "IType.h"
 
 namespace PaintsNow {
-	class ITask {
+	class pure_interface ITask {
 	public:
 		ITask();
 		virtual ~ITask();
@@ -23,7 +23,7 @@ namespace PaintsNow {
 		size_t queued;
 	};
 
-	class TaskOnce : public ITask {
+	class pure_interface TaskOnce : public ITask {
 	public:
 		void Execute(void* context) override = 0;
 		void Suspend(void* context) override;
@@ -32,7 +32,7 @@ namespace PaintsNow {
 		bool Continue() const override;
 	};
 
-	class TaskRepeat : public ITask {
+	class pure_interface TaskRepeat : public ITask {
 	public:
 		void Execute(void* context) override = 0;
 		void Suspend(void* context) override;

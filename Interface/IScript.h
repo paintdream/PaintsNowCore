@@ -31,7 +31,7 @@
 #endif
 
 namespace PaintsNow {
-	class IScript : public IDevice, public ISyncObject {
+	class pure_interface IScript : public IDevice, public ISyncObject {
 	public:
 		class Request;
 		class Object : public TReflected<Object, IReflectObjectComplex> {

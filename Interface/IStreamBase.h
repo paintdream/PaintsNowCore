@@ -6,7 +6,7 @@
 #include <stack>
 
 namespace PaintsNow {
-	class IStreamBase : public TReflected<IStreamBase, IReflectObjectComplex> {
+	class pure_interface IStreamBase : public TReflected<IStreamBase, IReflectObjectComplex> {
 	protected:
 		~IStreamBase() override;
 

@@ -10,7 +10,7 @@
 #include "IStreamBase.h"
 
 namespace PaintsNow {
-	class IFilterBase : public IDevice {
+	class pure_interface IFilterBase : public IDevice {
 	public:
 		~IFilterBase() override;
 		// attach a stream, which all read operations depend on.

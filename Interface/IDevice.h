@@ -4,8 +4,11 @@
 //
 
 #pragma once
+
+#include "../PaintsNow.h"
+
 namespace PaintsNow {
-	class IDevice {
+	class pure_interface IDevice {
 	public:
 		virtual ~IDevice();
 		virtual void ReleaseDevice();

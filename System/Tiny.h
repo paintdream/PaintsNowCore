@@ -10,7 +10,7 @@
 
 namespace PaintsNow {
 	// A tiny object base class with an atomic flag.
-	class Tiny : public TReflected<Tiny, IScript::Object> {
+	class pure_interface Tiny : public TReflected<Tiny, IScript::Object> {
 	public:
 		typedef uint32_t FLAG;
 		enum {
@@ -35,7 +35,7 @@ namespace PaintsNow {
 	};
 
 	// A tiny with builtin reference counting management
-	class SharedTiny : public TReflected<SharedTiny, Tiny> {
+	class pure_interface SharedTiny : public TReflected<SharedTiny, Tiny> {
 	public:
 		// For faster initialization, we do not count the reference on creating Tiny
 		SharedTiny(FLAG f = 0) : BaseClass(f), extReferCount(0) {}
