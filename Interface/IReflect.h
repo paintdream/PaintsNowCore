@@ -133,9 +133,16 @@ namespace PaintsNow {
 				s.erase(i, size);
 		}
 
+		struct InfoHolder {
+			InfoHolder() {
+				info = UniqueAllocator::GetInstance().Create(Demangle(typeid(T).name()), sizeof(typename ReturnType<T>::type));
+			}
+
+			UniqueInfo* info;
+		};
+
 		static Unique Get() {
-			static UniqueInfo* value = UniqueAllocator::GetInstance().Create(Demangle(typeid(T).name()), sizeof(typename ReturnType<T>::type));
-			return value;
+			return TSingleton<InfoHolder>::Get().info;
 		}
 	};
 
