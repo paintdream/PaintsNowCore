@@ -49,7 +49,7 @@ static void HandleError(ZScriptLua* script, lua_State* L) {
 	ZScriptLua::Request s(script, L);
 
 	const char* errMsg = lua_tostring(L, -1);
-	assert(script->GetLockCount() == 1);
+	assert(script->IsLocked());
 	script->UnLock();
 	s.Error(errMsg);
 	if (strcmp(errMsg, "attempt to yield across a C-call boundary") == 0) {
@@ -67,11 +67,11 @@ static int FunctionProxyEx(ZScriptLua* pRet, const IScript::Request::AutoWrapper
 
 	int ptr = lua_gettop(L);
 	// popup all locks
-	assert(pRet->GetLockCount() == 1);
+	assert(pRet->IsLocked());
 	// pRet->UnLock(); // currently not locked in this way
 	(*wrapper).Execute(s);
 	// pRet->DoLock();
-	assert(pRet->GetLockCount() == 1);
+	assert(pRet->IsLocked());
 	valsize = lua_gettop(L) - ptr;
 	return valsize;
 }
@@ -134,7 +134,7 @@ static int FreeMem(lua_State* L) {
 	ZScriptLua::Request s(GetScript(L), L);
 
 	IScript* script = s.GetScript();
-	assert(script->GetLockCount() == 1);
+	assert(script->IsLocked());
 	script->UnLock();
 
 	// printf("<<<< DELETED OBJ: %p Type: %s\n", obj, obj->GetUnique()->GetName().c_str());
@@ -143,7 +143,7 @@ static int FreeMem(lua_State* L) {
 	}
 
 	script->DoLock();
-	assert(script->GetLockCount() == 1);
+	assert(script->IsLocked());
 	return 0;
 }
 
@@ -315,14 +315,14 @@ void ZScriptLua::Init() {
 }
 
 bool ZScriptLua::BeforeCall() {
-	assert(GetLockCount() == 1);
+	assert(IsLocked());
 	callCounter++;
 
 	return true;
 }
 
 void ZScriptLua::AfterCall() {
-	assert(GetLockCount() == 1);
+	assert(IsLocked());
 	if (--callCounter == 0) {
 		std::atomic_thread_fence(std::memory_order_acquire);
 		if (runningEvent != nullptr) {
@@ -351,7 +351,7 @@ IScript::Request::TYPE ZScriptLua::Request::GetReferenceType(const IScript::Requ
 }
 
 bool ZScriptLua::Request::Call(const AutoWrapperBase& defer, const IScript::Request::Ref& g) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	assert(tableLevel == 0);
 	if (state->IsClosing()) return false;
 
@@ -411,12 +411,12 @@ const char* ZScriptLua::GetFileExt() const {
 }
 
 IScript::Request* ZScriptLua::NewRequest(const String& entry) {
-	assert(GetLockCount() == 1);
+	assert(IsLocked());
 	return new ZScriptLua::Request(this, nullptr);
 }
 
 IScript::Request& ZScriptLua::Request::MoveVariables(IScript::Request& target, size_t count) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	lua_xmove(L, (static_cast<ZScriptLua::Request&>(target)).L, (int)count);
 	return *this;
 }
@@ -426,7 +426,7 @@ IScript* ZScriptLua::Request::GetScript() {
 }
 
 int ZScriptLua::Request::GetCount() {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	// return lua_gettop(L);
 	return lua_gettop(L) - initCount;
 }
@@ -437,7 +437,7 @@ IScript::Request& ZScriptLua::Request::CleanupIndex() {
 }
 
 void ZScriptLua::Request::SetIndex(int i) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	idx = i;
 }
 
@@ -512,7 +512,7 @@ IScript::Request& ZScriptLua::Request::operator >> (Arguments& args) {
 }
 
 IScript::Request& ZScriptLua::Request::operator << (const IScript::Request::Global&) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	lua_pushglobaltable(L);
 	// now the top of stack is object table
 	// push index
@@ -522,7 +522,7 @@ IScript::Request& ZScriptLua::Request::operator << (const IScript::Request::Glob
 }
 
 void ZScriptLua::Request::Dereference(IScript::Request::Ref& ref) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	if (ref.value != 0) {
 		lua_rawgetp(L, LUA_REGISTRYINDEX, LUA_RIDX_REFERENCE_KEY);
 		// refget(L, ref);
@@ -613,13 +613,13 @@ void ZScriptLua::Request::DelReference(IScript::Request::Ref ref) {
 }
 
 IScript::Request& ZScriptLua::Request::operator << (const AutoWrapperBase& wrapper) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	Write(L, tableLevel, idx, key, wrapget, wrapper);
 	return *this;
 }
 
 IScript::Request& ZScriptLua::Request::operator >> (IScript::Request::Ref& ref) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 
 	Read(L, tableLevel, idx, key, refadd, ref);
 	AddReference(ref);
@@ -627,7 +627,7 @@ IScript::Request& ZScriptLua::Request::operator >> (IScript::Request::Ref& ref) 
 }
 
 IScript::Request& ZScriptLua::Request::operator << (const IScript::Request::Ref& ref) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	Write(L, tableLevel, idx, key, refget, ref);
 	return *this;
 }
@@ -637,7 +637,7 @@ IScript::Request& ZScriptLua::GetDefaultRequest() {
 }
 
 IScript::Request& ZScriptLua::Request::operator >> (IScript::Request::TableStart& start) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	if (tableLevel == 0) {
 		lua_pushvalue(L, idx++); // table
 	} else {
@@ -681,7 +681,7 @@ IScript::Request& ZScriptLua::Request::operator >> (IScript::Request::ArrayStart
 }
 
 IScript::Request& ZScriptLua::Request::operator << (const IScript::Request::TableStart& t) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	// add table
 	if (tableLevel != 0) {
 		if (key.empty()) {
@@ -714,7 +714,7 @@ IScript::Request& ZScriptLua::Request::operator << (const IScript::Request::Arra
 }
 
 IScript::Request& ZScriptLua::Request::operator << (const IScript::Request::TableEnd& d) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	assert(tableLevel != 0);
 	tableLevel--;
 	lua_pop(L, 2);
@@ -726,7 +726,7 @@ IScript::Request& ZScriptLua::Request::operator << (const IScript::Request::Arra
 }
 
 IScript::Request& ZScriptLua::Request::operator >> (const IScript::Request::TableEnd& d) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	assert(tableLevel != 0);
 	tableLevel--;
 	lua_pop(L, 2);
@@ -738,7 +738,7 @@ IScript::Request& ZScriptLua::Request::operator >> (const IScript::Request::Arra
 }
 
 IScript::Request& ZScriptLua::Request::operator << (double value) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	Write(L, tableLevel, idx, key, lua_pushnumber, value);
 	return *this;
 }
@@ -748,7 +748,7 @@ inline double tonumber(lua_State* L, int index) {
 }
 
 IScript::Request& ZScriptLua::Request::operator >> (double& value) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	Read(L, tableLevel, idx, key, tonumber, value);
 
 	return *this;
@@ -765,13 +765,13 @@ inline String strget(lua_State* L, int index) {
 }
 
 IScript::Request& ZScriptLua::Request::operator << (const String& v) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	Write(L, tableLevel, idx, key, strwrite, v);
 	return *this;
 }
 
 IScript::Request& ZScriptLua::Request::operator >> (String& v) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	Read(L, tableLevel, idx, key, strget, v);
 
 	return *this;
@@ -817,13 +817,13 @@ inline Unique uniqueget(lua_State* L, int index) {
 }
 
 IScript::Request& ZScriptLua::Request::operator << (Unique v) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	Write(L, tableLevel, idx, key, uniquewrite, v);
 	return *this;
 }
 
 IScript::Request& ZScriptLua::Request::operator >> (Unique& v) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	Read(L, tableLevel, idx, key, uniqueget, v);
 
 	return *this;
@@ -831,7 +831,7 @@ IScript::Request& ZScriptLua::Request::operator >> (Unique& v) {
 
 // lua 5.3 now supports 64bit integer
 IScript::Request& ZScriptLua::Request::operator << (int64_t value) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	Write(L, tableLevel, idx, key, lua_pushinteger, value);
 	return *this;
 }
@@ -847,27 +847,27 @@ inline int64_t tointeger(lua_State* L, int index) {
 }
 
 IScript::Request& ZScriptLua::Request::operator >> (int64_t& value) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	Read(L, tableLevel, idx, key, tointeger, value);
 
 	return *this;
 }
 
 IScript::Request& ZScriptLua::Request::operator << (bool value) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	Write(L, tableLevel, idx, key, lua_pushboolean, value);
 	return *this;
 }
 
 IScript::Request& ZScriptLua::Request::operator >> (bool& value) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	Read(L, tableLevel, idx, key, lua_toboolean, value);
 
 	return *this;
 }
 
 IScript::Request& ZScriptLua::Request::operator << (const char* value) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	Write(L, tableLevel, idx, key, lua_pushstring, value);
 
 	return *this;
@@ -878,14 +878,14 @@ inline const char* tostrptr(lua_State* L, int i) {
 }
 
 IScript::Request& ZScriptLua::Request::operator >> (const char*& value) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	Read(L, tableLevel, idx, key, tostrptr, value);
 
 	return *this;
 }
 
 IScript::Request& ZScriptLua::Request::operator << (const IScript::Request::Key& k) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	key = k.name;
 	return *this;
 }
@@ -927,7 +927,7 @@ IScript::Request::TYPE ZScriptLua::Request::ConvertType(int type) {
 
 IScript::Request& ZScriptLua::Request::operator >> (const IScript::Request::Key& y) {
 	IScript::Request::Key& k = const_cast<IScript::Request::Key&>(y);
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	int type;
 	if (tableLevel != 0) {
 		// try to read the value
@@ -989,7 +989,7 @@ inline IScript::Object* ToUserdata(lua_State* L, int idx) {
 }
 
 IScript::Request::Ref ZScriptLua::Request::Reference(const IScript::Request::Ref& d) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	int idx = GetCount();
 	*this << d;
 	IScript::Request::Ref ref = refadd(L, -1);
@@ -1005,7 +1005,7 @@ inline void fake_pushnil(lua_State* L, const IScript::Request::Nil&) {
 }
 
 IScript::Request& ZScriptLua::Request::operator << (const IScript::BaseDelegate& d) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	if (d.GetRaw() != nullptr) {
 		// write
 		IScript::BaseDelegate& m = const_cast<IScript::BaseDelegate&>(d);
@@ -1025,7 +1025,7 @@ IScript::Request& ZScriptLua::Request::operator << (const IScript::BaseDelegate&
 }
 
 IScript::Request& ZScriptLua::Request::operator >> (IScript::BaseDelegate& d) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	Object* p = nullptr;
 	Read(L, tableLevel, idx, key, ToUserdata, p);
 	d = IScript::BaseDelegate(p);
@@ -1034,7 +1034,7 @@ IScript::Request& ZScriptLua::Request::operator >> (IScript::BaseDelegate& d) {
 }
 
 IScript::Request& ZScriptLua::Request::operator << (const Nil& n) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	Write(L, tableLevel, idx, key, fake_pushnil, n);
 	return *this;
 }
@@ -1066,7 +1066,7 @@ IScript::Request::TYPE ZScriptLua::Request::GetCurrentType() {
 
 std::vector<IScript::Request::Key> ZScriptLua::Request::Enumerate() {
 	std::vector<Key> keys;
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	// from lua document
 	lua_pushnil(L);  // first key
 	while (lua_next(L, -3) != 0) { // it's -3, [table, index, frontKey]
@@ -1087,7 +1087,7 @@ void Assign(String& target, const char* str) {
 }
 
 ZScriptLua::Request::Request(ZScriptLua* s, lua_State* l) : state(s), key(""), L(l) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	if (L == nullptr) {
 		L = lua_newthread(s->GetState());
 
@@ -1116,7 +1116,7 @@ inline ZScriptLua::IndexState ZScriptLua::Request::ExchangeState(const IndexStat
 }
 
 IScript::Request::Ref ZScriptLua::Request::Load(const String& script, const String& path) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	// lua_pushlightuserdata(L, LUA_RIDX_REFERENCE_KEY);
 	// lua_rawget(L, LUA_REGISTRYINDEX);
 	// assert(lua_istable(L, -1));
@@ -1138,7 +1138,7 @@ IScript::Request::Ref ZScriptLua::Request::Load(const String& script, const Stri
 }
 
 void ZScriptLua::Request::SetRequestPool(IScript::RequestPool* p) {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 
 	lua_rawgetp(L, LUA_REGISTRYINDEX, LUA_RIDX_REQUEST_POOL_KEY);
 	lua_pushthread(L);
@@ -1148,7 +1148,7 @@ void ZScriptLua::Request::SetRequestPool(IScript::RequestPool* p) {
 }
 
 IScript::RequestPool* ZScriptLua::Request::GetRequestPool() {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 
 	lua_rawgetp(L, LUA_REGISTRYINDEX, LUA_RIDX_REQUEST_POOL_KEY);
 	lua_pushthread(L);
@@ -1161,7 +1161,7 @@ IScript::RequestPool* ZScriptLua::Request::GetRequestPool() {
 }
 
 ZScriptLua::Request::~Request() {
-	assert(GetScript()->GetLockCount() == 1);
+	assert(GetScript()->IsLocked());
 	if (ref.value != 0) {
 		Dereference(ref);
 	}
@@ -1190,7 +1190,7 @@ lua_State* ZScriptLua::GetDeferState() const {
 }
 
 bool ZScriptLua::TryLock() {
-	assert(GetLockCount() == 1);
+	assert(IsLocked());
 	return ISyncObject::TryLock();
 }
 
@@ -1201,11 +1201,11 @@ DWORD HoldingThread = 0;
 
 void ZScriptLua::DoLock() {
 	ISyncObject::DoLock();
-	assert(GetLockCount() == 1);
+	assert(IsLocked());
 }
 
 void ZScriptLua::UnLock() {
-	assert(GetLockCount() == 1);
+	assert(IsLocked());
 	ISyncObject::UnLock();
 }
 

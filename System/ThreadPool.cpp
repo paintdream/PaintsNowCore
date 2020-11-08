@@ -1,10 +1,6 @@
 #define MAX_YIELD_COUNT 8
-#ifdef _WIN32
 #define MAX_WAIT_MILLISECONDS 200
-#else
-// reduce to 1s due to low performance on gettimeofday
-#define MAX_WAIT_MILLISECONDS 1000
-#endif
+
 #include "ThreadPool.h"
 #include "../Template/TProxy.h"
 #include <cassert>
@@ -38,7 +34,7 @@ void ThreadPool::Initialize() {
 	// create thread workers
 	for (size_t i = 0; i < threadInfos.size(); i++) {
 		ThreadInfo& info = threadInfos[i];
-		info.threadHandle = threadApi.NewThread(Wrap(this, &ThreadPool::Run), i, true);
+		info.threadHandle = threadApi.NewThread(Wrap(this, &ThreadPool::Run), i);
 		info.context = nullptr;
 	}
 }

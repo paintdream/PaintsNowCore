@@ -70,7 +70,7 @@ public:
 	}
 
 	void Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta) override {
-		static Unique typedBaseType = UniqueType<IScript::MetaLibrary>::Get();
+		singleton Unique typedBaseType = UniqueType<IScript::MetaLibrary>::Get();
 		
 		if (!s.IsBasicObject() && s.QueryInterface(UniqueType<IScript::Library>()) != nullptr) {
 			for (const MetaChainBase* t = meta; t != nullptr; t = t->GetNext()) {
@@ -106,7 +106,7 @@ public:
 	Registar(IScript::Request& req) : IReflect(true, true), request(req) {}
 
 	void Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta) override {
-		static Unique typedBaseType = UniqueType<IScript::MetaLibrary>::Get();
+		singleton Unique typedBaseType = UniqueType<IScript::MetaLibrary>::Get();
 		
 		if (!s.IsBasicObject() && s.QueryInterface(UniqueType<IScript::Library>()) != nullptr) {
 			for (const MetaChainBase* t = meta; t != nullptr; t = t->GetNext()) {
@@ -122,7 +122,7 @@ public:
 	}
 
 	void Method(Unique typeID, const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) override {
-		static Unique typedBaseType = UniqueType<IScript::MetaMethod::TypedBase>::Get();
+		singleton Unique typedBaseType = UniqueType<IScript::MetaMethod::TypedBase>::Get();
 		for (const MetaChainBase* t = meta; t != nullptr; t = t->GetNext()) {
 			const MetaNodeBase* node = t->GetNode();
 			if (!node->IsBasicObject() && node->GetUnique() == typedBaseType) {
@@ -164,7 +164,7 @@ class Serializer : public IReflect {
 public:
 	Serializer(IScript::Request& req) : IReflect(true, false), request(req) {}
 	void Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta) override {
-		static Unique typedBaseType = UniqueType<IScript::MetaVariable::TypedBase>::Get();
+		singleton Unique typedBaseType = UniqueType<IScript::MetaVariable::TypedBase>::Get();
 		for (const MetaChainBase* t = meta; t != nullptr; t = t->GetNext()) {
 			const MetaNodeBase* node = t->GetNode();
 			if (!node->IsBasicObject() && node->GetUnique() == typedBaseType) {

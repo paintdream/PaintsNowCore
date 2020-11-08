@@ -36,8 +36,8 @@ bool ISyncObject::TryLock() {
 	return threadApi.TryLock(mutex);
 }
 
-size_t ISyncObject::GetLockCount() const {
-	return threadApi.GetLockCount(mutex);
+bool ISyncObject::IsLocked() const {
+	return threadApi.IsLocked(mutex);
 }
 
 IThread& ISyncObject::GetThreadApi() {

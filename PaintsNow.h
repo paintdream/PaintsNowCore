@@ -25,6 +25,9 @@
 
 #if defined(_MSC_VER) && _MSC_VER <= 1200
 #define static_assert(f, g) { int check = sizeof(char[2*(int)(f)]); }
+#define singleton
+#else
+#define singleton static
 #endif
 
 #ifdef CMAKE_PAINTSNOW

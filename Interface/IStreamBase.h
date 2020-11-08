@@ -90,11 +90,11 @@ namespace PaintsNow {
 
 		template <class T>
 		inline StreamState operator << (const T& t) {
-			static Unique u = UniqueType<T>::Get();
+			singleton Unique u = UniqueType<T>::Get();
 #if defined(_MSC_VER) && _MSC_VER <= 1200
-			static Unique ur = UniqueType<std::remove_pointer<T>::type>::Get();
+			singleton Unique ur = UniqueType<std::remove_pointer<T>::type>::Get();
 #else
-			static Unique ur = UniqueType<typename std::remove_pointer<T>::type>::Get();
+			singleton Unique ur = UniqueType<typename std::remove_pointer<T>::type>::Get();
 #endif
 			bool result = WriteForward(t, u, ur, (void*)&t, sizeof(T));
 			return StreamState(*this, result);
@@ -102,11 +102,11 @@ namespace PaintsNow {
 
 		template <class T>
 		inline StreamState operator >> (T& t) {
-			static Unique u = UniqueType<T>::Get();
+			singleton Unique u = UniqueType<T>::Get();
 #if defined(_MSC_VER) && _MSC_VER <= 1200
-			static Unique ur = UniqueType<std::remove_pointer<T>::type>::Get();
+			singleton Unique ur = UniqueType<std::remove_pointer<T>::type>::Get();
 #else
-			static Unique ur = UniqueType<typename std::remove_pointer<T>::type>::Get();
+			singleton Unique ur = UniqueType<typename std::remove_pointer<T>::type>::Get();
 #endif
 			bool result = ReadForward(t, u, ur, (void*)&t, sizeof(T));
 			return StreamState(*this, result);
@@ -147,6 +147,6 @@ namespace PaintsNow {
 	public:
 		virtual bool Read(IStreamBase& streamBase, void* ptr) const = 0;
 		virtual bool Write(IStreamBase& streamBase, const void* ptr) const = 0;
-		virtual const String& GetUniqueName() const = 0;
+		virtual String GetUniqueName() const = 0;
 	};
 }

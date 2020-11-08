@@ -131,7 +131,7 @@ void Kernel::QueueRoutine(WarpTiny* warpTiny, ITask* task) {
 		// since we may not in any thread of thread pool
 		// locking is required because thread pool could be resetting at this time.
 		threadPool.DoLock();
-		assert(threadPool.GetLockCount() != 0);
+		assert(threadPool.IsLocked());
 		// forward to threadPool directly
 		warpTiny->ReferenceObject();
 		threadPool.Push(new ForwardRoutine(*this, warpTiny, task));

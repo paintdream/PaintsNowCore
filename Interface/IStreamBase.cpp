@@ -6,8 +6,8 @@ using namespace PaintsNow;
 const int MAX_INTEGER_SIZE = 64;
 
 inline bool WriteBaseObject(IStreamBase& stream, Unique typeID, Unique refTypeID, void* ptr, size_t size) {
-	static Unique strType = UniqueType<String>::Get();
-	static Unique byteBufferType = UniqueType<Bytes>::Get();
+	singleton Unique strType = UniqueType<String>::Get();
+	singleton Unique byteBufferType = UniqueType<Bytes>::Get();
 	bool result = true;
 	if (typeID != refTypeID) { // pointer
 		IReflectObjectComplex*& object = *reinterpret_cast<IReflectObjectComplex**>(ptr);
@@ -51,8 +51,8 @@ inline bool WriteBaseObject(IStreamBase& stream, Unique typeID, Unique refTypeID
 }
 
 inline bool ReadBaseObject(IStreamBase& stream, Unique typeID, Unique refTypeID, void* ptr, size_t size) {
-	static Unique strType = UniqueType<String>::Get();
-	static Unique byteBufferType = UniqueType<Bytes>::Get();
+	singleton Unique strType = UniqueType<String>::Get();
+	singleton Unique byteBufferType = UniqueType<Bytes>::Get();
 	bool result = true; 
 	if (typeID != refTypeID) {
 		IReflectObjectComplex*& object = *reinterpret_cast<IReflectObjectComplex**>(ptr);
@@ -126,7 +126,7 @@ public:
 		if (!result)
 			return;
 
-		static Unique metaRuntime = UniqueType<MetaRuntime>::Get();
+		singleton Unique metaRuntime = UniqueType<MetaRuntime>::Get();
 		const MetaStreamPersist* customPersist = nullptr;
 
 		// check serialization chain

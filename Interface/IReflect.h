@@ -211,7 +211,7 @@ namespace PaintsNow {
 		// Slow path, not recommended for frequently calls
 		template <class T>
 		T* Inspect(UniqueType<T> unique, const String& key = "") {
-			static Unique u = UniqueType<T>::Get();
+			singleton Unique u = UniqueType<T>::Get();
 			return reinterpret_cast<T*>(InspectEx(u, key));
 		}
 
@@ -456,25 +456,25 @@ namespace PaintsNow {
 		// For enum reflection
 		template <class T>
 		inline void OnEnum(T& t, const char* name, const MetaChainBase* meta) {
-			static Unique u = UniqueType<T>::Get();
+			singleton Unique u = UniqueType<T>::Get();
 			Enum(safe_cast<size_t>(t), u, name, meta);
 		}
 
 		// For class reflection
 		template <class T>
 		inline void OnClass(T& t, const char* name, const char* path, const MetaChainBase* meta) {
-			static Unique u = UniqueType<T>::Get();
+			singleton Unique u = UniqueType<T>::Get();
 			Class(t, u, name, path, meta);
 		}
 
 		// For property reflection
 		template <class T>
 		inline void OnProperty(const T& t, const char* name, void* base, const MetaChainBase* meta) {
-			static Unique u = UniqueType<T>::Get();
+			singleton Unique u = UniqueType<T>::Get();
 #if defined(_MSC_VER) && _MSC_VER <= 1200
-			static Unique ur = UniqueType<std::remove_pointer<T>::type>::Get();
+			singleton Unique ur = UniqueType<std::remove_pointer<T>::type>::Get();
 #else
-			static Unique ur = UniqueType<typename std::remove_pointer<T>::type>::Get();
+			singleton Unique ur = UniqueType<typename std::remove_pointer<T>::type>::Get();
 #endif
 			ForwardProperty(const_cast<T&>(t), u, ur, name, base, (void*)&t, meta);
 		}
@@ -531,7 +531,7 @@ namespace PaintsNow {
 				p.emplace_back(Param(params[i], decayParams[i]));
 			}
 
-			static Unique unique = UniqueType<TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P> >::Get();
+			singleton Unique unique = UniqueType<TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P> >::Get();
 			Method(unique, name, reinterpret_cast<const TProxy<>*>(&t.GetProxy()), retValue, p, meta);
 		}
 #else
@@ -540,17 +540,17 @@ namespace PaintsNow {
 		inline void OnMethod(const TWrapper<R, Args...>& t, const char* name, const MetaChainBase* meta) {
 			std::vector<Param> params;
 			ParseParams(params, t);
-			static Unique u = UniqueType<R>::Get();
-			static Unique d = UniqueType<typename std::decay<R>::type>::Get();
+			singleton Unique u = UniqueType<R>::Get();
+			singleton Unique d = UniqueType<typename std::decay<R>::type>::Get();
 			static Param retValue(u, d);
-			static Unique unique = UniqueType<TWrapper<R, Args...> >::Get();
+			singleton Unique unique = UniqueType<TWrapper<R, Args...> >::Get();
 			Method(unique, name, reinterpret_cast<const TProxy<>*>(&t.GetProxy()), retValue, params, meta);
 		}
 
 		template <typename R, typename V, typename... Args>
 		inline void ParseParams(std::vector<Param>& params, const TWrapper<R, V, Args...>&) {
-			static Unique u = UniqueType<V>::Get();
-			static Unique d = UniqueType<typename std::decay<V>::type>::Get();
+			singleton Unique u = UniqueType<V>::Get();
+			singleton Unique d = UniqueType<typename std::decay<V>::type>::Get();
 			params.emplace_back(Param(u, d));
 			ParseParams(params, TWrapper<R, Args...>());
 		}
@@ -748,7 +748,7 @@ namespace PaintsNow {
 	template <class T>
 	struct Creatable {
 		Creatable() {
-			static Unique u = UniqueType<T>::Get();
+			singleton Unique u = UniqueType<T>::Get();
 			u->creator = &Creatable::Create;
 		}
 		static void Init() {
@@ -784,8 +784,8 @@ namespace PaintsNow {
 	class RegisterInterface {
 	public:
 		RegisterInterface() {
-			static Unique t = UniqueType<T>::Get();
-			static Unique p = UniqueType<P>::Get();
+			singleton Unique t = UniqueType<T>::Get();
+			singleton Unique p = UniqueType<P>::Get();
 
 			// We do not support virtual inheritance
 			// Just gen offset from T to P
@@ -830,7 +830,7 @@ namespace PaintsNow {
 		template <class T, class D>
 		inline const MetaInterface<P>& FilterField(T* t, D* d) const {
 			// class T is Interfaced form class P
-			static RegisterInterface<T, P>& reg = TSingleton<RegisterInterface<T, P> >::Get();
+			singleton RegisterInterface<T, P>& reg = TSingleton<RegisterInterface<T, P> >::Get();
 			
 			return *this; // do nothing
 		}
@@ -889,7 +889,7 @@ namespace PaintsNow {
 
 		template <class T>
 		T* operator [](UniqueType<T> ut) {
-			static Unique u = UniqueType<T>::Get();
+			singleton Unique u = UniqueType<T>::Get();
 			return reinterpret_cast<T*>(Find(u, ut));
 		}
 
@@ -973,7 +973,7 @@ namespace PaintsNow {
 		}
 
 		Unique GetUnique() const override {
-			static Unique unique = IReflectObject::GetUnique();
+			singleton Unique unique = IReflectObject::GetUnique();
 			return unique;
 		}
 	};

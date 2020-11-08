@@ -80,7 +80,7 @@ namespace PaintsNow {
 		struct Delegate : public BaseDelegate {
 		protected:
 			inline T* GetNative() const {
-				static Unique u = UniqueType<T>::Get();
+				singleton Unique u = UniqueType<T>::Get();
 				Object* p = GetRaw();
 				if (p != nullptr && (u == p->GetUnique() || p->QueryInterface(UniqueType<T>()) != nullptr)) {
 					return static_cast<T*>(p);
@@ -91,7 +91,7 @@ namespace PaintsNow {
 
 		public:
 			inline const String& GetTypeName() const {
-				static Unique u = UniqueType<T>::Get();
+				singleton Unique u = UniqueType<T>::Get();
 				return u->GetName();
 			}
 

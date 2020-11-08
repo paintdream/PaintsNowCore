@@ -378,7 +378,7 @@ void FilterPodImpl::Property(IReflectObject& s, Unique typeID, Unique refTypeID,
 	if (current == nullptr)
 		return;
 
-	static Unique metaRuntime = UniqueType<MetaRuntime>::Get();
+	singleton Unique metaRuntime = UniqueType<MetaRuntime>::Get();
 	// check serialization chain
 	const MetaStreamPersist* customPersister = nullptr;
 	while (meta != nullptr) {
@@ -400,8 +400,8 @@ void FilterPodImpl::Property(IReflectObject& s, Unique typeID, Unique refTypeID,
 		postfix = String("@") + customPersister->GetUniqueName();
 	}
 
-	static const Unique uniqueString = UniqueType<String>::Get();
-	static const Unique uniqueByteBuffer = UniqueType<Bytes>::Get();
+	singleton Unique uniqueString = UniqueType<String>::Get();
+	singleton Unique uniqueByteBuffer = UniqueType<Bytes>::Get();
 
 	assert((const char*)ptr - (const char*)base != 0); // must have space for virtual table?
 	// Process Attrib
