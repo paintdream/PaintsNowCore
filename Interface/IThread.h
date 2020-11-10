@@ -5,12 +5,12 @@
 
 #pragma once
 
-#include "../PaintsNow.h"
-#include "../Interface/IType.h"
-#include "../Template/TProxy.h"
-#include "IDevice.h"
 
 #if defined(_MSC_VER) && _MSC_VER <= 1200
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x501
+#endif
+
 #include <windows.h>
 
 inline void YieldThread() {
@@ -38,6 +38,11 @@ inline void YieldThreadFast() {
 #endif
 
 
+#include "../PaintsNow.h"
+#include "../Interface/IType.h"
+#include "../Template/TProxy.h"
+#include "IDevice.h"
+
 namespace PaintsNow {
 	class pure_interface IThread : public IDevice {
 	public:
@@ -47,9 +52,6 @@ namespace PaintsNow {
 		class Thread {};
 		class Event {};
 		
-		virtual void AttachLocalThread() const = 0;
-		virtual void DetachLocalThread() const = 0;
-
 		virtual Thread* NewThread(const TWrapper<bool, Thread*, size_t>& wrapper, size_t index) = 0;
 		virtual bool IsThreadRunning(Thread* thread) const = 0;
 		virtual void Wait(Thread* thread) = 0;
@@ -63,7 +65,7 @@ namespace PaintsNow {
 		virtual void DeleteLock(Lock* lock) = 0;
 
 		virtual Event* NewEvent() = 0;
-		virtual void Signal(Event* event, bool broadcast) = 0;
+		virtual void Signal(Event* event) = 0;
 		virtual void Wait(Event* event, Lock* lock) = 0;
 		virtual void Wait(Event* event, Lock* lock, size_t timeout) = 0;
 		virtual void DeleteEvent(Event* event) = 0;

@@ -11,8 +11,6 @@ namespace PaintsNow {
 	public:
 		ZThreadPthread();
 		~ZThreadPthread() override;
-		void AttachLocalThread() const override;
-		void DetachLocalThread() const override;
 		IThread::Thread* NewThread(const TWrapper<bool, IThread::Thread*, size_t>& wrapper, size_t index) override;
 		bool IsThreadRunning(Thread* thread) const override;
 		void Wait(Thread* thread) override;
@@ -26,7 +24,7 @@ namespace PaintsNow {
 		void DeleteLock(Lock* lock) override;
 
 		Event* NewEvent() override;
-		void Signal(Event* event, bool broadcast) override;
+		void Signal(Event* event) override;
 		void Wait(Event* event, Lock* lock) override;
 		void Wait(Event* event, Lock* lock, size_t timeout) override;
 		void DeleteEvent(Event* event) override;

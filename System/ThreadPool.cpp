@@ -148,7 +148,7 @@ bool ThreadPool::Push(ITask* task) {
 
 		std::atomic_thread_fence(std::memory_order_acquire);
 		if (waitEventCounter != 0) {
-			threadApi.Signal(eventPump, false);
+			threadApi.Signal(eventPump);
 		}
 
 		return true;

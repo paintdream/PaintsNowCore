@@ -326,7 +326,7 @@ void ZScriptLua::AfterCall() {
 	if (--callCounter == 0) {
 		std::atomic_thread_fence(std::memory_order_acquire);
 		if (runningEvent != nullptr) {
-			threadApi.Signal(runningEvent, false);
+			threadApi.Signal(runningEvent);
 			runningEvent = nullptr;
 		}
 	}
