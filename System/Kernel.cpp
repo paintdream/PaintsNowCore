@@ -220,19 +220,9 @@ Kernel::SubTaskQueue::~SubTaskQueue() {}
 
 void Kernel::SubTaskQueue::Flush(ThreadPool& threadPool) {
 	// avoid duplicated flushes
-	if (queueing.load(std::memory_order_acquire) == 0 && queueing.exchange(1, std::memory_order_relaxed) == 0) {
+	if (queueing.exchange(1, std::memory_order_relaxed) == 0) {
+		TaskQueue::Flush(threadPool);
 	}
-		TaskQueue::Flush(threadPool);
-		YieldThread();
-		YieldThread();
-		TaskQueue::Flush(threadPool);
-		YieldThread();
-		TaskQueue::Flush(threadPool);
-		YieldThread();
-		YieldThread();
-		TaskQueue::Flush(threadPool);
-		YieldThread();
-		YieldThread();
 }
 
 bool Kernel::SubTaskQueue::PreemptExecution() {

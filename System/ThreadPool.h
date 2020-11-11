@@ -47,9 +47,7 @@ namespace PaintsNow {
 		uint32_t waitEventCounter;
 		uint32_t threadCount;
 		IThread::Event* eventPump;
-#if defined(_MSC_VER) && _MSC_VER <= 1200
 		std::atomic<int32_t> critical;
-#endif
 
 		struct ThreadInfo {
 			IThread::Thread* threadHandle;

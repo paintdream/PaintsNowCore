@@ -11,9 +11,7 @@ using namespace PaintsNow;
 
 ThreadPool::ThreadPool(IThread& t, uint32_t tc) : ISyncObject(t), threadCount(tc) {
 	eventPump = threadApi.NewEvent();
-#if defined(_MSC_VER) && _MSC_VER <= 1200
 	critical.store(0, std::memory_order_relaxed);
-#endif
 	Initialize();
 }
 
