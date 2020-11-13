@@ -38,7 +38,7 @@ namespace PaintsNow {
 	// Runtime class info
 	class UniqueAllocator;
 	struct UniqueInfo {
-		UniqueInfo() : size(0), allocator(nullptr) {}
+		UniqueInfo() : size(0), allocator(nullptr) { critical.store(0, std::memory_order_relaxed); }
 		size_t GetSize() const { return size; }
 		const String& GetName() const { return typeName; } // Get full name (demangled)
 		IReflectObject* Create() const { return creator(); } // Create instance, notice that not all uniques support this action
@@ -61,6 +61,7 @@ namespace PaintsNow {
 	public:
 		TWrapper<IReflectObject*> creator;
 		std::vector<std::key_value<UniqueInfo*, size_t> > interfaces; // Derivations, managed with flatmap
+		std::atomic<size_t> critical;
 	};
 
 	// Allocator that allocates uniques.
@@ -204,7 +205,7 @@ namespace PaintsNow {
 		}
 
 		static const IReflectObject& TransformReflectObject(const IReflectObject& t) {
-			static const IReflectObject s;
+			const IReflectObject& s = TSingleton<IReflectObject>::Get();
 			return t.IsBasicObject() ? s : t;
 		}
 		
@@ -246,9 +247,10 @@ namespace PaintsNow {
 		virtual void Initialize(size_t count) = 0; // initialize container with specified count of elements
 		virtual size_t GetTotalCount() const = 0; // get count of elements
 		virtual void* Get() = 0; // get current element address
-		virtual const IReflectObject& GetPrototype() const = 0; // get a element prototype
-		virtual Unique GetPrototypeUnique() const = 0; // get unique of element
-		virtual Unique GetPrototypeReferenceUnique() const = 0; // get reference unique of element, usually used on container that hold pointers
+		virtual Unique GetElementUnique() const = 0; // get unique of element
+		virtual Unique GetElementReferenceUnique() const = 0; // get reference unique of element, usually used on container that hold pointers
+		virtual const IReflectObject& GetElementPrototype() const = 0;
+		virtual bool IsElementBasicObject() const = 0;
 		virtual bool IsLayoutLinear() const = 0; // check if the memory layout is linear
 		virtual bool IsLayoutPinned() const = 0; // check if it is addressable from prototype element
 		virtual bool Next() = 0; // iterate next element
@@ -274,11 +276,11 @@ namespace PaintsNow {
 			return base->size();
 		}
 
-		Unique GetPrototypeUnique() const override {
+		Unique GetElementUnique() const override {
 			return UniqueType<value_type>::Get();
 		}
 
-		Unique GetPrototypeReferenceUnique() const override {
+		Unique GetElementReferenceUnique() const override {
 #if defined(_MSC_VER) && _MSC_VER <= 1200
 			return UniqueType<std::remove_pointer<value_type>::type>::Get();
 #else
@@ -286,10 +288,16 @@ namespace PaintsNow {
 #endif
 		}
 
-		const IReflectObject& GetPrototype() const override {
-			static const value_type t = value_type();
-			static const IReflectObject& object = IReflectObject::TransformReflectObject(t);
-			return object;
+		virtual bool IsElementBasicObject() const override {
+			const value_type t = value_type();
+			const IReflectObject& obj = TransformReflectObject(t);
+
+			return (void*)&obj != (void*)&t;
+		}
+
+		virtual const IReflectObject& GetElementPrototype() const override {
+			assert(!IsElementBasicObject());
+			return TSingleton<value_type>::Get();
 		}
 
 		void* Get() override {
@@ -793,6 +801,7 @@ namespace PaintsNow {
 			const P* convert = static_cast<const P*>(object);
 			size_t offset = (uint8_t*)convert - (uint8_t*)object;
 
+			assert(t->critical.exchange(1, std::memory_order_acquire) == 0);
 			t->interfaces.reserve(t->interfaces.size() + p->interfaces.size() + 1);
 			std::binary_insert(t->interfaces, std::make_key_value(p.GetInfo(), offset));
 			// merge casts
@@ -800,6 +809,7 @@ namespace PaintsNow {
 				std::key_value<UniqueInfo*, size_t> v = p->interfaces[k];
 				std::binary_insert(t->interfaces, std::make_key_value(v.first, v.second + offset));
 			}
+			assert(t->critical.exchange(0, std::memory_order_acquire) == 1);
 		}
 	};
 
@@ -851,7 +861,7 @@ namespace PaintsNow {
 	class BuiltinTypeWrapper : public IReflectObject {};
 
 #define ReflectBuiltinSubtype(v) \
-	{ static BuiltinTypeWrapper<v> proto; reflect.Class(proto, UniqueType<v>::Get(), #v, "C++", nullptr); }
+	{ BuiltinTypeWrapper<v> proto; reflect.Class(proto, UniqueType<v>::Get(), #v, "C++", nullptr); }
 
 #define ReflectBuiltinType(v) \
 	ReflectBuiltinSubtype(v); \
@@ -967,7 +977,7 @@ namespace PaintsNow {
 		typedef Base NativeBaseClass;
 
 		TObject<IReflect>& operator () (IReflect& reflect) override {
-			static MetaOption option;
+			singleton MetaOption option;
 			ReflectClass(Class)[ReflectInterface(NativeBaseClass)][option];
 			return *this;
 		}

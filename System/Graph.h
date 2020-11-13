@@ -92,8 +92,8 @@ namespace PaintsNow {
 				if (!s.IsBasicObject()) {
 					if (s.IsIterator()) {
 						IIterator& it = static_cast<IIterator&>(s);
-						Unique subType = it.GetPrototypeUnique();
-						Unique refSubType = it.GetPrototypeReferenceUnique();
+						Unique subType = it.GetElementUnique();
+						Unique refSubType = it.GetElementReferenceUnique();
 						if (subType != refSubType && refSubType->IsClass(UniqueType<Port>::Get())) {
 							size_t i = 0;
 							while (it.Next()) {
@@ -102,7 +102,7 @@ namespace PaintsNow {
 								TShared<Port>& p = *reinterpret_cast<TShared<Port>*>(it.Get());
 								assert(p);
 
-								Property(*p(), subType, it.GetPrototypeReferenceUnique(), ss.str().c_str(), ptr, &p, nullptr);
+								Property(*p(), subType, it.GetElementReferenceUnique(), ss.str().c_str(), ptr, &p, nullptr);
 							}
 						}
 					} else {

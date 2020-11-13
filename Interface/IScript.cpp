@@ -181,7 +181,7 @@ public:
 						request << key(entry->name.empty() ? name : entry->name) << begintable;
 					}
 
-					if (it.GetPrototype().IsBasicObject()) {
+					if (it.IsElementBasicObject()) {
 						while (it.Next()) {
 							void* ptr = it.Get();
 							if (read) {

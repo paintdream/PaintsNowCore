@@ -169,7 +169,7 @@ static void* StreamLocateHandler(void* locateContext, void** iterator, PodSize* 
 
 	// check linearness
 	assert(type->persister == nullptr);
-	if (type->subPersister == nullptr && it->IsLayoutLinear() && it->GetPrototype().IsBasicObject()) {
+	if (type->subPersister == nullptr && it->IsLayoutLinear() && it->IsElementBasicObject()) {
 		// can copy directly
 		void* obj = nullptr;
 		if (it->Next()) {
@@ -333,6 +333,7 @@ const FilterPodImpl::Type& FilterPodImpl::GetRegisteredType(IReflectObject& s, U
 	std::map<std::pair<Unique, String>, Type>::iterator p = mapTypes.find(std::make_pair(unique, ext));
 	if (p == mapTypes.end()) {
 		// Not registered
+		static std::atomic<uint32_t> critical = 0;
 		Register(s);
 
 		return mapTypes[std::make_pair(unique, ext)];
@@ -430,17 +431,16 @@ void FilterPodImpl::Property(IReflectObject& s, Unique typeID, Unique refTypeID,
 		}
 	} else if (s.IsIterator()) {
 		IIterator& iter = static_cast<IIterator&>(s);
-		std::ostringstream os;
+		std::stringstream os;
 		os << name << "[" << (size_t)typeID.GetInfo() << "]";
 		bool created = false;
 		Type& type = NewType(typeID, os.str(), postfix, created);
 
 		if (created) {
 			type.iterator = (static_cast<IIterator&>(s)).New();
-			const IReflectObject& prototype = iter.GetPrototype();
-			Unique subUnique = iter.GetPrototypeUnique();
-			if (prototype.IsBasicObject() && customPersister == nullptr) {
-				if (subUnique != iter.GetPrototypeReferenceUnique()) {
+			Unique subUnique = iter.GetElementUnique();
+			if (iter.IsElementBasicObject() && customPersister == nullptr) {
+				if (subUnique != iter.GetElementReferenceUnique()) {
 					Type& subType = NewType(subUnique, subUnique->GetName(), postfix, created);
 					PodInsert(type.pod, (const uint8_t*)"[]", 0, 0, 0, 1, subType.pod);
 				} else {
@@ -453,7 +453,7 @@ void FilterPodImpl::Property(IReflectObject& s, Unique typeID, Unique refTypeID,
 						type.subPersister = subType.persister = static_cast<MetaStreamPersist*>(customPersister->Clone());
 						PodSetHandler(subType.pod, CustomizedLocateHandler, nullptr, subType.persister);
 					} else {
-						OnSubClass(const_cast<IReflectObject&>(prototype), name);
+						OnSubClass(const_cast<IReflectObject&>(iter.GetElementPrototype()), name);
 					}
 				}
 

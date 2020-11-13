@@ -185,10 +185,10 @@ public:
 				}
 			}
 
-			Unique type = it.GetPrototypeUnique();
+			Unique type = it.GetElementUnique();
 			bool isPointer = typeID != refTypeID;
 
-			if (it.GetPrototype().IsBasicObject()) {
+			if (it.IsElementBasicObject()) {
 				while (it.Next()) {
 					void* ptr = it.Get();
 					size_t length = type->GetSize();

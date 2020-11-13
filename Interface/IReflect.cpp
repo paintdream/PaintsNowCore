@@ -156,8 +156,8 @@ public:
 		if (!s.IsBasicObject()) {
 			if (s.IsIterator()) {
 				IIterator& iterator = static_cast<IIterator&>(s);
-				if (iterator.GetPrototype().IsBasicObject()) {
-					size += iterator.GetPrototypeUnique()->GetSize() * iterator.GetTotalCount();
+				if (iterator.IsElementBasicObject()) {
+					size += iterator.GetElementUnique()->GetSize() * iterator.GetTotalCount();
 				} else {
 					while (iterator.Next()) {
 						IReflectObjectComplex* object = reinterpret_cast<IReflectObjectComplex*>(iterator.Get());
@@ -205,7 +205,7 @@ IIterator::~IIterator() {}
 
 String IIterator::ToString() const {
 	std::stringstream ss;
-	ss << "Collection<" << GetPrototypeUnique()->GetName() << "> (" << std::hex << (size_t)this << " ) [" << std::dec << GetTotalCount() << "]";
+	ss << "Collection<" << GetElementUnique()->GetName() << "> (" << std::hex << (size_t)this << " ) [" << std::dec << GetTotalCount() << "]";
 	return ss.str();
 }
 
