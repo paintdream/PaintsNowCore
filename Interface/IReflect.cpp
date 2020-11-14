@@ -340,15 +340,31 @@ UniqueAllocator::UniqueAllocator() {
 	critical.store(0, std::memory_order_relaxed);
 }
 
+UniqueInfo::~UniqueInfo() {
+	if (allocator != nullptr) {
+		assert(!allocator->mapType.count(typeName));
+	}
+}
+
 UniqueAllocator::~UniqueAllocator() {
-	for (std::unordered_map<String, UniqueInfo*>::iterator it = mapType.begin(); it != mapType.end(); ++it) {
+	std::unordered_map<String, UniqueInfo*> types;
+	std::swap(mapType, types);
+
+	for (std::unordered_map<String, UniqueInfo*>::iterator it = types.begin(); it != types.end(); ++it) {
 		delete (*it).second;
 	}
 }
 
-UniqueInfo* UniqueAllocator::Create(const String& key, size_t size) {
-	SpinLock(critical);
+UniqueInfo* UniqueAllocator::CreateSafe(const String& key, size_t size) {
+	DoLock();
+	UniqueInfo* info = Create(key, size);
+	UnLock();
 
+	return info;
+}
+
+UniqueInfo* UniqueAllocator::Create(const String& key, size_t size) {
+	assert(critical.load(std::memory_order_acquire) != 0);
 	std::unordered_map<String, UniqueInfo*>::iterator it = mapType.find(key);
 	UniqueInfo* ret = nullptr;
 	if (it == mapType.end()) {
@@ -364,7 +380,6 @@ UniqueInfo* UniqueAllocator::Create(const String& key, size_t size) {
 		}
 	}
 
-	SpinUnLock(critical);
 	return ret;
 }
 
@@ -396,11 +411,19 @@ Unique MetaVoid::GetUnique() const {
 	return UniqueType<Void>::Get();
 }
 
+UniqueAllocator& UniqueAllocator::GetInstance() {
+	return TSingleton<UniqueAllocator>::Get();
+}
+
+void UniqueAllocator::DoLock() {
+	SpinLock(critical);
+}
+
+void UniqueAllocator::UnLock() {
+	SpinUnLock(critical);
+}
+
 namespace PaintsNow {
-	UniqueAllocator& UniqueAllocator::GetInstance() {
-		static UniqueAllocator& theAllocator = TSingleton<UniqueAllocator>::Get();
-		return theAllocator;
-	}
 
 	MetaNote Note("");
 	MetaConstructable Constructable;

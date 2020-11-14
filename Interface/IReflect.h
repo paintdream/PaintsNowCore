@@ -39,6 +39,7 @@ namespace PaintsNow {
 	class UniqueAllocator;
 	struct UniqueInfo {
 		UniqueInfo() : size(0), allocator(nullptr) { critical.store(0, std::memory_order_relaxed); }
+		~UniqueInfo();
 		size_t GetSize() const { return size; }
 		const String& GetName() const { return typeName; } // Get full name (demangled)
 		IReflectObject* Create() const { return creator(); } // Create instance, notice that not all uniques support this action
@@ -72,9 +73,13 @@ namespace PaintsNow {
 
 		// Return the global allocator.
 		static UniqueAllocator& GetInstance();
+		void DoLock();
+		void UnLock();
 
 		// Create unique structure
 		UniqueInfo* Create(const String& name, size_t size = 0);
+		UniqueInfo* CreateSafe(const String& name, size_t size = 0);
+		friend struct UniqueInfo;
 
 	protected:
 		UniqueAllocator(const UniqueAllocator& rhs);
@@ -85,7 +90,7 @@ namespace PaintsNow {
 	// Quick wrapper for runtime class info
 	struct Unique {
 		Unique(UniqueInfo* f = nullptr) : info(f) {}
-		Unique(const String& name) : info(UniqueAllocator::GetInstance().Create(name)) {}
+		Unique(const String& name) : info(UniqueAllocator::GetInstance().CreateSafe(name)) {}
 
 		bool operator == (const Unique& unique) const { return info == unique.info; }
 		bool operator != (const Unique& unique) const { return info != unique.info; }
@@ -136,7 +141,10 @@ namespace PaintsNow {
 
 		struct InfoHolder {
 			InfoHolder() {
-				info = UniqueAllocator::GetInstance().Create(Demangle(typeid(T).name()), sizeof(typename ReturnType<T>::type));
+				UniqueAllocator& allocator = UniqueAllocator::GetInstance();
+				allocator.DoLock();
+				info = allocator.Create(Demangle(typeid(T).name()), sizeof(typename ReturnType<T>::type));
+				allocator.UnLock();
 			}
 
 			UniqueInfo* info;

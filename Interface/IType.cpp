@@ -324,7 +324,7 @@ namespace PaintsNow {
 		DWORD dwMinSize;
 		dwMinSize = ::MultiByteToWideChar(CP_UTF8, 0, str.data(), (int)str.size(), nullptr, 0);
 		String ret;
-		ret.resize((size_t)dwMinSize * sizeof(WCHAR) + sizeof(WCHAR), 0);
+		ret.resize((size_t)dwMinSize * sizeof(WCHAR) + sizeof(WCHAR) * 2, 0);
 		::MultiByteToWideChar(CP_UTF8, 0, str.data(), (int)str.size(), (WCHAR*)(ret.data()), dwMinSize);
 		return ret;
 	}
