@@ -333,7 +333,6 @@ const FilterPodImpl::Type& FilterPodImpl::GetRegisteredType(IReflectObject& s, U
 	std::map<std::pair<Unique, String>, Type>::iterator p = mapTypes.find(std::make_pair(unique, ext));
 	if (p == mapTypes.end()) {
 		// Not registered
-		static std::atomic<uint32_t> critical = 0;
 		Register(s);
 
 		return mapTypes[std::make_pair(unique, ext)];
@@ -434,7 +433,7 @@ void FilterPodImpl::Property(IReflectObject& s, Unique typeID, Unique refTypeID,
 		std::stringstream os;
 		os << name << "[" << (size_t)typeID.GetInfo() << "]";
 		bool created = false;
-		Type& type = NewType(typeID, os.str(), postfix, created);
+		Type& type = NewType(typeID, StdToUtf8(os.str()), postfix, created);
 
 		if (created) {
 			type.iterator = (static_cast<IIterator&>(s)).New();

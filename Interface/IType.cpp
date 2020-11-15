@@ -11,9 +11,6 @@
 #include <xmmintrin.h>
 #endif
 
-#ifdef UNIFY_STRING_LAYOUT
-const size_t PaintsNow::String::npos = -1;
-#endif
 namespace PaintsNow {
 	std::vector<String> Split(const String& str, char sep) {
 		std::vector<String> result;
@@ -319,12 +316,22 @@ namespace PaintsNow {
 		}
 	}
 
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+	String StdToUtf8(const std::string& str) {
+		return String(str.c_str(), str.size());
+	}
+
+	std::string Utf8ToStd(const String& str) {
+		return std::string(str.c_str(), str.size());
+	}
+#endif
+
 #ifdef _WIN32
 	String Utf8ToSystem(const String& str) {
 		DWORD dwMinSize;
 		dwMinSize = ::MultiByteToWideChar(CP_UTF8, 0, str.data(), (int)str.size(), nullptr, 0);
 		String ret;
-		ret.resize((size_t)dwMinSize * sizeof(WCHAR) + sizeof(WCHAR) * 2, 0);
+		ret.resize((size_t)dwMinSize * sizeof(WCHAR) + sizeof(WCHAR), 0);
 		::MultiByteToWideChar(CP_UTF8, 0, str.data(), (int)str.size(), (WCHAR*)(ret.data()), dwMinSize);
 		return ret;
 	}

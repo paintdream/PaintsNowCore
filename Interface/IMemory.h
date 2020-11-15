@@ -91,6 +91,9 @@ namespace PaintsNow {
 			free(data);
 #endif
 		}
+
+		enum BREAK_TYPE { EXECUTE, READWRITE, WRITE };
+		void SetHardwareBreakpoint(void* address, size_t length, BREAK_TYPE type, size_t slot);
 	};
 }
 

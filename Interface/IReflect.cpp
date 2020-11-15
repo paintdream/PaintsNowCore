@@ -185,7 +185,7 @@ public:
 String IReflectObjectComplex::ToString() const {
 	std::stringstream ss;
 	ss << GetUnique()->GetName() << " (" << std::hex << (void*)this << ")";
-	return ss.str();
+	return StdToUtf8(ss.str());
 }
 
 size_t IReflectObjectComplex::ReportMemoryUsage() const {
@@ -206,7 +206,7 @@ IIterator::~IIterator() {}
 String IIterator::ToString() const {
 	std::stringstream ss;
 	ss << "Collection<" << GetElementUnique()->GetName() << "> (" << std::hex << (size_t)this << " ) [" << std::dec << GetTotalCount() << "]";
-	return ss.str();
+	return StdToUtf8(ss.str());
 }
 
 bool IIterator::IsBasicObject() const {

@@ -305,7 +305,8 @@ namespace PaintsNow {
 
 		virtual const IReflectObject& GetElementPrototype() const override {
 			assert(!IsElementBasicObject());
-			return TSingleton<value_type>::Get();
+			static const value_type t = value_type();
+			return TransformReflectObject(t);
 		}
 
 		void* Get() override {

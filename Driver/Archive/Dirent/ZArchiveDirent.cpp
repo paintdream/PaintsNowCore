@@ -133,6 +133,7 @@ bool MakeDirectoryRecursive(const wchar_t* path) {
 	if (!PathRemoveFileSpecW(fullPath)) return false;
 	if (!DirectoryExists(fullPath)) {
 		if (path[0] == '\0') return false;
+		
 		if (MakeDirectoryRecursive(fullPath)) {
 			return ::CreateDirectoryW(fullPath, nullptr) != FALSE;
 		} else {

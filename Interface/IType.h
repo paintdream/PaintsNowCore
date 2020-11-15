@@ -30,6 +30,8 @@ typedef char int8_t;
 typedef short int16_t;
 typedef int int32_t;
 typedef __int64 int64_t;
+
+#include "../Backport/VC98STRING.h"
 #else
 #include <stdint.h>
 #endif
@@ -41,36 +43,13 @@ typedef __int64 int64_t;
 
 namespace PaintsNow {
 #if defined(_MSC_VER) && _MSC_VER <= 1200
-	class String : public std::string {
-	public:
-		String() {}
-		typedef std::string Base;
-		String(const char* s) : Base(s) {}
-		String(const char* s, size_t length) : Base(s, length) {}
-		String(const std::string& s) : Base(s) {}
-		String(const String& s, size_t pos, size_t len = std::string::npos) : Base(s, pos, len) {}
-		String(size_t n, char c) : Base(n, c) {}
-		template <class It>
-		String(It begin, It end) : Base(begin, end) {}
-
-		explicit String(rvalue<String>& s) { std::swap(*this, *s.pointer); }
-		String& operator = (const char* s) {
-			Base::operator = (s);
-			return *this;
-		}
-
-		String& operator = (const std::string& s) {
-			Base::operator = (s);
-			return *this;
-		}
-
-		String& operator = (rvalue<String> s) {
-			std::swap(*this, *s.pointer);
-			return *this;
-		}
-	};
+	typedef std::string_mt String;
+	std::string Utf8ToStd(const String& str);
+	String StdToUtf8(const std::string& str);
 #else
 	typedef std::string String;
+#define StdToUtf8(f) (f)
+#define Utf8ToStd(f) (f)
 #endif
 	uint32_t HashBuffer(const void* buffer, size_t length);
 	std::vector<String> Split(const String& str, char sep = ' ');
