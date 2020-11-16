@@ -10,10 +10,10 @@ void IMemory::SetHardwareBreakpoint(void* address, size_t length, BREAK_TYPE typ
 #ifdef _WIN32
 	assert(slot < 4);
 	slot = slot % 4;
-	DWORD flag = (1
+	size_t flag = (1
 		| (type == EXECUTE ? 0 : type == WRITE ? 0x10000 : 0x30000)
-		| (length == 8 ? 0x2000000 : length == 4 ? 0x3000000 : length == 2 ? 0x1000000 : 0)) << (DWORD)(slot * 2);
-	DWORD mask = (0x3 | 0x30000 | 0x3000000) << (DWORD)(slot * 2);
+		| (length == 8 ? 0x2000000 : length == 4 ? 0x3000000 : length == 2 ? 0x1000000 : 0)) << (slot * 2);
+	size_t mask = (0x3 | 0x30000 | 0x3000000) << (slot * 2);
 
 	HANDLE h = ::CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
 	DWORD currentThreadID = ::GetCurrentThreadId();
