@@ -207,15 +207,17 @@ namespace PaintsNow {
 		virtual void ReleaseObject(); // call `FinalDestroy` by default.
 		virtual void FinalDestroy();
 
-		// These two functions are work-arounds for gcc compiler.
+
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+		// These two functions are work-arounds for msvc compiler.
+		static const IReflectObject& TransformReflectObject(const IReflectObject& t) {
+			return t.IsBasicObject() ? TSingleton<IReflectObject>::Get() : t;
+		}
+
 		static const IReflectObject& TransformReflectObject(IReflectObject& t) {
 			return t;
 		}
-
-		static const IReflectObject& TransformReflectObject(const IReflectObject& t) {
-			const IReflectObject& s = TSingleton<IReflectObject>::Get();
-			return t.IsBasicObject() ? s : t;
-		}
+#endif
 		
 		// Slow path, not recommended for frequently calls
 		template <class T>
@@ -297,16 +299,25 @@ namespace PaintsNow {
 		}
 
 		virtual bool IsElementBasicObject() const override {
+#if defined(_MSC_VER) && _MSC_VER <= 1200
 			const value_type t = value_type();
 			const IReflectObject& obj = TransformReflectObject(t);
 
 			return (void*)&obj != (void*)&t;
+#else
+			return !std::is_base_of<IReflectObject, value_type>::value;
+#endif
 		}
 
 		virtual const IReflectObject& GetElementPrototype() const override {
 			assert(!IsElementBasicObject());
 			static const value_type t = value_type();
+#if defined(_MSC_VER) && _MSC_VER <= 1200
 			return TransformReflectObject(t);
+#else
+			static typename std::conditional<std::is_base_of<IReflectObject, value_type>::value, const IReflectObject&, const IReflectObject>::type v = t;
+			return v;
+#endif
 		}
 
 		void* Get() override {

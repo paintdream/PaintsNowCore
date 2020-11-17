@@ -112,8 +112,8 @@ namespace PaintsNow {
 
 		struct ControlBlock {
 			TAllocator* allocator;
-			std::atomic<size_t> refCount;
-			std::atomic<size_t> recycled;
+			std::atomic<uint32_t> refCount;
+			std::atomic<uint32_t> recycled;
 			std::atomic<size_t> bitmap[BITMAPSIZE];
 		};
 
@@ -158,10 +158,10 @@ namespace PaintsNow {
 							recycled.pop_back();
 
 							p->recycled.store(0, std::memory_order_relaxed);
+							recycleCount.fetch_sub(1, std::memory_order_relaxed);
 						}
-						SpinUnLock(critical, (size_t)(recycled.empty() ? 0u : 2u));
+						SpinUnLock(critical, (uint32_t)(recycled.empty() ? 0u : 2u));
 
-						recycleCount.fetch_sub(1, std::memory_order_relaxed);
 						// no elements?
 						if (p != nullptr) {
 							assert(p->refCount.load(std::memory_order_acquire) >= 1);
@@ -206,6 +206,55 @@ namespace PaintsNow {
 			return nullptr; // never reach here
 		}
 
+		inline void* AllocateUnsafe() {
+			while (true) {
+				ControlBlock* p = (ControlBlock*)controlBlock.load(std::memory_order_relaxed);
+
+				if (p == nullptr) {
+					// need a new block
+					if (!recycled.empty()) {
+						p = recycled.back();
+						recycled.pop_back();
+
+						p->recycled.store(0, std::memory_order_relaxed);
+						--(*(uint32_t*)&recycleCount);
+					} else {
+						p = reinterpret_cast<ControlBlock*>(TRootAllocator<M, S>::Get().Allocate());
+						memset(p, 0, sizeof(ControlBlock));
+						p->allocator = this;
+						p->refCount.store(1, std::memory_order_relaxed); // newly allocated one, just set it to 1
+					}
+				}
+
+				// search for an empty slot
+				for (size_t k = 0; k < BITMAPSIZE; k++) {
+					size_t& mask = *(size_t*)&p->bitmap[k];
+					if (mask != ~(size_t)0) {
+						size_t bit = Math::Alignment(mask + 1);
+						mask |= bit;
+						// get index of bitmap
+						size_t index = Math::Log2(bit) + OFFSET + k * 8 * sizeof(size_t);
+						if (index < N) {
+							++(*(uint32_t*)&p->refCount);
+
+							// Unsafe: not referencing self.
+							// BaseClass::ReferenceObject();
+							// add to recycle system if needed
+							RecycleUnsafe(p);
+
+							return reinterpret_cast<char*>(p) + index * K;
+						}
+					}
+				}
+
+				// full?
+				TryFreeUnsafe(p);
+			}
+
+			assert(false);
+			return nullptr; // never reach here
+		}
+
 		static inline void Deallocate(void* ptr) {
 			size_t t = reinterpret_cast<size_t>(ptr);
 			ControlBlock* p = reinterpret_cast<ControlBlock*>(t & ~(SIZE - 1));
@@ -213,11 +262,26 @@ namespace PaintsNow {
 			p->allocator->Deallocate(p, id);
 		}
 
+		static inline void DeallocateUnsafe(void* ptr) {
+			size_t t = reinterpret_cast<size_t>(ptr);
+			ControlBlock* p = reinterpret_cast<ControlBlock*>(t & ~(SIZE - 1));
+			size_t id = (t - (size_t)p) / K - OFFSET;
+			p->allocator->DeallocateUnsafe(p, id);
+		}
+
 	protected:
 		inline void TryFree(ControlBlock* p) {
 			assert(p->refCount.load(std::memory_order_acquire) != 0);
 			if (p->refCount.fetch_sub(1, std::memory_order_release) == 1) {
 				assert(controlBlock.load(std::memory_order_acquire) != p);
+				TRootAllocator<M, S>::Get().Deallocate(p);
+			}
+		}
+
+		inline void TryFreeUnsafe(ControlBlock* p) {
+			assert(p->refCount.load(std::memory_order_relaxed) != 0);
+			if (--*(uint32_t*)&p->refCount == 0) {
+				assert(controlBlock.load(std::memory_order_relaxed) != p);
 				TRootAllocator<M, S>::Get().Deallocate(p);
 			}
 		}
@@ -233,15 +297,37 @@ namespace PaintsNow {
 					if (p->recycled.exchange(1, std::memory_order_acquire) == 0) {
 						std::binary_insert(recycled, p);
 						recycleCount.fetch_add(1, std::memory_order_relaxed);
-						SpinUnLock(critical, (size_t)2u);
+						SpinUnLock(critical, (uint32_t)2u);
 
 						// recycled succeed
 						return;
 					}
-					SpinUnLock(critical, (size_t)(recycled.empty() ? 0u : 2u));
+					SpinUnLock(critical, (uint32_t)(recycled.empty() ? 0u : 2u));
 				}
 
 				TryFree(p);
+			}
+		}
+
+		inline void RecycleUnsafe(ControlBlock* p) {
+			assert(p->refCount.load(std::memory_order_relaxed) != 0);
+
+			if (controlBlock.load(std::memory_order_relaxed) == nullptr) {
+				controlBlock.store(p, std::memory_order_relaxed);
+			} else {
+				// search for recycled
+				if (recycleCount.load(std::memory_order_relaxed) < R && p->recycled.load(std::memory_order_relaxed) == 0) {
+					if (p->recycled.load(std::memory_order_relaxed) == 0) {
+						p->recycled.store(1, std::memory_order_relaxed);
+						std::binary_insert(recycled, p);
+						++*(uint32_t*)&recycleCount;
+
+						// recycled succeed
+						return;
+					}
+				}
+
+				TryFreeUnsafe(p);
 			}
 		}
 
@@ -253,10 +339,20 @@ namespace PaintsNow {
 			BaseClass::ReleaseObject();
 		}
 
+		inline void DeallocateUnsafe(ControlBlock* p, size_t id) {
+			assert(p->allocator != nullptr);
+			*(size_t*)&p->bitmap[id / BITS] &= ~((size_t)1 << (id & MASK));
+
+			RecycleUnsafe(p);
+
+			// Unsafe: not referencing self.
+			// BaseClass::ReleaseObject();
+		}
+
 	protected:
 		std::atomic<ControlBlock*> controlBlock;
-		std::atomic<size_t> critical;
-		std::atomic<size_t> recycleCount;
+		std::atomic<uint32_t> critical;
+		std::atomic<uint32_t> recycleCount;
 		std::vector<ControlBlock*> recycled;
 	};
 
@@ -268,6 +364,11 @@ namespace PaintsNow {
 		static inline void Delete(T* object) {
 			object->~T();
 			Base::Deallocate(object);
+		}
+
+		static inline void DeleteUnsafe(T* object) {
+			object->~T();
+			Base::DeallocateUnsafe(object);
 		}
 
 		void ReferenceObject() override {
@@ -379,16 +480,123 @@ namespace PaintsNow {
 			void* ptr = Allocate();
 			return new (ptr) T(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p);
 		}
+
+		inline T* NewUnsafe() {
+			void* ptr = AllocateUnsafe();
+			return new (ptr) T();
+		}
+
+		template <class A>
+		inline T* NewUnsafe(A a) {
+			void* ptr = AllocateUnsafe();
+			return new (ptr) T(a);
+		}
+
+		template <class A, class B>
+		inline T* NewUnsafe(A a, B b) {
+			void* ptr = AllocateUnsafe();
+			return new (ptr) T(a, b);
+		}
+
+		template <class A, class B, class C>
+		inline T* NewUnsafe(A a, B b, C c) {
+			void* ptr = AllocateUnsafe();
+			return new (ptr) T(a, b, c);
+		}
+
+		template <class A, class B, class C, class D>
+		inline T* NewUnsafe(A a, B b, C c, D d) {
+			void* ptr = AllocateUnsafe();
+			return new (ptr) T(a, b, c, d);
+		}
+
+		template <class A, class B, class C, class D, class E>
+		inline T* NewUnsafe(A a, B b, C c, D d, E e) {
+			void* ptr = AllocateUnsafe();
+			return new (ptr) T(a, b, c, d, e);
+		}
+
+		template <class A, class B, class C, class D, class E, class F>
+		inline T* NewUnsafe(A a, B b, C c, D d, E e, F f) {
+			void* ptr = AllocateUnsafe();
+			return new (ptr) T(a, b, c, d, e, f);
+		}
+
+		template <class A, class B, class C, class D, class E, class F, class G>
+		inline T* NewUnsafe(A a, B b, C c, D d, E e, F f, G g) {
+			void* ptr = AllocateUnsafe();
+			return new (ptr) T(a, b, c, d, e, f, g);
+		}
+
+		template <class A, class B, class C, class D, class E, class F, class G, class H>
+		inline T* NewUnsafe(A a, B b, C c, D d, E e, F f, G g, H h) {
+			void* ptr = AllocateUnsafe();
+			return new (ptr) T(a, b, c, d, e, f, g, h);
+		}
+
+		template <class A, class B, class C, class D, class E, class F, class G, class H, class I>
+		inline T* NewUnsafe(A a, B b, C c, D d, E e, F f, G g, H h, I i) {
+			void* ptr = AllocateUnsafe();
+			return new (ptr) T(a, b, c, d, e, f, g, h, i);
+		}
+
+		template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J>
+		inline T* NewUnsafe(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j) {
+			void* ptr = AllocateUnsafe();
+			return new (ptr) T(a, b, c, d, e, f, g, h, i, j);
+		}
+
+		template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K>
+		inline T* NewUnsafe(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k) {
+			void* ptr = AllocateUnsafe();
+			return new (ptr) T(a, b, c, d, e, f, g, h, i, j, k);
+		}
+
+		template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L>
+		inline T* NewUnsafe(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l) {
+			void* ptr = AllocateUnsafe();
+			return new (ptr) T(a, b, c, d, e, f, g, h, i, j, k, l);
+		}
+
+		template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M>
+		inline T* NewUnsafe(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m) {
+			void* ptr = AllocateUnsafe();
+			return new (ptr) T(a, b, c, d, e, f, g, h, i, j, k, l, m);
+		}
+
+		template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N>
+		inline T* NewUnsafe(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n) {
+			void* ptr = AllocateUnsafe();
+			return new (ptr) T(a, b, c, d, e, f, g, h, i, j, k, l, m, n);
+		}
+
+		template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N, class O>
+		inline T* NewUnsafe(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n, O o) {
+			void* ptr = AllocateUnsafe();
+			return new (ptr) T(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o);
+		}
+
+		template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N, class O, class P>
+		inline T* NewUnsafe(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n, O o, P p) {
+			void* ptr = AllocateUnsafe();
+			return new (ptr) T(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p);
+		}
 #else
 		template <typename... Args>
 		inline T* New(Args&&... args) {
 			void* ptr = Base::Allocate();
 			return new (ptr) T(std::forward<Args>(args)...);
 		}
+
+		template <typename... Args>
+		inline T* NewUnsafe(Args&&... args) {
+			void* ptr = Base::AllocateUnsafe();
+			return new (ptr) T(std::forward<Args>(args)...);
+		}
 #endif
 	};
 
-	template <class T, class B, size_t M = 8192, size_t Align = 64>
+	template <class T, class B, size_t M = 8192, size_t Align = 64, bool MT = true>
 	class pure_interface TAllocatedTiny : public TReflected<T, B> {
 	public:
 		typedef TObjectAllocator<T, M, Align> Allocator;
@@ -417,7 +625,11 @@ namespace PaintsNow {
 #endif
 
 		void FinalDestroy() override {
-			Allocator::Delete(static_cast<T*>(this));
+			if (MT) {
+				Allocator::Delete(static_cast<T*>(this));
+			} else {
+				Allocator::DeleteUnsafe(static_cast<T*>(this));
+			}
 		}
 	};
 }
