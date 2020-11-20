@@ -203,4 +203,30 @@ namespace PaintsNow {
 	IScript::Request& operator << (IScript::Request& request, const TShared<T>& t) {
 		return request << IScript::BaseDelegate(static_cast<IScript::Object*>(t()));
 	}
+
+	template <class T>
+	class TSharedTinyWrapper : public SharedTiny {
+	public:
+		TSharedTinyWrapper(const T& t) : object(t) {}
+		TSharedTinyWrapper(rvalue<T> t) : object(std::move(t)) {}
+
+		operator T& () {
+			return object;
+		}
+
+		operator const T& () const {
+			return object;
+		}
+
+		const T& Get() const {
+			return object;
+		}
+
+		T& Get() {
+			return object;
+		}
+
+	protected:
+		T object;
+	};
 }
