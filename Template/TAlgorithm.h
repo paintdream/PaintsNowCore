@@ -63,7 +63,12 @@ namespace PaintsNow {
 
 		template <class T>
 		T Alignment(T a) {
-			return a & (~a + 1);
+			return a & (~a + 1); // the same as a & -a, but no compiler warnings.
+		}
+
+		template <class T>
+		T AlignmentMask(T a) {
+			return ~(Alignment(a) - 1);
 		}
 
 		template <class T>
