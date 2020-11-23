@@ -30,6 +30,7 @@ namespace PaintsNow {
 
 		// Pool specified thread task on current thread. (can be run with non-pooled thread)
 		bool PollRoutine(uint32_t index);
+		bool IsRunning() const;
 
 		IThread& GetThreadApi();
 		void Initialize();

@@ -19,6 +19,30 @@ void WarpTiny::AssertWarp(Kernel& kernel) const {
 	assert(GetWarpIndex() == kernel.GetCurrentWarpIndex());
 }
 
+bool WarpTiny::Wait(Kernel& kernel, FLAG mask, FLAG flag) {
+	uint32_t warpIndex = GetWarpIndex();
+	assert(kernel.GetCurrentWarpIndex() == warpIndex);
+	kernel.YieldCurrentWarp();
+
+	ThreadPool& threadPool = kernel.threadPool;
+	uint32_t threadIndex = threadPool.GetCurrentThreadIndex();
+	while (((Flag().load(std::memory_order_acquire) & mask) != flag) && threadPool.IsRunning()) {
+		threadPool.PollRoutine(threadIndex);
+	}
+
+	if (!threadPool.IsRunning()) {
+		return false;
+	} else {
+		Kernel::SubTaskQueue& queue = kernel.taskQueueGrid[warpIndex];
+		while (!queue.PreemptExecution()) {
+			threadPool.PollRoutine(threadIndex);
+		}
+
+		// ok
+		return threadPool.IsRunning();
+	}
+}
+
 Kernel::Kernel(ThreadPool& tp, uint32_t warpCount) : threadPool(tp) {
 	uint32_t threadCount = (uint32_t)threadPool.GetThreadCount();
 	if (warpCount == 0) {

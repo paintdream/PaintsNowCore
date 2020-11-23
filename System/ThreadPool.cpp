@@ -225,6 +225,10 @@ bool ThreadPool::PollRoutine(uint32_t index) {
 	}
 }
 
+bool ThreadPool::IsRunning() const {
+	return runningToken.load(std::memory_order_acquire);
+}
+
 bool ThreadPool::Run(IThread::Thread* thread, size_t index) {
 	// set thread local
 	localThreadIndex = safe_cast<uint32_t>(index);

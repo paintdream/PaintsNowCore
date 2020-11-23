@@ -26,6 +26,7 @@ namespace PaintsNow {
 		void SetWarpIndex(uint32_t warpIndex);
 		uint32_t GetWarpIndex() const;
 		void AssertWarp(Kernel& kernel) const;
+		bool Wait(Kernel& kernel, FLAG mask, FLAG expected = 0);
 	};
 
 #define CHECK_THREAD(warpTiny) \
