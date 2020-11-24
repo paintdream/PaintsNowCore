@@ -559,8 +559,7 @@ namespace PaintsNow {
 				p.emplace_back(Param(params[i], decayParams[i]));
 			}
 
-			singleton Unique unique = UniqueType<TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P> >::Get();
-			Method(unique, name, reinterpret_cast<const TProxy<>*>(&t.GetProxy()), retValue, p, meta);
+			Method(name, reinterpret_cast<const TProxy<>*>(&t.GetProxy()), retValue, p, meta);
 		}
 #else
 		// For method reflection
@@ -571,8 +570,7 @@ namespace PaintsNow {
 			singleton Unique u = UniqueType<R>::Get();
 			singleton Unique d = UniqueType<typename std::decay<R>::type>::Get();
 			static Param retValue(u, d);
-			singleton Unique unique = UniqueType<TWrapper<R, Args...> >::Get();
-			Method(unique, name, reinterpret_cast<const TProxy<>*>(&t.GetProxy()), retValue, params, meta);
+			Method(name, reinterpret_cast<const TProxy<>*>(&t.GetProxy()), retValue, params, meta);
 		}
 
 		template <typename R, typename V, typename... Args>
@@ -589,7 +587,7 @@ namespace PaintsNow {
 
 		// override these functions and enable isReflectXXXXX to accept corresponding reflection requests
 		virtual void Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta);
-		virtual void Method(Unique typeID, const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta);
+		virtual void Method(const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta);
 		virtual void Class(IReflectObject& host, Unique id, const char* name, const char* path, const MetaChainBase* meta);
 		virtual void Enum(size_t value, Unique id, const char* name, const MetaChainBase* meta);
 
@@ -925,7 +923,7 @@ namespace PaintsNow {
 
 		virtual void* Find(Unique unique, const String& key) const;
 		void Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta) override;
-		void Method(Unique typeID, const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) override;
+		void Method(const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) override;
 
 	private:
 		std::map<Unique, std::map<String, void*> > entries;

@@ -35,7 +35,7 @@ public:
 public:
 	// IReflect
 	void Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta) override;
-	void Method(Unique typeID, const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) override;
+	void Method(const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) override;
 	void Class(IReflectObject& host, Unique id, const char* name, const char* path, const MetaChainBase* meta) override;
 
 	IReflectObjectComplex* CreateObjectFromMeta(const String& metaData);
@@ -489,7 +489,7 @@ void FilterPodImpl::Register(IReflectObject& object) {
 	object(*this);
 }
 
-void FilterPodImpl::Method(Unique typeID, const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) {
+void FilterPodImpl::Method(const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) {
 	// Not handled now
 	assert(false);
 }

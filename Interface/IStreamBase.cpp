@@ -254,7 +254,7 @@ public:
 			s(*this); // continue to reflect sub fields
 		}
 	}
-	void Method(Unique typeID, const char* name, const TProxy<>* p, const IReflect::Param& retValue, const std::vector<IReflect::Param>& params, const MetaChainBase* meta) override {}
+	void Method(const char* name, const TProxy<>* p, const IReflect::Param& retValue, const std::vector<IReflect::Param>& params, const MetaChainBase* meta) override {}
 	
 	bool GetResult() const { return result; }
 

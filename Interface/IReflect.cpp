@@ -85,7 +85,7 @@ public:
 	}
 
 	void* GetTarget() const { return target; }
-	void Method(Unique typeID, const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) override {}
+	void Method(const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) override {}
 	
 
 private:
@@ -109,7 +109,7 @@ void Inspector::Property(IReflectObject& s, Unique typeID, Unique refTypeID, con
 	entries[typeID][name] = s.IsBasicObject() ? ptr : &s;
 }
 
-void Inspector::Method(Unique typeID, const char* name, const TProxy<>* p, const IReflect::Param& retValue, const std::vector<IReflect::Param>& params, const MetaChainBase* meta) {}
+void Inspector::Method(const char* name, const TProxy<>* p, const IReflect::Param& retValue, const std::vector<IReflect::Param>& params, const MetaChainBase* meta) {}
 
 void* Inspector::Find(Unique unique, const String& filter) const {
 	std::map<Unique, std::map<String, void*> >::const_iterator it = entries.find(unique);
@@ -274,7 +274,7 @@ void IReflect::RegisterBuiltinTypes(bool useStdintType) {
 
 void IReflect::Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta) {}
 
-void IReflect::Method(Unique typeID, const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) {}
+void IReflect::Method(const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) {}
 
 void IReflect::Enum(size_t value, Unique id, const char* name, const MetaChainBase* meta) {}
 
@@ -298,7 +298,7 @@ public:
 
 public:
 	void Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta) override;
-	void Method(Unique typeID, const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) override;
+	void Method(const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) override;
 	void Class(IReflectObject& host, Unique id, const char* name, const char* path, const MetaChainBase* meta) override;
 
 private:
@@ -313,7 +313,7 @@ ReflectQueryType::ReflectQueryType(IReflectObject& object) : IReflect(false, fal
 
 void ReflectQueryType::Property(IReflectObject& s, Unique typeID, Unique refTypeID, const char* name, void* base, void* ptr, const MetaChainBase* meta) {}
 
-void ReflectQueryType::Method(Unique typeID, const char* name, const TProxy<>* p, const IReflect::Param& retValue, const std::vector<IReflect::Param>& params, const MetaChainBase* meta) {}
+void ReflectQueryType::Method(const char* name, const TProxy<>* p, const IReflect::Param& retValue, const std::vector<IReflect::Param>& params, const MetaChainBase* meta) {}
 
 void ReflectQueryType::Class(IReflectObject& host, Unique id, const char* name, const char* path, const MetaChainBase* meta) {
 	type = id;

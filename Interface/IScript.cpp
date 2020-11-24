@@ -121,7 +121,7 @@ public:
 		}
 	}
 
-	void Method(Unique typeID, const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) override {
+	void Method(const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) override {
 		singleton Unique typedBaseType = UniqueType<IScript::MetaMethod::TypedBase>::Get();
 		for (const MetaChainBase* t = meta; t != nullptr; t = t->GetNext()) {
 			const MetaNodeBase* node = t->GetNode();
@@ -212,7 +212,7 @@ public:
 		}
 	}
 
-	void Method(Unique typeID, const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) override {}
+	void Method(const char* name, const TProxy<>* p, const Param& retValue, const std::vector<Param>& params, const MetaChainBase* meta) override {}
 
 	IScript::Request& request;
 	size_t itemCount;
