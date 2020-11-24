@@ -15,16 +15,13 @@ namespace PaintsNow {
 	template <class T, size_t K = 8, size_t C = 16>
 	class TQueue {
 	public:
-#if defined(_MSC_VER) && _MSC_VER <= 1200
-		TQueue(const TQueue& queue) {
-#else
-		TQueue(TQueue&& queue) {
-#endif
+		TQueue(rvalue<TQueue> q) {
+			TQueue& queue = q;
 			pushIndex = queue.pushIndex;
 			popIndex = queue.popIndex;
 			ringBuffer = queue.ringBuffer;
 			next = queue.next;
-			const_cast<TQueue&>(queue).ringBuffer = nullptr;
+			queue.ringBuffer = nullptr;
 		}
 
 		enum {
