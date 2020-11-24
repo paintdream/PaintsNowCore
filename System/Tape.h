@@ -5,8 +5,8 @@
 
 #pragma once 
 
-#include "../../Core/Interface/IStreamBase.h"
-#include "../../Core/Interface/IType.h"
+#include "../Interface/IStreamBase.h"
+#include "../Interface/IType.h"
 
 namespace PaintsNow {
 	// A timestamp/sequence-id tagged data recorder

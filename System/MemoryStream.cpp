@@ -1,5 +1,5 @@
 #include "MemoryStream.h"
-#include "../../Core/Interface/IMemory.h"
+#include "../Interface/IMemory.h"
 
 using namespace PaintsNow;
 

@@ -1,5 +1,5 @@
 #include "Tape.h"
-#include "../../Core/Template/TAlgorithm.h"
+#include "../Template/TAlgorithm.h"
 #include <cassert>
 
 using namespace PaintsNow;

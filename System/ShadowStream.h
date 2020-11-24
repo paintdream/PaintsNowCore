@@ -4,9 +4,9 @@
 //
 
 #pragma once
-#include "../../Core/Interface/IType.h"
-#include "../../Core/Interface/IStreamBase.h"
-#include "../../Core/Template/TBuffer.h"
+#include "../Interface/IType.h"
+#include "../Interface/IStreamBase.h"
+#include "../Template/TBuffer.h"
 
 namespace PaintsNow {
 	class ShadowStream : public IStreamBase {

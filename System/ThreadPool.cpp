@@ -124,7 +124,7 @@ ThreadPool::~ThreadPool() {
 bool ThreadPool::Push(ITask* task) {
 	assert(task != nullptr);
 	std::atomic<size_t>& queued = *reinterpret_cast<std::atomic<size_t>*>(&task->queued);
-	if (queued.exchange(1, std::memory_order_acquire) == 1) // already pushe
+	if (queued.exchange(1, std::memory_order_acquire) == 1) // already pushed
 		return true;
 
 	if (runningToken.load(std::memory_order_relaxed) != 0) {

@@ -4,7 +4,7 @@
 
 #pragma once
 #include "../../../Interface/IArchive.h"
-#include "../../../../Core/Interface/IStreamBase.h"
+#include "../../../Interface/IStreamBase.h"
 #include <iconv.h>
 
 namespace PaintsNow {

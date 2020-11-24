@@ -4,8 +4,8 @@
 //
 
 #pragma once
-#include "../../Core/Interface/IType.h"
-#include "../../Core/Interface/IStreamBase.h"
+#include "../Interface/IType.h"
+#include "../Interface/IStreamBase.h"
 
 namespace PaintsNow {
 	// A on-fly string-stream adapter, decorates a string like a stream.

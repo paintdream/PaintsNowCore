@@ -5,10 +5,10 @@
 
 #pragma once
 
-#include "../../Core/PaintsNow.h"
-#include "../../Core/Interface/IDevice.h"
-#include "../../Core/Template/TProxy.h"
-#include "../../Core/Interface/IType.h"
+#include "../PaintsNow.h"
+#include "../Interface/IDevice.h"
+#include "../Template/TProxy.h"
+#include "../Interface/IType.h"
 
 namespace PaintsNow {
 	class IStreamBase;

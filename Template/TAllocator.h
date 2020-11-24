@@ -16,6 +16,7 @@ namespace PaintsNow {
 	template <size_t N, size_t K>
 	class TRootAllocator {
 	public:
+		TRootAllocator() { critical.store(0, std::memory_order_relaxed); }
 		void* Allocate() {
 			static_assert(K < sizeof(size_t) * 8, "K is too large for root allocators.");
 

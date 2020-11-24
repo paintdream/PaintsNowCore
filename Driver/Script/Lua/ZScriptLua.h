@@ -1,5 +1,5 @@
 #pragma once
-#include "../../../../Core/Interface/IScript.h"
+#include "../../../Interface/IScript.h"
 
 struct lua_State;
 

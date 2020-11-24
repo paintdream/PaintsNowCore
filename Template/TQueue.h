@@ -7,18 +7,46 @@
 #include <vector>
 #include <cassert>
 #include "TAtomic.h"
+#include "TAlgorithm.h"
+#include "TAllocator.h"
 
 namespace PaintsNow {
 	// Single-read-single-write
-	template <class T, size_t K = 8>
+	template <class T, size_t K = 8, size_t C = 16>
 	class TQueue {
 	public:
-		TQueue() : pushIndex(0), popIndex(0) {}
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+		TQueue(const TQueue& queue) {
+#else
+		TQueue(TQueue&& queue) {
+#endif
+			pushIndex = queue.pushIndex;
+			popIndex = queue.popIndex;
+			ringBuffer = queue.ringBuffer;
+			next = queue.next;
+			const_cast<TQueue&>(queue).ringBuffer = nullptr;
+		}
 
 		enum {
 			N = 1 << K,
 			Mask = N - 1
 		};
+
+		typedef TRootAllocator<sizeof(T) * N, C> Allocator;
+		TQueue() : pushIndex(0), popIndex(0), next(nullptr) {
+			// leave uninitialized
+			ringBuffer = new (Allocator::Get().Allocate()) T[N];
+		}
+
+		~TQueue() {
+			if (ringBuffer != nullptr) {
+				for (size_t i = 0; i < N; i++) {
+					ringBuffer[i].~T();
+				}
+
+				Allocator::Get().Deallocate(ringBuffer);
+			}
+		}
 
 		struct Iterator {
 			Iterator(uint32_t i = 0) : index(i) {}
@@ -77,6 +105,45 @@ namespace PaintsNow {
 			return true;
 		}
 #endif
+		inline void Pop() {
+			std::atomic_thread_fence(std::memory_order_acquire);
+			popIndex = (popIndex + 1) & Mask;
+		}
+
+		// for prefetch
+		inline const T& Predict() const {
+			return ringBuffer[(popIndex + 1) & Mask];
+		}
+
+		inline T* Allocate(uint32_t count, uint32_t alignment) {
+			assert(count >= alignment);
+			assert(count < N);
+			// Make alignment
+			count += (uint32_t)(alignment - Math::Alignment(pushIndex)) & (alignment - 1);
+			if (count >= N - 1 - Count()) return nullptr;
+
+			uint32_t nextIndex = pushIndex + count;
+			if (count != 1 && nextIndex >= N) return nullptr; // non-continous!
+
+			nextIndex = nextIndex & Mask;
+			pushIndex = nextIndex;
+
+			return ringBuffer + nextIndex;
+		}
+
+		inline void Deallocate(uint32_t count, uint32_t alignment) {
+			assert(count >= alignment);
+			assert(count < N);
+
+			// Make alignment
+			count += (uint32_t)(alignment - Math::Alignment(popIndex)) & (alignment - 1);
+			assert(count <= Count());
+			popIndex = (popIndex + count) & Mask;
+		}
+
+		inline void Reset() {
+			pushIndex = popIndex = 0;
+		}
 
 		inline T& Top() {
 			assert(!Empty());
@@ -86,16 +153,6 @@ namespace PaintsNow {
 		inline const T& Top() const {
 			assert(!Empty());
 			return ringBuffer[popIndex];
-		}
-
-		// for prefetch
-		inline const T& Predict() const {
-			return ringBuffer[(popIndex + 1) & Mask];
-		}
-
-		inline void Pop() {
-			std::atomic_thread_fence(std::memory_order_acquire);
-			popIndex = (popIndex + 1) & Mask;
 		}
 
 		template <class F>
@@ -124,7 +181,7 @@ namespace PaintsNow {
 		}
 		
 		inline uint32_t Count() const {
-			return (popIndex + Mask - pushIndex) % Mask;
+			return (pushIndex + Mask - popIndex) & Mask;
 		}
 
 		inline Iterator Begin() const {
@@ -146,19 +203,16 @@ namespace PaintsNow {
 	protected:
 		uint32_t pushIndex;
 		uint32_t popIndex;
-		T ringBuffer[N];
+		T* ringBuffer;
+	public:
+		TQueue* next;
 	};
 
 	// Still single-read-single-write
 	template <class T, size_t K = 8>
 	class TQueueList {
 	public:
-		typedef TQueue<T, K> SubQueue;
-		class Node : public SubQueue {
-		public:
-			Node() : next(nullptr) {}
-			Node* next;
-		};
+		typedef TQueue<T, K> Node;
 
 	protected:
 		Node* pushHead;
@@ -205,65 +259,44 @@ namespace PaintsNow {
 #if defined(_MSC_VER) && _MSC_VER <= 1200
 		template <class D>
 		inline void Push(D& t) {
-			if (!pushHead->Push(t)) { // full
-				Node* p = new Node();
-				bool success = p->Push(t); // Must success
-				assert(success);
+			while (!pushHead->Push(t)) { // full
+				if (pushHead->next == nullptr) {
+					Node* p = new Node();
+					bool success = p->Push(t); // Must success
+					assert(success);
 
-				pushHead->next = p;
-				std::atomic_thread_fence(std::memory_order_release);
-				pushHead = p;
+					pushHead->next = p;
+					std::atomic_thread_fence(std::memory_order_release);
+					pushHead = p;
+					return;
+				}
+
+				pushHead = pushHead->next;
 			}
+
+			std::atomic_thread_fence(std::memory_order_release);
 		}
 #else
 		template <class D>
 		inline void Push(D&& t) {
-			if (!pushHead->Push(std::forward<D>(t))) { // full
-				Node* p = new Node();
-				bool success = p->Push(std::forward<D>(t)); // Must success
-				assert(success);
+			while (!pushHead->Push(std::forward<D>(t))) { // full
+				if (pushHead->next == nullptr) {
+					Node* p = new Node();
+					bool success = p->Push(std::forward<D>(t)); // Must success
+					assert(success);
 
-				pushHead->next = p;
-				std::atomic_thread_fence(std::memory_order_release);
-				pushHead = p;
+					pushHead->next = p;
+					std::atomic_thread_fence(std::memory_order_release);
+					pushHead = p;
+					return;
+				}
+
+				pushHead = pushHead->next;
 			}
+
+			std::atomic_thread_fence(std::memory_order_release);
 		}
 #endif
-
-#if defined(_MSC_VER) && _MSC_VER <= 1200
-		template <class D>
-		inline Node* QuickPush(D& t, Node* storage) {
-			if (!pushHead->Push(t)) { // full
-				Node* p = storage;
-				bool success = p->Push(t); // Must success
-				assert(success);
-
-				pushHead->next = p;
-				std::atomic_thread_fence(std::memory_order_release);
-				pushHead = p;
-				return nullptr;
-			} else {
-				return storage;
-			}
-		}
-#else
-		template <class D>
-		inline Node* QuickPush(D&& t, Node* storage) {
-			if (!pushHead->Push(std::forward<D>(t))) { // full
-				Node* p = storage;
-				bool success = p->Push(std::forward<D>(t)); // Must success
-				assert(success);
-
-				pushHead->next = p;
-				std::atomic_thread_fence(std::memory_order_release);
-				pushHead = p;
-				return nullptr;
-			} else {
-				return storage;
-			}
-		}
-#endif
-
 		inline T& Top() {
 			return popHead->Top();
 		}
@@ -276,23 +309,58 @@ namespace PaintsNow {
 			return popHead->Predict();
 		}
 
-		inline Node* QuickPop() {
-			popHead->Pop();
-			if (popHead->Empty() && popHead != pushHead) {
-				Node* p = popHead;
-				popHead = popHead->next;
-				return p;
-			} else {
-				return nullptr;
-			}
-		}
-
 		inline void Pop() {
 			popHead->Pop();
+
 			if (popHead->Empty() && popHead != pushHead) {
 				Node* p = popHead;
 				popHead = popHead->next;
 				delete p;
+			}
+		}
+
+		inline T* Allocate(uint32_t count, uint32_t alignment) {
+			T* address;
+			while ((address = pushHead->Allocate(count, alignment)) == nullptr) {
+				if (pushHead->next == nullptr) {
+					Node* p = new Node();
+					address = p->Allocate(count, alignment); // Must success
+					assert(address != nullptr);
+
+					pushHead->next = p;
+					pushHead = p;
+					return address;
+				}
+
+				pushHead = pushHead->next;
+			}
+
+			return address;
+		}
+
+		inline void Deallocate(uint32_t size, uint32_t alignment) {
+			popHead->Deallocate(size, alignment);
+
+			if (popHead->Empty() && popHead != pushHead) {
+				Node* p = popHead;
+				popHead = popHead->next;
+				delete p;
+			}
+		}
+
+		inline void Reset(uint32_t reserved) {
+			Node* p = pushHead = popHead;
+			uint32_t c = 0;
+			while (p != nullptr && c < reserved) {
+				p->Reset();
+				c += Node::N;
+				p = p->next;
+			}
+
+			while (p != nullptr) {
+				Node* q = p;
+				p = p->next;
+				delete q;
 			}
 		}
 
@@ -301,7 +369,7 @@ namespace PaintsNow {
 		}
 
 		struct Iterator {
-			Iterator(Node* n, typename SubQueue::Iterator t) : p(n), it(t) {}
+			Iterator(Node* n, typename Node::Iterator t) : p(n), it(t) {}
 			Iterator& operator ++ () {
 				if (++it == p->End()) {
 					Node* t = p->next;
@@ -323,7 +391,7 @@ namespace PaintsNow {
 			}
 
 			Node* p;
-			typename SubQueue::Iterator it;
+			typename Node::Iterator it;
 		};
 
 		inline Iterator Begin() const {
