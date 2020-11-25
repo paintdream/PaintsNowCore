@@ -4,7 +4,37 @@
 #include <exception>
 #include <stdexcept>
 #include <algorithm>
-#include "../Interface/IThread.h"
+
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x501
+#endif
+
+#include <windows.h>
+
+inline void YieldThread() {
+	if (!SwitchToThread()) {
+		for (int i = 0; i < 16; i++) {
+			YieldProcessor();
+		}
+	}
+}
+
+inline void YieldThreadFast() {
+	YieldProcessor();
+}
+
+#else
+#include <thread>
+inline void YieldThread() {
+	std::this_thread::yield();
+}
+
+inline void YieldThreadFast() {
+	std::this_thread::yield();
+}
+
+#endif
 
 #if defined(_MSC_VER) && _MSC_VER <= 1200
 #include "../Interface/IType.h"

@@ -90,9 +90,6 @@ namespace PaintsNow {
 
 		lua_State* GetState() const;
 		lua_State* GetDeferState() const;
-		void DoLock() override;
-		void UnLock() override;
-		bool TryLock() override;
 		void Reset() override;
 		IScript::Request& GetDefaultRequest() override;
 		IScript* NewScript() const override;

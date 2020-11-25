@@ -1189,26 +1189,6 @@ lua_State* ZScriptLua::GetDeferState() const {
 	return deferState;
 }
 
-bool ZScriptLua::TryLock() {
-	assert(IsLocked());
-	return ISyncObject::TryLock();
-}
-
-#if defined(_WIN32) && defined(_DEBUG)
-#include <windows.h>
-DWORD HoldingThread = 0;
-#endif
-
-void ZScriptLua::DoLock() {
-	ISyncObject::DoLock();
-	assert(IsLocked());
-}
-
-void ZScriptLua::UnLock() {
-	assert(IsLocked());
-	ISyncObject::UnLock();
-}
-
 IScript* ZScriptLua::NewScript() const {
 	return new ZScriptLua(threadApi);
 }

@@ -12,10 +12,6 @@ LockGuard::~LockGuard() {
 	thread.UnLock(mutex);
 }
 
-/*
-#include <Windows.h>
-DWORD syncObjectCount = 0;*/
-
 ISyncObject::~ISyncObject() {
 	threadApi.DeleteLock(mutex);
 }
@@ -27,7 +23,6 @@ ISyncObject::ISyncObject(IThread& thread) : threadApi(thread) {
 void ISyncObject::DoLock() {
 	threadApi.DoLock(mutex);
 }
-
 void ISyncObject::UnLock() {
 	threadApi.UnLock(mutex);
 }

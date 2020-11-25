@@ -1,6 +1,6 @@
 #include "ZThreadPthread.h"
 
-#ifndef _WIN32
+#if !defined(_MSC_VER) || _MSC_VER > 1200
 #define USE_STD_THREAD
 #include <thread>
 #include <mutex>
