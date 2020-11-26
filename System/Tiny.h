@@ -10,6 +10,7 @@
 
 namespace PaintsNow {
 	// A tiny object base class with an atomic flag.
+	class ThreadPool;
 	class pure_interface Tiny : public TReflected<Tiny, IScript::Object> {
 	public:
 		typedef uint32_t FLAG;
@@ -29,6 +30,7 @@ namespace PaintsNow {
 		std::atomic<FLAG>& Flag() { return flag; }
 		const std::atomic<FLAG>& Flag() const { return flag; }
 		TObject<IReflect>& operator () (IReflect& reflect) override;
+		bool Wait(ThreadPool& threadPool, FLAG mask, FLAG flag);
 
 	protected:
 		std::atomic<FLAG> flag;
