@@ -26,7 +26,7 @@ namespace PaintsNow {
 		void SetWarpIndex(uint32_t warpIndex);
 		uint32_t GetWarpIndex() const;
 		void AssertWarp(Kernel& kernel) const;
-		bool Wait(Kernel& kernel, FLAG mask, FLAG expected = 0);
+		bool WaitWarp(Kernel& kernel);
 	};
 
 #define CHECK_THREAD(warpTiny) \
@@ -44,6 +44,7 @@ namespace PaintsNow {
 
 		// Common Functions, can be called at any time
 		uint32_t GetWarpCount() const;
+		ThreadPool& GetThreadPool();
 
 		// Cleanup all remaining tasks
 		void Clear();
@@ -57,11 +58,11 @@ namespace PaintsNow {
 		// Operates on other warp
 		void SuspendWarp(uint32_t warp);
 		bool ResumeWarp(uint32_t warp);
+		bool WaitWarp(uint32_t warp);
 
 	protected:
 		void QueueRoutineInternal(uint32_t toWarpIndex, uint32_t fromThreadIndex, WarpTiny* warpTiny, ITask* task);
 
-	public:
 		// Do not touch it unless you know what you are doing.
 		class_aligned(64) SubTaskQueue : protected TaskQueue {
 		public:

@@ -30,7 +30,7 @@ namespace PaintsNow {
 		std::atomic<FLAG>& Flag() { return flag; }
 		const std::atomic<FLAG>& Flag() const { return flag; }
 		TObject<IReflect>& operator () (IReflect& reflect) override;
-		bool Wait(ThreadPool& threadPool, FLAG mask, FLAG flag);
+		bool Wait(ThreadPool& threadPool, uint32_t mask, uint32_t flag = 0);
 
 	protected:
 		std::atomic<FLAG> flag;

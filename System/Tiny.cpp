@@ -17,12 +17,7 @@ TObject<IReflect>& Tiny::operator () (IReflect& reflect) {
 Tiny::Tiny(FLAG fl) : flag(fl) {}
 
 bool Tiny::Wait(ThreadPool& threadPool, FLAG mask, FLAG flag) {
-	uint32_t threadIndex = threadPool.GetCurrentThreadIndex();
-	while (((Flag().load(std::memory_order_acquire) & mask) != flag) && threadPool.IsRunning()) {
-		threadPool.PollRoutine(threadIndex);
-	}
-
-	return threadPool.IsRunning();
+	return threadPool.PollWaitRoutine(Flag(), mask, flag);
 }
 
 #ifdef _DEBUG

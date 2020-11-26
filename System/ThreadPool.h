@@ -30,6 +30,7 @@ namespace PaintsNow {
 
 		// Pool specified thread task on current thread. (can be run with non-pooled thread)
 		bool PollRoutine(uint32_t index);
+		bool PollWaitRoutine(std::atomic<uint32_t>& variable, uint32_t mask = ~(uint32_t)0, uint32_t flag = 0);
 		bool IsRunning() const;
 
 		IThread& GetThreadApi();
@@ -38,7 +39,6 @@ namespace PaintsNow {
 		bool IsInitialized() const;
 
 	protected:
-		void Init();
 		bool Run(IThread::Thread* thread, size_t threadID);
 
 	protected:

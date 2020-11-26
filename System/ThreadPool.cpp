@@ -229,6 +229,15 @@ bool ThreadPool::IsRunning() const {
 	return runningToken.load(std::memory_order_acquire);
 }
 
+bool ThreadPool::PollWaitRoutine(std::atomic<uint32_t>& variable, uint32_t mask, uint32_t flag) {
+	uint32_t threadIndex = GetCurrentThreadIndex();
+	while (((variable.load(std::memory_order_acquire) & mask) != flag) && IsRunning()) {
+		PollRoutine(threadIndex);
+	}
+
+	return IsRunning();
+}
+
 bool ThreadPool::Run(IThread::Thread* thread, size_t index) {
 	// set thread local
 	localThreadIndex = safe_cast<uint32_t>(index);

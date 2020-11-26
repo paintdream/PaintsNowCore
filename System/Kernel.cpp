@@ -19,28 +19,8 @@ void WarpTiny::AssertWarp(Kernel& kernel) const {
 	assert(GetWarpIndex() == kernel.GetCurrentWarpIndex());
 }
 
-bool WarpTiny::Wait(Kernel& kernel, FLAG mask, FLAG flag) {
-	uint32_t warpIndex = GetWarpIndex();
-	assert(kernel.GetCurrentWarpIndex() == warpIndex);
-	kernel.YieldCurrentWarp();
-
-	ThreadPool& threadPool = kernel.threadPool;
-	uint32_t threadIndex = threadPool.GetCurrentThreadIndex();
-	while (((Flag().load(std::memory_order_acquire) & mask) != flag) && threadPool.IsRunning()) {
-		threadPool.PollRoutine(threadIndex);
-	}
-
-	if (!threadPool.IsRunning()) {
-		return false;
-	} else {
-		Kernel::SubTaskQueue& queue = kernel.taskQueueGrid[warpIndex];
-		while (!queue.PreemptExecution()) {
-			threadPool.PollRoutine(threadIndex);
-		}
-
-		// ok
-		return threadPool.IsRunning();
-	}
+bool WarpTiny::WaitWarp(Kernel& kernel) {
+	return kernel.WaitWarp(GetWarpIndex());
 }
 
 Kernel::Kernel(ThreadPool& tp, uint32_t warpCount) : threadPool(tp) {
@@ -59,10 +39,15 @@ Kernel::Kernel(ThreadPool& tp, uint32_t warpCount) : threadPool(tp) {
 #endif
 }
 
+
 Kernel::~Kernel() { Clear(); }
 
 uint32_t Kernel::GetWarpCount() const {
 	return safe_cast<uint32_t>(taskQueueGrid.size());
+}
+
+ThreadPool& Kernel::GetThreadPool() {
+	return threadPool;
 }
 
 // Warp index is thread_local
@@ -70,6 +55,21 @@ thread_local uint32_t WarpIndex = ~0;
 
 uint32_t Kernel::GetCurrentWarpIndex() const {
 	return WarpIndex;
+}
+
+
+bool Kernel::WaitWarp(uint32_t warpIndex) {
+	assert(WarpIndex == ~(uint32_t)0);
+	taskQueueGrid[warpIndex].YieldExecution();
+
+	uint32_t threadIndex = threadPool.GetCurrentThreadIndex();
+	SubTaskQueue& queue = taskQueueGrid[warpIndex];
+	while (!queue.PreemptExecution() && threadPool.IsRunning()) {
+		threadPool.PollRoutine(threadIndex);
+	}
+
+	// ok
+	return threadPool.IsRunning();
 }
 
 void Kernel::Clear() {
@@ -185,7 +185,10 @@ void Kernel::QueueRoutinePost(WarpTiny* warpTiny, ITask* task) {
 }
 
 void Kernel::YieldCurrentWarp() {
-	taskQueueGrid[WarpIndex].YieldExecution();
+	uint32_t warpIndex = WarpIndex;
+	if (warpIndex != ~(uint32_t)0) {
+		taskQueueGrid[WarpIndex].YieldExecution();
+	}
 }
 
 void Kernel::SuspendWarp(uint32_t warpIndex) {
