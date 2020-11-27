@@ -19,28 +19,28 @@ namespace PaintsNow {
 		typedef T type;
 
 		// Construct from half pair
-		TVector(const std::pair<TVector<T, n / 2>, TVector<T, n / 2> >& p) {
+		forceinline TVector(const std::pair<TVector<T, n / 2>, TVector<T, n / 2> >& p) {
 			memcpy(data, &p.first.data[0], n * sizeof(T) / 2);
 			memcpy(data + n / 2, &p.second.data[0], n * sizeof(T) / 2);
 		}
 
 		// Construct from element array
-		TVector(T* v = nullptr) {
+		forceinline TVector(T* v = nullptr) {
 			if (v != nullptr) {
 				std::copy(v, v + n, data);
 			}
 		}
 
 		enum { size = n };
-		inline operator const T* () const {
+		forceinline operator const T* () const {
 			return data;
 		}
 
-		inline operator T* () {
+		forceinline operator T* () {
 			return data;
 		}
 
-		inline bool operator == (const TVector& rhs) const {
+		forceinline bool operator == (const TVector& rhs) const {
 			for (size_t i = 0; i < n; i++) {
 				if (data[i] != rhs.data[i]) return false;
 			}
@@ -48,7 +48,7 @@ namespace PaintsNow {
 			return true;
 		}
 
-		inline bool operator != (const TVector& rhs) const {
+		forceinline bool operator != (const TVector& rhs) const {
 			for (size_t i = 0; i < n; i++) {
 				if (data[i] != rhs.data[i]) return true;
 			}
@@ -57,17 +57,17 @@ namespace PaintsNow {
 		}
 
 		template <class D>
-		inline const T operator [] (D d) const {
+		forceinline const T operator [] (D d) const {
 			return data[d];
 		}
 
 		template <class D>
-		inline T& operator [] (D d) {
+		forceinline T& operator [] (D d) {
 			return data[d];
 		}
 
 		template <class D>
-		inline TVector<T, n>& Foreach(D op) {
+		forceinline TVector<T, n>& Foreach(D op) {
 			for (size_t i = 0; i < n; i++) {
 				op(data[i]);
 			}
@@ -75,11 +75,11 @@ namespace PaintsNow {
 			return *this;
 		}
 
-		inline T Length() const {
+		forceinline T Length() const {
 			return (T)sqrt(SquareLength());
 		}
 
-		inline TVector<T, n> operator - () const {
+		forceinline TVector<T, n> operator - () const {
 			TVector<T, n> ret;
 			for (size_t i = 0; i < n; i++) {
 				ret[i] = -data[i];
@@ -88,7 +88,7 @@ namespace PaintsNow {
 			return ret;
 		}
 
-		inline TVector<T, n>& operator += (const TVector<T, n>& data) {
+		forceinline TVector<T, n>& operator += (const TVector<T, n>& data) {
 			TVector<T, n>& ret = *this;
 			for (size_t i = 0; i < n; i++) {
 				ret[i] += data[i];
@@ -97,7 +97,7 @@ namespace PaintsNow {
 			return ret;
 		}
 
-		inline TVector<T, n>& operator -= (const TVector<T, n>& data) {
+		forceinline TVector<T, n>& operator -= (const TVector<T, n>& data) {
 			TVector<T, n>& ret = *this;
 			for (size_t i = 0; i < n; i++) {
 				ret[i] -= data[i];
@@ -106,7 +106,7 @@ namespace PaintsNow {
 			return ret;
 		}
 
-		TVector<T, n>& operator *= (const TVector<T, n>& data) {
+		forceinline TVector<T, n>& operator *= (const TVector<T, n>& data) {
 			TVector<T, n>& ret = *this;
 			for (size_t i = 0; i < n; i++) {
 				ret[i] *= data[i];
@@ -115,7 +115,7 @@ namespace PaintsNow {
 			return ret;
 		}
 
-		inline TVector<T, n>& operator /= (const TVector<T, n>& data) {
+		forceinline TVector<T, n>& operator /= (const TVector<T, n>& data) {
 			TVector<T, n>& ret = *this;
 			for (size_t i = 0; i < n; i++) {
 				ret[i] /= data[i];
@@ -124,7 +124,7 @@ namespace PaintsNow {
 			return ret;
 		}
 
-		inline TVector<T, n>& operator *= (const T& data) {
+		forceinline TVector<T, n>& operator *= (const T& data) {
 			TVector<T, n>& ret = *this;
 			for (size_t i = 0; i < n; i++) {
 				ret[i] *= data;
@@ -133,7 +133,7 @@ namespace PaintsNow {
 			return ret;
 		}
 
-		inline TVector<T, n>& operator /= (const T& data) {
+		forceinline TVector<T, n>& operator /= (const T& data) {
 			TVector<T, n>& ret = *this;
 			for (size_t i = 0; i < n; i++) {
 				ret[i] /= data;
@@ -142,7 +142,7 @@ namespace PaintsNow {
 			return ret;
 		}
 
-		inline bool operator < (const TVector<T, n>& rhs) const {
+		forceinline bool operator < (const TVector<T, n>& rhs) const {
 			const TVector<T, n>& lhs = *this;
 			for (size_t i = 0; i < n; i++) {
 				if (lhs[i] < rhs[i])
@@ -154,7 +154,7 @@ namespace PaintsNow {
 			return false;
 		}
 
-		inline T SquareLength() const {
+		forceinline T SquareLength() const {
 			T t(0);
 			for (size_t i = 0; i < n; i++) {
 				t += data[i] * data[i];
@@ -163,7 +163,7 @@ namespace PaintsNow {
 			return t;
 		}
 
-		inline TVector<T, n>& Normalize() {
+		forceinline TVector<T, n>& Normalize() {
 			T length = Length();
 			for (size_t j = 0; j < n; j++) {
 				data[j] /= length;
@@ -176,102 +176,102 @@ namespace PaintsNow {
 	};
 
 #define VISIT(X, index) \
-	inline const T X() const { return (*this)[index]; } \
-	inline T& X() { return (*this)[index]; }
+	forceinline const T X() const { return (*this)[index]; } \
+	forceinline T& X() { return (*this)[index]; }
 
 // Fake visit, just make compiler happy
 #define SWIZZLE2(X, Y) \
-	inline TType2<T> _##X##Y() const { return TType2<T>(X(), Y()); } \
+	forceinline TType2<T> _##X##Y() const { return TType2<T>(X(), Y()); } \
 
 #define SWIZZLE3(X, Y, Z) \
-	inline TType3<T> _##X##Y##Z() const { return TType3<T>(X(), Y(), Z()); } \
+	forceinline TType3<T> _##X##Y##Z() const { return TType3<T>(X(), Y(), Z()); } \
 
 #define SWIZZLE4(X, Y, Z, W) \
-	inline TType4<T> _##X##Y##Z##W() const { return TType4<T>(X(), Y(), Z(), W()); } \
+	forceinline TType4<T> _##X##Y##Z##W() const { return TType4<T>(X(), Y(), Z(), W()); } \
 
 #define SWIZZLE4_FULL(X, Y, Z, W) \
-	inline TType4<T> _##X##X##X##X() const { return TType4<T>(X(), X(), X(), X()); } \
-	inline TType4<T> _##X##X##X##Y() const { return TType4<T>(X(), X(), X(), Y()); } \
-	inline TType4<T> _##X##X##X##Z() const { return TType4<T>(X(), X(), X(), Z()); } \
-	inline TType4<T> _##X##X##X##W() const { return TType4<T>(X(), X(), X(), W()); } \
+	forceinline TType4<T> _##X##X##X##X() const { return TType4<T>(X(), X(), X(), X()); } \
+	forceinline TType4<T> _##X##X##X##Y() const { return TType4<T>(X(), X(), X(), Y()); } \
+	forceinline TType4<T> _##X##X##X##Z() const { return TType4<T>(X(), X(), X(), Z()); } \
+	forceinline TType4<T> _##X##X##X##W() const { return TType4<T>(X(), X(), X(), W()); } \
 	\
-	inline TType4<T> _##X##X##Y##X() const { return TType4<T>(X(), X(), Y(), X()); } \
-	inline TType4<T> _##X##X##Y##Y() const { return TType4<T>(X(), X(), Y(), Y()); } \
-	inline TType4<T> _##X##X##Y##Z() const { return TType4<T>(X(), X(), Y(), Z()); } \
-	inline TType4<T> _##X##X##Y##W() const { return TType4<T>(X(), X(), Y(), W()); } \
+	forceinline TType4<T> _##X##X##Y##X() const { return TType4<T>(X(), X(), Y(), X()); } \
+	forceinline TType4<T> _##X##X##Y##Y() const { return TType4<T>(X(), X(), Y(), Y()); } \
+	forceinline TType4<T> _##X##X##Y##Z() const { return TType4<T>(X(), X(), Y(), Z()); } \
+	forceinline TType4<T> _##X##X##Y##W() const { return TType4<T>(X(), X(), Y(), W()); } \
 	\
-	inline TType4<T> _##X##X##Z##X() const { return TType4<T>(X(), X(), Z(), X()); } \
-	inline TType4<T> _##X##X##Z##Y() const { return TType4<T>(X(), X(), Z(), Y()); } \
-	inline TType4<T> _##X##X##Z##Z() const { return TType4<T>(X(), X(), Z(), Z()); } \
-	inline TType4<T> _##X##X##Z##W() const { return TType4<T>(X(), X(), Z(), W()); } \
+	forceinline TType4<T> _##X##X##Z##X() const { return TType4<T>(X(), X(), Z(), X()); } \
+	forceinline TType4<T> _##X##X##Z##Y() const { return TType4<T>(X(), X(), Z(), Y()); } \
+	forceinline TType4<T> _##X##X##Z##Z() const { return TType4<T>(X(), X(), Z(), Z()); } \
+	forceinline TType4<T> _##X##X##Z##W() const { return TType4<T>(X(), X(), Z(), W()); } \
 	\
-	inline TType4<T> _##X##X##W##X() const { return TType4<T>(X(), X(), W(), X()); } \
-	inline TType4<T> _##X##X##W##Y() const { return TType4<T>(X(), X(), W(), Y()); } \
-	inline TType4<T> _##X##X##W##Z() const { return TType4<T>(X(), X(), W(), Z()); } \
-	inline TType4<T> _##X##X##W##W() const { return TType4<T>(X(), X(), W(), W()); } \
-	\
-	\
-	inline TType4<T> _##X##Y##X##X() const { return TType4<T>(X(), Y(), X(), X()); } \
-	inline TType4<T> _##X##Y##X##Y() const { return TType4<T>(X(), Y(), X(), Y()); } \
-	inline TType4<T> _##X##Y##X##Z() const { return TType4<T>(X(), Y(), X(), Z()); } \
-	inline TType4<T> _##X##Y##X##W() const { return TType4<T>(X(), Y(), X(), W()); } \
-	\
-	inline TType4<T> _##X##Y##Y##X() const { return TType4<T>(X(), Y(), Y(), X()); } \
-	inline TType4<T> _##X##Y##Y##Y() const { return TType4<T>(X(), Y(), Y(), Y()); } \
-	inline TType4<T> _##X##Y##Y##Z() const { return TType4<T>(X(), Y(), Y(), Z()); } \
-	inline TType4<T> _##X##Y##Y##W() const { return TType4<T>(X(), Y(), Y(), W()); } \
-	\
-	inline TType4<T> _##X##Y##Z##X() const { return TType4<T>(X(), Y(), Z(), X()); } \
-	inline TType4<T> _##X##Y##Z##Y() const { return TType4<T>(X(), Y(), Z(), Y()); } \
-	inline TType4<T> _##X##Y##Z##Z() const { return TType4<T>(X(), Y(), Z(), Z()); } \
-	inline TType4<T> _##X##Y##Z##W() const { return TType4<T>(X(), Y(), Z(), W()); } \
-	\
-	inline TType4<T> _##X##Y##W##X() const { return TType4<T>(X(), Y(), W(), X()); } \
-	inline TType4<T> _##X##Y##W##Y() const { return TType4<T>(X(), Y(), W(), Y()); } \
-	inline TType4<T> _##X##Y##W##Z() const { return TType4<T>(X(), Y(), W(), Z()); } \
-	inline TType4<T> _##X##Y##W##W() const { return TType4<T>(X(), Y(), W(), W()); } \
+	forceinline TType4<T> _##X##X##W##X() const { return TType4<T>(X(), X(), W(), X()); } \
+	forceinline TType4<T> _##X##X##W##Y() const { return TType4<T>(X(), X(), W(), Y()); } \
+	forceinline TType4<T> _##X##X##W##Z() const { return TType4<T>(X(), X(), W(), Z()); } \
+	forceinline TType4<T> _##X##X##W##W() const { return TType4<T>(X(), X(), W(), W()); } \
 	\
 	\
-	inline TType4<T> _##X##Z##X##X() const { return TType4<T>(X(), Z(), X(), X()); } \
-	inline TType4<T> _##X##Z##X##Y() const { return TType4<T>(X(), Z(), X(), Y()); } \
-	inline TType4<T> _##X##Z##X##Z() const { return TType4<T>(X(), Z(), X(), Z()); } \
-	inline TType4<T> _##X##Z##X##W() const { return TType4<T>(X(), Z(), X(), W()); } \
+	forceinline TType4<T> _##X##Y##X##X() const { return TType4<T>(X(), Y(), X(), X()); } \
+	forceinline TType4<T> _##X##Y##X##Y() const { return TType4<T>(X(), Y(), X(), Y()); } \
+	forceinline TType4<T> _##X##Y##X##Z() const { return TType4<T>(X(), Y(), X(), Z()); } \
+	forceinline TType4<T> _##X##Y##X##W() const { return TType4<T>(X(), Y(), X(), W()); } \
 	\
-	inline TType4<T> _##X##Z##Y##X() const { return TType4<T>(X(), Z(), Y(), X()); } \
-	inline TType4<T> _##X##Z##Y##Y() const { return TType4<T>(X(), Z(), Y(), Y()); } \
-	inline TType4<T> _##X##Z##Y##Z() const { return TType4<T>(X(), Z(), Y(), Z()); } \
-	inline TType4<T> _##X##Z##Y##W() const { return TType4<T>(X(), Z(), Y(), W()); } \
+	forceinline TType4<T> _##X##Y##Y##X() const { return TType4<T>(X(), Y(), Y(), X()); } \
+	forceinline TType4<T> _##X##Y##Y##Y() const { return TType4<T>(X(), Y(), Y(), Y()); } \
+	forceinline TType4<T> _##X##Y##Y##Z() const { return TType4<T>(X(), Y(), Y(), Z()); } \
+	forceinline TType4<T> _##X##Y##Y##W() const { return TType4<T>(X(), Y(), Y(), W()); } \
 	\
-	inline TType4<T> _##X##Z##Z##X() const { return TType4<T>(X(), Z(), Z(), X()); } \
-	inline TType4<T> _##X##Z##Z##Y() const { return TType4<T>(X(), Z(), Z(), Y()); } \
-	inline TType4<T> _##X##Z##Z##Z() const { return TType4<T>(X(), Z(), Z(), Z()); } \
-	inline TType4<T> _##X##Z##Z##W() const { return TType4<T>(X(), Z(), Z(), W()); } \
+	forceinline TType4<T> _##X##Y##Z##X() const { return TType4<T>(X(), Y(), Z(), X()); } \
+	forceinline TType4<T> _##X##Y##Z##Y() const { return TType4<T>(X(), Y(), Z(), Y()); } \
+	forceinline TType4<T> _##X##Y##Z##Z() const { return TType4<T>(X(), Y(), Z(), Z()); } \
+	forceinline TType4<T> _##X##Y##Z##W() const { return TType4<T>(X(), Y(), Z(), W()); } \
 	\
-	inline TType4<T> _##X##Z##W##X() const { return TType4<T>(X(), Z(), W(), X()); } \
-	inline TType4<T> _##X##Z##W##Y() const { return TType4<T>(X(), Z(), W(), Y()); } \
-	inline TType4<T> _##X##Z##W##Z() const { return TType4<T>(X(), Z(), W(), Z()); } \
-	inline TType4<T> _##X##Z##W##W() const { return TType4<T>(X(), Z(), W(), W()); } \
+	forceinline TType4<T> _##X##Y##W##X() const { return TType4<T>(X(), Y(), W(), X()); } \
+	forceinline TType4<T> _##X##Y##W##Y() const { return TType4<T>(X(), Y(), W(), Y()); } \
+	forceinline TType4<T> _##X##Y##W##Z() const { return TType4<T>(X(), Y(), W(), Z()); } \
+	forceinline TType4<T> _##X##Y##W##W() const { return TType4<T>(X(), Y(), W(), W()); } \
 	\
 	\
-	inline TType4<T> _##X##W##X##X() const { return TType4<T>(X(), W(), X(), X()); } \
-	inline TType4<T> _##X##W##X##Y() const { return TType4<T>(X(), W(), X(), Y()); } \
-	inline TType4<T> _##X##W##X##Z() const { return TType4<T>(X(), W(), X(), Z()); } \
-	inline TType4<T> _##X##W##X##W() const { return TType4<T>(X(), W(), X(), W()); } \
+	forceinline TType4<T> _##X##Z##X##X() const { return TType4<T>(X(), Z(), X(), X()); } \
+	forceinline TType4<T> _##X##Z##X##Y() const { return TType4<T>(X(), Z(), X(), Y()); } \
+	forceinline TType4<T> _##X##Z##X##Z() const { return TType4<T>(X(), Z(), X(), Z()); } \
+	forceinline TType4<T> _##X##Z##X##W() const { return TType4<T>(X(), Z(), X(), W()); } \
 	\
-	inline TType4<T> _##X##W##Y##X() const { return TType4<T>(X(), W(), Y(), X()); } \
-	inline TType4<T> _##X##W##Y##Y() const { return TType4<T>(X(), W(), Y(), Y()); } \
-	inline TType4<T> _##X##W##Y##Z() const { return TType4<T>(X(), W(), Y(), Z()); } \
-	inline TType4<T> _##X##W##Y##W() const { return TType4<T>(X(), W(), Y(), W()); } \
+	forceinline TType4<T> _##X##Z##Y##X() const { return TType4<T>(X(), Z(), Y(), X()); } \
+	forceinline TType4<T> _##X##Z##Y##Y() const { return TType4<T>(X(), Z(), Y(), Y()); } \
+	forceinline TType4<T> _##X##Z##Y##Z() const { return TType4<T>(X(), Z(), Y(), Z()); } \
+	forceinline TType4<T> _##X##Z##Y##W() const { return TType4<T>(X(), Z(), Y(), W()); } \
 	\
-	inline TType4<T> _##X##W##Z##X() const { return TType4<T>(X(), W(), Z(), X()); } \
-	inline TType4<T> _##X##W##Z##Y() const { return TType4<T>(X(), W(), Z(), Y()); } \
-	inline TType4<T> _##X##W##Z##Z() const { return TType4<T>(X(), W(), Z(), Z()); } \
-	inline TType4<T> _##X##W##Z##W() const { return TType4<T>(X(), W(), Z(), W()); } \
+	forceinline TType4<T> _##X##Z##Z##X() const { return TType4<T>(X(), Z(), Z(), X()); } \
+	forceinline TType4<T> _##X##Z##Z##Y() const { return TType4<T>(X(), Z(), Z(), Y()); } \
+	forceinline TType4<T> _##X##Z##Z##Z() const { return TType4<T>(X(), Z(), Z(), Z()); } \
+	forceinline TType4<T> _##X##Z##Z##W() const { return TType4<T>(X(), Z(), Z(), W()); } \
 	\
-	inline TType4<T> _##X##W##W##X() const { return TType4<T>(X(), W(), W(), X()); } \
-	inline TType4<T> _##X##W##W##Y() const { return TType4<T>(X(), W(), W(), Y()); } \
-	inline TType4<T> _##X##W##W##Z() const { return TType4<T>(X(), W(), W(), Z()); } \
-	inline TType4<T> _##X##W##W##W() const { return TType4<T>(X(), W(), W(), W()); } \
+	forceinline TType4<T> _##X##Z##W##X() const { return TType4<T>(X(), Z(), W(), X()); } \
+	forceinline TType4<T> _##X##Z##W##Y() const { return TType4<T>(X(), Z(), W(), Y()); } \
+	forceinline TType4<T> _##X##Z##W##Z() const { return TType4<T>(X(), Z(), W(), Z()); } \
+	forceinline TType4<T> _##X##Z##W##W() const { return TType4<T>(X(), Z(), W(), W()); } \
+	\
+	\
+	forceinline TType4<T> _##X##W##X##X() const { return TType4<T>(X(), W(), X(), X()); } \
+	forceinline TType4<T> _##X##W##X##Y() const { return TType4<T>(X(), W(), X(), Y()); } \
+	forceinline TType4<T> _##X##W##X##Z() const { return TType4<T>(X(), W(), X(), Z()); } \
+	forceinline TType4<T> _##X##W##X##W() const { return TType4<T>(X(), W(), X(), W()); } \
+	\
+	forceinline TType4<T> _##X##W##Y##X() const { return TType4<T>(X(), W(), Y(), X()); } \
+	forceinline TType4<T> _##X##W##Y##Y() const { return TType4<T>(X(), W(), Y(), Y()); } \
+	forceinline TType4<T> _##X##W##Y##Z() const { return TType4<T>(X(), W(), Y(), Z()); } \
+	forceinline TType4<T> _##X##W##Y##W() const { return TType4<T>(X(), W(), Y(), W()); } \
+	\
+	forceinline TType4<T> _##X##W##Z##X() const { return TType4<T>(X(), W(), Z(), X()); } \
+	forceinline TType4<T> _##X##W##Z##Y() const { return TType4<T>(X(), W(), Z(), Y()); } \
+	forceinline TType4<T> _##X##W##Z##Z() const { return TType4<T>(X(), W(), Z(), Z()); } \
+	forceinline TType4<T> _##X##W##Z##W() const { return TType4<T>(X(), W(), Z(), W()); } \
+	\
+	forceinline TType4<T> _##X##W##W##X() const { return TType4<T>(X(), W(), W(), X()); } \
+	forceinline TType4<T> _##X##W##W##Y() const { return TType4<T>(X(), W(), W(), Y()); } \
+	forceinline TType4<T> _##X##W##W##Z() const { return TType4<T>(X(), W(), W(), Z()); } \
+	forceinline TType4<T> _##X##W##W##W() const { return TType4<T>(X(), W(), W(), W()); } \
 	\
 
 	template <class T>
@@ -657,7 +657,7 @@ namespace PaintsNow {
 
 	// +
 	template <class T, size_t n>
-	TVector<T, n> operator + (const TVector<T, n>& lhs, T rhs) {
+	forceinline TVector<T, n> operator + (const TVector<T, n>& lhs, T rhs) {
 		TVector<T, n> v = lhs;
 		for (size_t i = 0; i < n; i++) {
 			v[i] += rhs;
@@ -667,7 +667,7 @@ namespace PaintsNow {
 	}
 
 	template <class T, size_t n>
-	TVector<T, n>& operator += (TVector<T, n>& lhs, const TVector<T, n>& rhs) {
+	forceinline TVector<T, n>& operator += (TVector<T, n>& lhs, const TVector<T, n>& rhs) {
 		for (size_t i = 0; i < n; i++) {
 			lhs[i] += rhs[i];
 		}
@@ -676,14 +676,14 @@ namespace PaintsNow {
 	}
 
 	template <class T, size_t n>
-	TVector<T, n> operator + (const TVector<T, n>& lhs, const TVector<T, n>& rhs) {
+	forceinline TVector<T, n> operator + (const TVector<T, n>& lhs, const TVector<T, n>& rhs) {
 		TVector<T, n> res(lhs);
 		res += rhs;
 		return res;
 	}
 	
 	template <class T, size_t n>
-	TVector<T, n> operator += (TVector<T, n>& lhs, T t) {
+	forceinline TVector<T, n> operator += (TVector<T, n>& lhs, T t) {
 		for (size_t i = 0; i < n; i++) {
 			lhs[i] += t;
 		}
@@ -692,7 +692,7 @@ namespace PaintsNow {
 
 	// -
 	template <class T, size_t n>
-	TVector<T, n> operator - (const TVector<T, n>& lhs, T rhs) {
+	forceinline TVector<T, n> operator - (const TVector<T, n>& lhs, T rhs) {
 		TVector<T, n> v = lhs;
 		for (size_t i = 0; i < n; i++) {
 			v[i] -= rhs;
@@ -702,7 +702,7 @@ namespace PaintsNow {
 	}
 
 	template <class T, size_t n>
-	TVector<T, n>& operator -= (TVector<T, n>& lhs, const TVector<T, n>& rhs) {
+	forceinline TVector<T, n>& operator -= (TVector<T, n>& lhs, const TVector<T, n>& rhs) {
 		for (size_t i = 0; i < n; i++) {
 			lhs[i] -= rhs[i];
 		}
@@ -711,14 +711,14 @@ namespace PaintsNow {
 	}
 
 	template <class T, size_t n>
-	TVector<T, n> operator - (const TVector<T, n>& lhs, const TVector<T, n>& rhs) {
+	forceinline TVector<T, n> operator - (const TVector<T, n>& lhs, const TVector<T, n>& rhs) {
 		TVector<T, n> res(lhs);
 		res -= rhs;
 		return res;
 	}
 	
 	template <class T, size_t n>
-	TVector<T, n> operator -= (TVector<T, n>& lhs, T t) {
+	forceinline TVector<T, n> operator -= (TVector<T, n>& lhs, T t) {
 		for (size_t i = 0; i < n; i++) {
 			lhs[i] -= t;
 		}
@@ -729,7 +729,7 @@ namespace PaintsNow {
 
 
 	template <class T, size_t n>
-	TVector<T, n>& operator *= (TVector<T, n>& lhs, const TVector<T, n>& rhs) {
+	forceinline TVector<T, n>& operator *= (TVector<T, n>& lhs, const TVector<T, n>& rhs) {
 		for (size_t i = 0; i < n; i++) {
 			lhs[i] *= rhs[i];
 		}
@@ -738,14 +738,14 @@ namespace PaintsNow {
 	}
 
 	template <class T, size_t n>
-	TVector<T, n> operator * (const TVector<T, n>& lhs, const TVector<T, n>& rhs) {
+	forceinline TVector<T, n> operator * (const TVector<T, n>& lhs, const TVector<T, n>& rhs) {
 		TVector<T, n> res(lhs);
 		res *= rhs;
 		return  res;
 	}
 	
 	template <class T, size_t n>
-	TVector<T, n> operator * (const TVector<T, n>& lhs, T t) {
+	forceinline TVector<T, n> operator * (const TVector<T, n>& lhs, T t) {
 		TVector<T, n> result = lhs;
 		for (size_t i = 0; i < n; i++) {
 			result[i] *= t;
@@ -754,7 +754,7 @@ namespace PaintsNow {
 	}
 
 	template <class T, size_t n>
-	TVector<T, n> operator *= (TVector<T, n>& lhs, T t) {
+	forceinline TVector<T, n> operator *= (TVector<T, n>& lhs, T t) {
 		for (size_t i = 0; i < n; i++) {
 			lhs[i] *= t;
 		}
@@ -765,7 +765,7 @@ namespace PaintsNow {
 
 
 	template <class T, size_t n>
-	TVector<T, n> operator / (const TVector<T, n>& lhs, T t) {
+	forceinline TVector<T, n> operator / (const TVector<T, n>& lhs, T t) {
 		TVector<T, n> result = lhs;
 		for (size_t i = 0; i < n; i++) {
 			result[i] /= t;
@@ -774,7 +774,7 @@ namespace PaintsNow {
 	}
 
 	template <class T, size_t n>
-	TVector<T, n>& operator /= (TVector<T, n>& lhs, const TVector<T, n>& rhs) {
+	forceinline TVector<T, n>& operator /= (TVector<T, n>& lhs, const TVector<T, n>& rhs) {
 		for (size_t i = 0; i < n; i++) {
 			lhs[i] /= rhs[i];
 		}
@@ -783,14 +783,14 @@ namespace PaintsNow {
 	}
 
 	template <class T, size_t n>
-	TVector<T, n> operator / (const TVector<T, n>& lhs, const TVector<T, n>& rhs) {
+	forceinline TVector<T, n> operator / (const TVector<T, n>& lhs, const TVector<T, n>& rhs) {
 		TVector<T, n> res(lhs);
 		res /= rhs;
 		return res;
 	}
 	
 	template <class T, size_t n>
-	TVector<T, n> operator /= (TVector<T, n>& lhs, T t) {
+	forceinline TVector<T, n> operator /= (TVector<T, n>& lhs, T t) {
 		for (size_t i = 0; i < n; i++) {
 			lhs[i] /= t;
 		}
@@ -798,7 +798,7 @@ namespace PaintsNow {
 	}
 
 	template <class T, size_t n>
-	T DotProduct(const TVector<T, n>& lhs, const TVector<T, n>& rhs) {
+	forceinline T DotProduct(const TVector<T, n>& lhs, const TVector<T, n>& rhs) {
 		T res(0);
 		for (size_t i = 0; i < n; i++) {
 			res += lhs[i] * rhs[i];
@@ -808,12 +808,12 @@ namespace PaintsNow {
 	}
 
 	template <class T>
-	T CrossProduct(const TVector<T, 2>& lhs, const TVector<T, 2>& rhs) {
+	forceinline T CrossProduct(const TVector<T, 2>& lhs, const TVector<T, 2>& rhs) {
 		return lhs[0] * rhs[1] - lhs[1] * rhs[0];
 	}
 
 	template <class T>
-	TVector<T, 3> CrossProduct(const TVector<T, 3>& lhs, const TVector<T, 3>& rhs) {
+	forceinline TVector<T, 3> CrossProduct(const TVector<T, 3>& lhs, const TVector<T, 3>& rhs) {
 		TVector<T, 3> t;
 		t[0] = lhs[1] * rhs[2] - lhs[2] * rhs[1];
 		t[1] = lhs[2] * rhs[0] - lhs[0] * rhs[2];
@@ -823,7 +823,7 @@ namespace PaintsNow {
 	}
 
 	template <class T>
-	bool CrossPoint(TVector<T, 2>& result, const TVector<T, 2>& ps, const TVector<T, 2>& pt, const TVector<T, 2>& qs, const TVector<T, 2>& qt, T& alpha, T& beta) {
+	forceinline bool CrossPoint(TVector<T, 2>& result, const TVector<T, 2>& ps, const TVector<T, 2>& pt, const TVector<T, 2>& qs, const TVector<T, 2>& qt, T& alpha, T& beta) {
 		T z = CrossProduct(pt - ps, qt - qs);
 		if (fabs(z) < 1e-10)
 			return false;
@@ -843,7 +843,7 @@ namespace PaintsNow {
 	}
 
 	template <class T>
-	bool Clip(std::pair<T, T>& lhs, const std::pair<T, T>& rhs) {
+	forceinline bool Clip(std::pair<T, T>& lhs, const std::pair<T, T>& rhs) {
 		bool b = true;
 		for (size_t i = 0; i < T::size; i++) {
 			lhs.first[i] = Math::Max(lhs.first[i], rhs.first[i]);
@@ -857,14 +857,14 @@ namespace PaintsNow {
 	}
 
 	template <class T>
-	std::pair<T, T>& Merge(std::pair<T, T>& host, const std::pair<T, T>& rhs) {
+	forceinline std::pair<T, T>& Merge(std::pair<T, T>& host, const std::pair<T, T>& rhs) {
 		Union(host, rhs.first);
 		Union(host, rhs.second);
 		return host;
 	}
 
 	template <class T>
-	std::pair<T, T>& Union(std::pair<T, T>& host, const T& value) {
+	forceinline std::pair<T, T>& Union(std::pair<T, T>& host, const T& value) {
 		for (size_t i = 0; i < T::size; i++) {
 			host.first[i] = Math::Min(host.first[i], value[i]);
 			host.second[i] = Math::Max(host.second[i], value[i]);
@@ -874,7 +874,7 @@ namespace PaintsNow {
 	}
 
 	template <class T>
-	bool Overlap(const std::pair<T, T>& lhs, const std::pair<T, T>& rhs) {
+	forceinline bool Overlap(const std::pair<T, T>& lhs, const std::pair<T, T>& rhs) {
 		for (size_t i = 0; i < T::size; i++) {
 			if (rhs.second[i] < lhs.first[i] || lhs.second[i] < rhs.first[i])
 				return false;
@@ -884,7 +884,7 @@ namespace PaintsNow {
 	}
 
 	template <class T>
-	bool Contain(const std::pair<T, T>& host, const T& value) {
+	forceinline bool Contain(const std::pair<T, T>& host, const T& value) {
 		for (size_t i = 0; i < T::size; i++) {
 			if (value[i] < host.first[i] || host.second[i] < value[i]) {
 				return false;
@@ -895,12 +895,12 @@ namespace PaintsNow {
 	}
 
 	template <class T>
-	bool Contain(const std::pair<T, T>& host, const std::pair<T, T>& value) {
+	forceinline bool Contain(const std::pair<T, T>& host, const std::pair<T, T>& value) {
 		return Contain(host, value.first) && Contain(host, value.second);
 	}
 
 	template <class T>
-	T ToLocal(const std::pair<T, T>& val, const T& t) {
+	forceinline T ToLocal(const std::pair<T, T>& val, const T& t) {
 		T r;
 		for (size_t i = 0; i < T::size; i++) {
 			r[i] = (t[i] - val.first[i]) / (val.second[i] - val.first[i]);
@@ -910,7 +910,7 @@ namespace PaintsNow {
 	}
 
 	template <class T>
-	T FromLocal(const std::pair<T, T>& val, const T& t) {
+	forceinline T FromLocal(const std::pair<T, T>& val, const T& t) {
 		T r;
 		for (size_t i = 0; i < T::size; i++) {
 			r[i] = (val.second[i] - val.first[i]) * t[i] + val.first[i];
@@ -920,12 +920,12 @@ namespace PaintsNow {
 	}
 
 	template <class T, class D>
-	std::pair<T, D> operator * (const std::pair<T, D>& lhs, double t) {
+	forceinline std::pair<T, D> operator * (const std::pair<T, D>& lhs, double t) {
 		return std::pair<T, D>(lhs.first * t, lhs.second * t);
 	}
 
 	template <class T, class D>
-	std::pair<T, D> operator / (const std::pair<T, D>& lhs, double t) {
+	forceinline std::pair<T, D> operator / (const std::pair<T, D>& lhs, double t) {
 		return std::pair<T, D>(lhs.first / t, lhs.second / t);
 	}
 }

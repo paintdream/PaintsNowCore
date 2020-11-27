@@ -143,8 +143,10 @@ using rvalue = T&&;
 
 #if defined(_MSC_VER)
 #define pure_interface __declspec(novtable)
+#define forceinline __forceinline
 #else
 #define pure_interface
+#define forceinline __attribute__((always_inline))
 #endif
 
 namespace PaintsNow {
