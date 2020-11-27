@@ -150,6 +150,7 @@ void ZThreadPthread::DoLock(Lock* l) {
 #else
 	::EnterCriticalSection(&lock->cs);
 #endif
+	assert(lock->lockCount == 0);
 	lock->lockCount++;
 }
 

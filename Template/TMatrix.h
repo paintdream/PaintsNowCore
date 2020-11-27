@@ -18,10 +18,12 @@ namespace PaintsNow {
 		T data[m][n]; // m: col index, n: row index
 	};
 
+#ifdef USE_SSE
 	template <>
 	struct_aligned(16) TMatrixBase<float, 4U, 4U> {
 		float data[4][4]; // m: col index, n: row index
 	};
+#endif
 
 	template <class T, size_t m = 4, size_t n = m>
 	struct TMatrix : public TMatrixBase<T, m, n> {
@@ -168,7 +170,7 @@ namespace PaintsNow {
 	}
 #endif
 
-#ifdef ARCH_X86
+#ifdef USE_SSE
 	template <>
 	inline TMatrix<float, 4, 4> operator * (const TMatrix<float, 4, 4>& lhs, const TMatrix<float, 4, 4>& rhs) {
 		// SIMD from glm library
@@ -260,7 +262,7 @@ namespace PaintsNow {
 		return ret;
 	}
 
-#ifdef ARCH_X86
+#ifdef USE_SSE
 	template <>
 	inline TVector<float, 4> operator * (const TVector<float, 4>& value, const TMatrix<float, 4, 4>& rhs) {
 		// SIMD from glm library
@@ -298,9 +300,12 @@ namespace PaintsNow {
 		TMatrix<T, m, n> QuickInverse(const TMatrix<T, m, n>& mat) {
 			static_assert(m == n && m == 4, "QuickInverse only applies to 4x4 matrix");
 			TType4<T> vv;
-			vv.x() = T(1) / TType4<T>(mat(0, 0), mat(0, 1), mat(0, 2), T(0)).SquareLength();
-			vv.y() = T(1) / TType4<T>(mat(1, 0), mat(1, 1), mat(1, 2), T(0)).SquareLength();
-			vv.z() = T(1) / TType4<T>(mat(2, 0), mat(2, 1), mat(2, 2), T(0)).SquareLength();
+			vv.x() = SquareLength(TType4<T>(mat(0, 0), mat(0, 1), mat(0, 2), T(0)));
+			vv.y() = SquareLength(TType4<T>(mat(1, 0), mat(1, 1), mat(1, 2), T(0)));
+			vv.z() = SquareLength(TType4<T>(mat(2, 0), mat(2, 1), mat(2, 2), T(0)));
+			vv.w() = 1;
+
+			vv = TType4<T>(1, 1, 1, 1) / vv;
 			vv.w() = 0;
 
 			TMatrix<T, n, n> inverse = mat.Transpose();

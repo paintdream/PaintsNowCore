@@ -100,12 +100,12 @@ namespace PaintsNow {
 			Float3 direction = dir;
 			Float3 up = u;
 
-			direction.Normalize();
-			up.Normalize();
+			direction = Normalize(direction);
+			up = Normalize(up);
 
 			/* Side = forward x up */
 			Float3 side = CrossProduct(direction, up);
-			side.Normalize();
+			side = Normalize(side);
 			up = CrossProduct(side, direction);
 
 			MatrixFloat4x4 m;

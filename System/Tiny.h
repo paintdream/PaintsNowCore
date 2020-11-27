@@ -40,7 +40,7 @@ namespace PaintsNow {
 	class pure_interface SharedTiny : public TReflected<SharedTiny, Tiny> {
 	public:
 		// For faster initialization, we do not count the reference on creating Tiny
-		SharedTiny(FLAG f = 0) : BaseClass(f), extReferCount(0) {}
+		SharedTiny(FLAG f = 0) : BaseClass(f), referCount(1) {}
 #ifdef _DEBUG
 		static void DebugAttach(SharedTiny* host, SharedTiny* tiny);
 		static void DebugDetach(SharedTiny* tiny);
@@ -57,24 +57,18 @@ namespace PaintsNow {
 
 		void ReleaseObject() override {
 			// every external references released?
-			if (extReferCount.load(std::memory_order_relaxed) == 0) {
+			if (referCount.fetch_sub(1, std::memory_order_relaxed) == 1) {
 				Tiny::ReleaseObject();
-			} else {
-				extReferCount.fetch_sub(1, std::memory_order_relaxed);
 			}
 		}
 
 		virtual void ReferenceObject() {
-			extReferCount.fetch_add(1, std::memory_order_relaxed);
+			referCount.fetch_add(1, std::memory_order_relaxed);
 		}
 
-		// Get external refer count, the result is not reliable.
-		uint32_t GetExtReferCount() const {
-			return extReferCount.load(std::memory_order_relaxed);
-		}
 
 	protected:
-		std::atomic<int32_t> extReferCount;
+		std::atomic<int32_t> referCount;
 	};
 
 	// Shared pointer wrapper for tinies.
