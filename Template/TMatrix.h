@@ -14,10 +14,22 @@
 
 namespace PaintsNow {
 	template <class T, size_t m = 4, size_t n = m>
-	class TMatrix {
-	public:
+	struct TMatrixBase {
+		T data[m][n]; // m: col index, n: row index
+	};
+
+	template <>
+	struct_aligned(16) TMatrixBase<float, 4U, 4U> {
+		float data[4][4]; // m: col index, n: row index
+	};
+
+	template <class T, size_t m = 4, size_t n = m>
+	struct TMatrix : public TMatrixBase<T, m, n> {
 		enum { M = m, N = n };
 		typedef T type;
+		// #if !defined(_MSC_VER) || _MSC_VER <= 1200
+		using TMatrixBase<T, m, n>::data;
+		// #endif
 
 		forceinline TMatrix(const T* value) {
 			for (size_t i = 0; i < m; i++) {
@@ -40,7 +52,7 @@ namespace PaintsNow {
 
 		static const TMatrix CreateIdentity() {
 			TMatrix mat;
-			T (*data)[n] = mat.data;
+			T(*data)[n] = mat.data;
 			size_t z = Math::Min(m, n);
 			memset(data, 0, sizeof(mat.data));
 			for (size_t i = 0; i < z; i++) {
@@ -120,8 +132,6 @@ namespace PaintsNow {
 		forceinline const T& operator () (size_t i, size_t j) const {
 			return data[i][j];
 		}
-
-		T data[m][n]; // m: col index, n: row index
 	};
 
 
@@ -158,6 +168,87 @@ namespace PaintsNow {
 	}
 #endif
 
+#ifdef ARCH_X86
+	template <>
+	inline TMatrix<float, 4, 4> operator * (const TMatrix<float, 4, 4>& lhs, const TMatrix<float, 4, 4>& rhs) {
+		// SIMD from glm library
+		TMatrix<float, 4, 4> ret;
+		{
+			__m128 e0 = _mm_shuffle_ps(LoadVector4f(lhs(0)), LoadVector4f(lhs(0)), _MM_SHUFFLE(0, 0, 0, 0));
+			__m128 e1 = _mm_shuffle_ps(LoadVector4f(lhs(0)), LoadVector4f(lhs(0)), _MM_SHUFFLE(1, 1, 1, 1));
+			__m128 e2 = _mm_shuffle_ps(LoadVector4f(lhs(0)), LoadVector4f(lhs(0)), _MM_SHUFFLE(2, 2, 2, 2));
+			__m128 e3 = _mm_shuffle_ps(LoadVector4f(lhs(0)), LoadVector4f(lhs(0)), _MM_SHUFFLE(3, 3, 3, 3));
+
+			__m128 m0 = _mm_mul_ps(LoadVector4f(rhs(0)), e0);
+			__m128 m1 = _mm_mul_ps(LoadVector4f(rhs(1)), e1);
+			__m128 m2 = _mm_mul_ps(LoadVector4f(rhs(2)), e2);
+			__m128 m3 = _mm_mul_ps(LoadVector4f(rhs(3)), e3);
+
+			__m128 a0 = _mm_add_ps(m0, m1);
+			__m128 a1 = _mm_add_ps(m2, m3);
+			__m128 a2 = _mm_add_ps(a0, a1);
+
+			ret(0) = StoreVector4f(a2);
+		}
+
+		{
+			__m128 e0 = _mm_shuffle_ps(LoadVector4f(lhs(1)), LoadVector4f(lhs(1)), _MM_SHUFFLE(0, 0, 0, 0));
+			__m128 e1 = _mm_shuffle_ps(LoadVector4f(lhs(1)), LoadVector4f(lhs(1)), _MM_SHUFFLE(1, 1, 1, 1));
+			__m128 e2 = _mm_shuffle_ps(LoadVector4f(lhs(1)), LoadVector4f(lhs(1)), _MM_SHUFFLE(2, 2, 2, 2));
+			__m128 e3 = _mm_shuffle_ps(LoadVector4f(lhs(1)), LoadVector4f(lhs(1)), _MM_SHUFFLE(3, 3, 3, 3));
+
+			__m128 m0 = _mm_mul_ps(LoadVector4f(rhs(0)), e0);
+			__m128 m1 = _mm_mul_ps(LoadVector4f(rhs(1)), e1);
+			__m128 m2 = _mm_mul_ps(LoadVector4f(rhs(2)), e2);
+			__m128 m3 = _mm_mul_ps(LoadVector4f(rhs(3)), e3);
+
+			__m128 a0 = _mm_add_ps(m0, m1);
+			__m128 a1 = _mm_add_ps(m2, m3);
+			__m128 a2 = _mm_add_ps(a0, a1);
+
+			ret(1) = StoreVector4f(a2);
+		}
+
+		{
+			__m128 e0 = _mm_shuffle_ps(LoadVector4f(lhs(2)), LoadVector4f(lhs(2)), _MM_SHUFFLE(0, 0, 0, 0));
+			__m128 e1 = _mm_shuffle_ps(LoadVector4f(lhs(2)), LoadVector4f(lhs(2)), _MM_SHUFFLE(1, 1, 1, 1));
+			__m128 e2 = _mm_shuffle_ps(LoadVector4f(lhs(2)), LoadVector4f(lhs(2)), _MM_SHUFFLE(2, 2, 2, 2));
+			__m128 e3 = _mm_shuffle_ps(LoadVector4f(lhs(2)), LoadVector4f(lhs(2)), _MM_SHUFFLE(3, 3, 3, 3));
+
+			__m128 m0 = _mm_mul_ps(LoadVector4f(rhs(0)), e0);
+			__m128 m1 = _mm_mul_ps(LoadVector4f(rhs(1)), e1);
+			__m128 m2 = _mm_mul_ps(LoadVector4f(rhs(2)), e2);
+			__m128 m3 = _mm_mul_ps(LoadVector4f(rhs(3)), e3);
+
+			__m128 a0 = _mm_add_ps(m0, m1);
+			__m128 a1 = _mm_add_ps(m2, m3);
+			__m128 a2 = _mm_add_ps(a0, a1);
+
+			ret(2) = StoreVector4f(a2);
+		}
+
+		{
+			__m128 e0 = _mm_shuffle_ps(LoadVector4f(lhs(3)), LoadVector4f(lhs(3)), _MM_SHUFFLE(0, 0, 0, 0));
+			__m128 e1 = _mm_shuffle_ps(LoadVector4f(lhs(3)), LoadVector4f(lhs(3)), _MM_SHUFFLE(1, 1, 1, 1));
+			__m128 e2 = _mm_shuffle_ps(LoadVector4f(lhs(3)), LoadVector4f(lhs(3)), _MM_SHUFFLE(2, 2, 2, 2));
+			__m128 e3 = _mm_shuffle_ps(LoadVector4f(lhs(3)), LoadVector4f(lhs(3)), _MM_SHUFFLE(3, 3, 3, 3));
+
+			__m128 m0 = _mm_mul_ps(LoadVector4f(rhs(0)), e0);
+			__m128 m1 = _mm_mul_ps(LoadVector4f(rhs(1)), e1);
+			__m128 m2 = _mm_mul_ps(LoadVector4f(rhs(2)), e2);
+			__m128 m3 = _mm_mul_ps(LoadVector4f(rhs(3)), e3);
+
+			__m128 a0 = _mm_add_ps(m0, m1);
+			__m128 a1 = _mm_add_ps(m2, m3);
+			__m128 a2 = _mm_add_ps(a0, a1);
+
+			ret(3) = StoreVector4f(a2);
+		}
+
+		return ret;
+	}
+#endif
+
 	template <class T, size_t m, size_t n>
 	TVector<T, n> operator * (const TVector<T, m>& value, const TMatrix<T, m, n>& rhs) {
 		TMatrix<T, n, m> trans = rhs.Transpose();
@@ -168,6 +259,28 @@ namespace PaintsNow {
 
 		return ret;
 	}
+
+#ifdef ARCH_X86
+	template <>
+	inline TVector<float, 4> operator * (const TVector<float, 4>& value, const TMatrix<float, 4, 4>& rhs) {
+		// SIMD from glm library
+		__m128 v0 = _mm_shuffle_ps(LoadVector4f(value), LoadVector4f(value), _MM_SHUFFLE(0, 0, 0, 0));
+		__m128 v1 = _mm_shuffle_ps(LoadVector4f(value), LoadVector4f(value), _MM_SHUFFLE(1, 1, 1, 1));
+		__m128 v2 = _mm_shuffle_ps(LoadVector4f(value), LoadVector4f(value), _MM_SHUFFLE(2, 2, 2, 2));
+		__m128 v3 = _mm_shuffle_ps(LoadVector4f(value), LoadVector4f(value), _MM_SHUFFLE(3, 3, 3, 3));
+
+		__m128 m0 = _mm_mul_ps(LoadVector4f(rhs(0)), v0);
+		__m128 m1 = _mm_mul_ps(LoadVector4f(rhs(1)), v1);
+		__m128 m2 = _mm_mul_ps(LoadVector4f(rhs(2)), v2);
+		__m128 m3 = _mm_mul_ps(LoadVector4f(rhs(3)), v3);
+
+		__m128 a0 = _mm_add_ps(m0, m1);
+		__m128 a1 = _mm_add_ps(m2, m3);
+		__m128 a2 = _mm_add_ps(a0, a1);
+
+		return StoreVector4f(a2);
+	}
+#endif
 
 	namespace Math {
 		template <class T, size_t m, size_t n>

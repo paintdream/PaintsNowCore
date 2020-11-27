@@ -7,10 +7,6 @@
 #include <windows.h>
 #endif
 
-#ifdef MATH_SSE
-#include <xmmintrin.h>
-#endif
-
 namespace PaintsNow {
 	std::vector<String> Split(const String& str, char sep) {
 		std::vector<String> result;

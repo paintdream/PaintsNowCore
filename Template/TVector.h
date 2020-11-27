@@ -11,12 +11,36 @@
 #include <cmath>
 #include <algorithm>
 
+#if defined(_MSC_VER)
+#define ARCH_X86
+#else
+#ifdef __i386__
+#define ARCH_X86
+#endif
+#endif
+
+#ifdef ARCH_X86
+#include <emmintrin.h>
+#endif
+
 namespace PaintsNow {
 	// Fixed-size vector
 	template <class T, size_t n>
-	class TVector {
-	public:
+	struct TVectorBase {
+		T data[n];
+	};
+
+	template <>
+	struct_aligned(16) TVectorBase<float, 4U> {
+		float data[4];
+	};
+
+	template <class T, size_t n>
+	struct TVector : public TVectorBase<T, n> {
 		typedef T type;
+// #if !defined(_MSC_VER) || _MSC_VER <= 1200
+		using TVectorBase<T, n>::data;
+// #endif
 
 		// Construct from half pair
 		forceinline TVector(const std::pair<TVector<T, n / 2>, TVector<T, n / 2> >& p) {
@@ -171,9 +195,17 @@ namespace PaintsNow {
 
 			return *this;
 		}
-
-		T data[n];
 	};
+
+#ifdef ARCH_X86
+	forceinline __m128 LoadVector4f(const TVector<float, 4>& value) {
+		return *(const __m128*) & value.data[0];
+	}
+
+	forceinline TVector<float, 4> StoreVector4f(__m128 v) {
+		return *(const TVector<float, 4>*)&v;
+	}
+#endif
 
 #define VISIT(X, index) \
 	forceinline const T X() const { return (*this)[index]; } \
@@ -666,6 +698,44 @@ namespace PaintsNow {
 		return v;
 	}
 
+#ifdef ARCH_X86
+	template <>
+	forceinline TVector<float, 4> operator + (const TVector<float, 4>& lhs, float rhs) {
+		__m128 v = _mm_loadu_ps(&rhs);
+		return StoreVector4f(_mm_add_ps(LoadVector4f(lhs), v));
+	}
+#endif
+
+	template <class T, size_t n>
+	forceinline TVector<T, n> operator + (const TVector<T, n>& lhs, const TVector<T, n>& rhs) {
+		TVector<T, n> res(lhs);
+		res += rhs;
+		return res;
+	}
+
+#ifdef ARCH_X86
+	template <>
+	forceinline TVector<float, 4> operator + (const TVector<float, 4>& lhs, const TVector<float, 4>& rhs) {
+		return StoreVector4f(_mm_add_ps(LoadVector4f(lhs), LoadVector4f(rhs)));
+	}
+#endif
+
+	template <class T, size_t n>
+	forceinline TVector<T, n>& operator += (TVector<T, n>& lhs, T t) {
+		for (size_t i = 0; i < n; i++) {
+			lhs[i] += t;
+		}
+		return lhs;
+	}
+
+#ifdef ARCH_X86
+	template <>
+	forceinline TVector<float, 4>& operator += (TVector<float, 4>& lhs, float t) {
+		__m128 v = _mm_loadu_ps(&t);
+		return lhs = StoreVector4f(_mm_add_ps(LoadVector4f(lhs), v));
+	}
+#endif
+
 	template <class T, size_t n>
 	forceinline TVector<T, n>& operator += (TVector<T, n>& lhs, const TVector<T, n>& rhs) {
 		for (size_t i = 0; i < n; i++) {
@@ -675,21 +745,13 @@ namespace PaintsNow {
 		return lhs;
 	}
 
-	template <class T, size_t n>
-	forceinline TVector<T, n> operator + (const TVector<T, n>& lhs, const TVector<T, n>& rhs) {
-		TVector<T, n> res(lhs);
-		res += rhs;
-		return res;
+#ifdef ARCH_X86
+	template <>
+	forceinline TVector<float, 4>& operator += (TVector<float, 4>& lhs, const TVector<float, 4>& rhs) {
+		return lhs = StoreVector4f(_mm_add_ps(LoadVector4f(lhs), LoadVector4f(rhs)));
 	}
+#endif
 	
-	template <class T, size_t n>
-	forceinline TVector<T, n> operator += (TVector<T, n>& lhs, T t) {
-		for (size_t i = 0; i < n; i++) {
-			lhs[i] += t;
-		}
-		return lhs;
-	}
-
 	// -
 	template <class T, size_t n>
 	forceinline TVector<T, n> operator - (const TVector<T, n>& lhs, T rhs) {
@@ -701,14 +763,13 @@ namespace PaintsNow {
 		return v;
 	}
 
-	template <class T, size_t n>
-	forceinline TVector<T, n>& operator -= (TVector<T, n>& lhs, const TVector<T, n>& rhs) {
-		for (size_t i = 0; i < n; i++) {
-			lhs[i] -= rhs[i];
-		}
-		
-		return lhs;
+#ifdef ARCH_X86
+	template <>
+	forceinline TVector<float, 4> operator - (const TVector<float, 4>& lhs, float rhs) {
+		__m128 v = _mm_loadu_ps(&rhs);
+		return StoreVector4f(_mm_sub_ps(LoadVector4f(lhs), v));
 	}
+#endif
 
 	template <class T, size_t n>
 	forceinline TVector<T, n> operator - (const TVector<T, n>& lhs, const TVector<T, n>& rhs) {
@@ -716,71 +777,129 @@ namespace PaintsNow {
 		res -= rhs;
 		return res;
 	}
-	
+
+#ifdef ARCH_X86
+	template <>
+	forceinline TVector<float, 4> operator - (const TVector<float, 4>& lhs, const TVector<float, 4>& rhs) {
+		return StoreVector4f(_mm_sub_ps(LoadVector4f(lhs), LoadVector4f(rhs)));
+	}
+#endif
+
 	template <class T, size_t n>
-	forceinline TVector<T, n> operator -= (TVector<T, n>& lhs, T t) {
+	forceinline TVector<T, n>& operator -= (TVector<T, n>& lhs, T t) {
 		for (size_t i = 0; i < n; i++) {
 			lhs[i] -= t;
 		}
 		return lhs;
 	}
 
-	// *
-
+#ifdef ARCH_X86
+	template <>
+	forceinline TVector<float, 4>& operator -= (TVector<float, 4>& lhs, float t) {
+		__m128 v = _mm_loadu_ps(&t);
+		return lhs = StoreVector4f(_mm_sub_ps(LoadVector4f(lhs), v));
+	}
+#endif
 
 	template <class T, size_t n>
-	forceinline TVector<T, n>& operator *= (TVector<T, n>& lhs, const TVector<T, n>& rhs) {
+	forceinline TVector<T, n>& operator -= (TVector<T, n>& lhs, const TVector<T, n>& rhs) {
 		for (size_t i = 0; i < n; i++) {
-			lhs[i] *= rhs[i];
+			lhs[i] -= rhs[i];
 		}
-		
+
 		return lhs;
 	}
+
+#ifdef ARCH_X86
+	template <>
+	forceinline TVector<float, 4>& operator -= (TVector<float, 4>& lhs, const TVector<float, 4>& rhs) {
+		return lhs = StoreVector4f(_mm_sub_ps(LoadVector4f(lhs), LoadVector4f(rhs)));
+	}
+#endif
+
+	// *
+	template <class T, size_t n>
+	forceinline TVector<T, n> operator * (const TVector<T, n>& lhs, T rhs) {
+		TVector<T, n> v = lhs;
+		for (size_t i = 0; i < n; i++) {
+			v[i] *= rhs;
+		}
+
+		return v;
+	}
+
+#ifdef ARCH_X86
+	template <>
+	forceinline TVector<float, 4> operator * (const TVector<float, 4>& lhs, float rhs) {
+		__m128 v = _mm_loadu_ps(&rhs);
+		return StoreVector4f(_mm_mul_ps(LoadVector4f(lhs), v));
+	}
+#endif
 
 	template <class T, size_t n>
 	forceinline TVector<T, n> operator * (const TVector<T, n>& lhs, const TVector<T, n>& rhs) {
 		TVector<T, n> res(lhs);
 		res *= rhs;
-		return  res;
-	}
-	
-	template <class T, size_t n>
-	forceinline TVector<T, n> operator * (const TVector<T, n>& lhs, T t) {
-		TVector<T, n> result = lhs;
-		for (size_t i = 0; i < n; i++) {
-			result[i] *= t;
-		}
-		return result;
+		return res;
 	}
 
+#ifdef ARCH_X86
+	template <>
+	forceinline TVector<float, 4> operator * (const TVector<float, 4>& lhs, const TVector<float, 4>& rhs) {
+		return StoreVector4f(_mm_mul_ps(LoadVector4f(lhs), LoadVector4f(rhs)));
+	}
+#endif
+
 	template <class T, size_t n>
-	forceinline TVector<T, n> operator *= (TVector<T, n>& lhs, T t) {
+	forceinline TVector<T, n>& operator *= (TVector<T, n>& lhs, T t) {
 		for (size_t i = 0; i < n; i++) {
 			lhs[i] *= t;
 		}
 		return lhs;
 	}
 
-	// /
-
-
-	template <class T, size_t n>
-	forceinline TVector<T, n> operator / (const TVector<T, n>& lhs, T t) {
-		TVector<T, n> result = lhs;
-		for (size_t i = 0; i < n; i++) {
-			result[i] /= t;
-		}
-		return result;
+#ifdef ARCH_X86
+	template <>
+	forceinline TVector<float, 4>& operator *= (TVector<float, 4>& lhs, float t) {
+		__m128 v = _mm_loadu_ps(&t);
+		return lhs = StoreVector4f(_mm_mul_ps(LoadVector4f(lhs), v));
 	}
+#endif
 
 	template <class T, size_t n>
-	forceinline TVector<T, n>& operator /= (TVector<T, n>& lhs, const TVector<T, n>& rhs) {
+	forceinline TVector<T, n>& operator *= (TVector<T, n>& lhs, const TVector<T, n>& rhs) {
 		for (size_t i = 0; i < n; i++) {
-			lhs[i] /= rhs[i];
+			lhs[i] *= rhs[i];
 		}
-		
+
 		return lhs;
 	}
+
+#ifdef ARCH_X86
+	template <>
+	forceinline TVector<float, 4>& operator *= (TVector<float, 4>& lhs, const TVector<float, 4>& rhs) {
+		return lhs = StoreVector4f(_mm_mul_ps(LoadVector4f(lhs), LoadVector4f(rhs)));
+	}
+#endif
+
+	// /
+	template <class T, size_t n>
+	forceinline TVector<T, n> operator / (const TVector<T, n>& lhs, T rhs) {
+		TVector<T, n> v = lhs;
+		for (size_t i = 0; i < n; i++) {
+			v[i] /= rhs;
+		}
+
+		return v;
+	}
+
+#ifdef ARCH_X86
+	template <>
+	forceinline TVector<float, 4> operator / (const TVector<float, 4>& lhs, float rhs) {
+		__m128 v = _mm_loadu_ps(&rhs);
+		return StoreVector4f(_mm_div_ps(LoadVector4f(lhs), v));
+	}
+#endif
 
 	template <class T, size_t n>
 	forceinline TVector<T, n> operator / (const TVector<T, n>& lhs, const TVector<T, n>& rhs) {
@@ -788,14 +907,45 @@ namespace PaintsNow {
 		res /= rhs;
 		return res;
 	}
-	
+
+#ifdef ARCH_X86
+	template <>
+	forceinline TVector<float, 4> operator / (const TVector<float, 4>& lhs, const TVector<float, 4>& rhs) {
+		return StoreVector4f(_mm_div_ps(LoadVector4f(lhs), LoadVector4f(rhs)));
+	}
+#endif
+
 	template <class T, size_t n>
-	forceinline TVector<T, n> operator /= (TVector<T, n>& lhs, T t) {
+	forceinline TVector<T, n>& operator /= (TVector<T, n>& lhs, T t) {
 		for (size_t i = 0; i < n; i++) {
 			lhs[i] /= t;
 		}
 		return lhs;
 	}
+
+#ifdef ARCH_X86
+	template <>
+	forceinline TVector<float, 4>& operator /= (TVector<float, 4>& lhs, float t) {
+		__m128 v = _mm_loadu_ps(&t);
+		return lhs = StoreVector4f(_mm_div_ps(LoadVector4f(lhs), v));
+	}
+#endif
+
+	template <class T, size_t n>
+	forceinline TVector<T, n>& operator /= (TVector<T, n>& lhs, const TVector<T, n>& rhs) {
+		for (size_t i = 0; i < n; i++) {
+			lhs[i] /= rhs[i];
+		}
+
+		return lhs;
+	}
+
+#ifdef ARCH_X86
+	template <>
+	forceinline TVector<float, 4>& operator /= (TVector<float, 4>& lhs, const TVector<float, 4>& rhs) {
+		return lhs = StoreVector4f(_mm_div_ps(LoadVector4f(lhs), LoadVector4f(rhs)));
+	}
+#endif
 
 	template <class T, size_t n>
 	forceinline T DotProduct(const TVector<T, n>& lhs, const TVector<T, n>& rhs) {
@@ -806,6 +956,21 @@ namespace PaintsNow {
 
 		return res;
 	}
+
+#ifdef ARCH_X86
+	template <>
+	forceinline float DotProduct(const TVector<float, 4>& lhs, const TVector<float, 4>& rhs) {
+		// SSE2 only by now
+		__m128 mul0 = _mm_mul_ps(LoadVector4f(lhs), LoadVector4f(rhs));
+		__m128 swp0 = _mm_shuffle_ps(mul0, mul0, _MM_SHUFFLE(2, 3, 0, 1));
+		__m128 add0 = _mm_add_ps(mul0, swp0);
+		__m128 swp1 = _mm_shuffle_ps(add0, add0, _MM_SHUFFLE(0, 1, 2, 3));
+		__m128 add1 = _mm_add_ps(add0, swp1);
+
+		TVector<float, 4> ret = StoreVector4f(add1);
+		return ret.data[0];
+	}
+#endif
 
 	template <class T>
 	forceinline T CrossProduct(const TVector<T, 2>& lhs, const TVector<T, 2>& rhs) {
