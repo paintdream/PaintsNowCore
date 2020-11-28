@@ -84,6 +84,7 @@ namespace PaintsNow {
 
 			return *this;
 		}
+
 		forceinline TVector<T, n> operator - () const {
 			TVector<T, n> ret;
 			for (size_t i = 0; i < n; i++) {
@@ -281,6 +282,18 @@ namespace PaintsNow {
 			return TType2<T>(x(), y());
 		}
 
+		forceinline static TType3 Load(T f, T padding = 0) {
+			return TType3(f, padding, padding);
+		}
+
+		forceinline static TType3 Load(const TVector<T, 2>& v2, T padding = 0) {
+			return TType3(v2[0], v2[1], padding);
+		}
+
+		forceinline static TType3 Load(T f, const TVector<T, 2>& v2) {
+			return TType3(f, v2[0], v2[1]);
+		}
+
 		VISIT(x, 0);
 		VISIT(y, 1);
 		VISIT(z, 2);
@@ -464,6 +477,30 @@ namespace PaintsNow {
 		
 		EXPLICIT operator TType3<T>() const {
 			return TType3<T>(x(), y(), z());
+		}
+
+		forceinline static TType4 Load(T f, T padding = 0) {
+			return TType4(f, padding, padding, padding);
+		}
+
+		forceinline static TType4 Load(const TVector<T, 2>& v2, T padding = 0) {
+			return TType4(v2[0], v2[1], padding, padding);
+		}
+
+		forceinline static TType4 Load(T f, const TVector<T, 2>& v2, T padding = 0) {
+			return TType4(f, v2[0], v2[1], padding);
+		}
+
+		forceinline static TType4 Load(const TVector<T, 2>& v2, const TVector<T, 2>& v2h) {
+			return TType4(v2[0], v2[1], v2h[0], v2h[1]);
+		}
+
+		forceinline static TType4 Load(const TVector<T, 3>& v3, T padding = 0) {
+			return TType4(v3[0], v3[1], v3[2], padding);
+		}
+
+		forceinline static TType4 Load(T f, const TVector<T, 3>& v3) {
+			return TType4(f, v3[0], v3[1], v3[2]);
 		}
 
 		VISIT(x, 0);
@@ -854,195 +891,244 @@ namespace PaintsNow {
 		return memcmp(&lhs, &rhs, sizeof(lhs)) != 0;
 	}
 
-	template <class T, size_t n>
-	forceinline T DotProduct(const TVector<T, n>& lhs, const TVector<T, n>& rhs) {
-		T res(0);
-		for (size_t i = 0; i < n; i++) {
-			res += lhs[i] * rhs[i];
-		}
-
-		return res;
-	}
-
-#ifdef USE_SSE
-	template <>
-	forceinline float DotProduct(const TVector<float, 4>& lhs, const TVector<float, 4>& rhs) {
-		TVector<float, 4> ret = StoreVector4f(_mm_dp_ps(LoadVector4f(lhs), LoadVector4f(rhs), 0xff));
-		return ret.data[0];
-		/*
-		// SSE2 only by now
-		__m128 mul0 = _mm_mul_ps(LoadVector4f(lhs), LoadVector4f(rhs));
-		__m128 swp0 = _mm_shuffle_ps(mul0, mul0, _MM_SHUFFLE(2, 3, 0, 1));
-		__m128 add0 = _mm_add_ps(mul0, swp0);
-		__m128 swp1 = _mm_shuffle_ps(add0, add0, _MM_SHUFFLE(0, 1, 2, 3));
-		__m128 add1 = _mm_add_ps(add0, swp1);
-
-		TVector<float, 4> ret = StoreVector4f(add1);
-		return ret.data[0];*/
-	}
-#endif
-
-	template <class T, size_t n>
-	forceinline T SquareLength(const TVector<T, n>& lhs) {
-		return DotProduct(lhs, lhs);
-	}
-
-#ifdef USE_SSE
-	template <>
-	forceinline float SquareLength<float, 4>(const TVector<float, 4>& lhs) {
-		__m128 v = LoadVector4f(lhs);
-		__m128 m = _mm_dp_ps(v, v, 0xff);
-		return StoreVector4f(m).data[0];
-	}
-#endif
-
-	template <class T, size_t n>
-	forceinline T Length(const TVector<T, n>& lhs) {
-		return (T)sqrt(SquareLength(lhs));
-	}
-
-	template <class T, size_t n>
-	forceinline TVector<T, n> Normalize(const TVector<T, n>& lhs) {
-		return lhs / (T)sqrt(SquareLength(lhs));
-	}
-
-	template <class T, size_t n>
-	forceinline T ReciprocalLength(const TVector<T, n>& lhs) {
-		return T(1) / Length(lhs, lhs);
-	}
-
-#ifdef USE_SSE
-	template <>
-	forceinline float ReciprocalLength<float, 4>(const TVector<float, 4>& lhs) {
-		__m128 v = LoadVector4f(lhs);
-		__m128 m = _mm_dp_ps(v, v, 0xff);
-		__m128 i = _mm_rsqrt_ps(m);
-		return StoreVector4f(i).data[0];
-	}
-#endif
-
-#ifdef USE_SSE
-	template <>
-	forceinline TVector<float, 4> Normalize<float, 4>(const TVector<float, 4>& lhs) {
-		__m128 v = LoadVector4f(lhs);
-		__m128 dot0 = _mm_dp_ps(v, v, 0xff);
-		__m128 isr0 = _mm_rsqrt_ps(dot0);
-		__m128 mul0 = _mm_mul_ps(v, isr0);
-
-		return StoreVector4f(mul0);
-	}
-#endif
-
-	template <class T>
-	forceinline T CrossProduct(const TVector<T, 2>& lhs, const TVector<T, 2>& rhs) {
-		return lhs[0] * rhs[1] - lhs[1] * rhs[0];
-	}
-
-	template <class T>
-	forceinline TVector<T, 3> CrossProduct(const TVector<T, 3>& lhs, const TVector<T, 3>& rhs) {
-		TVector<T, 3> t;
-		t[0] = lhs[1] * rhs[2] - lhs[2] * rhs[1];
-		t[1] = lhs[2] * rhs[0] - lhs[0] * rhs[2];
-		t[2] = lhs[0] * rhs[1] - lhs[1] * rhs[0];
-
-		return t;
-	}
-
-	template <class T>
-	forceinline bool CrossPoint(TVector<T, 2>& result, const TVector<T, 2>& ps, const TVector<T, 2>& pt, const TVector<T, 2>& qs, const TVector<T, 2>& qt, T& alpha, T& beta) {
-		T z = CrossProduct(pt - ps, qt - qs);
-		if (fabs(z) < 1e-10)
-			return false;
-
-		T A1 = pt[0] - ps[0], A2 = qs[0] - qt[0]; 
-		T B1 = pt[1] - ps[1], B2 = qs[1] - qt[1]; 
-		T C1 = qs[0] - ps[0];
-		T C2 = qs[1] - ps[1];
-		T D = A1 * B2 - A2 * B1;
-
-		alpha = (B1 * C2 - B2 * C1) / D;
-		beta = (C1 * A2 - C2 * A1) / D;
-
-		result = ((ps + (pt - ps) * alpha) + (qs + (qt - qs) * beta)) / T(2);
-
-		return true;
-	}
-
-	template <class T>
-	forceinline bool Clip(std::pair<T, T>& lhs, const std::pair<T, T>& rhs) {
-		bool b = true;
-		for (size_t i = 0; i < T::size; i++) {
-			lhs.first[i] = Math::Max(lhs.first[i], rhs.first[i]);
-			lhs.second[i] = Math::Min(lhs.second[i], rhs.second[i]);
-
-			if (lhs.first[i] > lhs.second[i])
-				b = false;
-		}
-
-		return b;
-	}
-
-	template <class T>
-	forceinline std::pair<T, T>& Merge(std::pair<T, T>& host, const std::pair<T, T>& rhs) {
-		Union(host, rhs.first);
-		Union(host, rhs.second);
-		return host;
-	}
-
-	template <class T>
-	forceinline std::pair<T, T>& Union(std::pair<T, T>& host, const T& value) {
-		for (size_t i = 0; i < T::size; i++) {
-			host.first[i] = Math::Min(host.first[i], value[i]);
-			host.second[i] = Math::Max(host.second[i], value[i]);
-		}
-
-		return host;
-	}
-
-	template <class T>
-	forceinline bool Overlap(const std::pair<T, T>& lhs, const std::pair<T, T>& rhs) {
-		for (size_t i = 0; i < T::size; i++) {
-			if (rhs.second[i] < lhs.first[i] || lhs.second[i] < rhs.first[i])
-				return false;
-		}
-
-		return true;
-	}
-
-	template <class T>
-	forceinline bool Contain(const std::pair<T, T>& host, const T& value) {
-		for (size_t i = 0; i < T::size; i++) {
-			if (value[i] < host.first[i] || host.second[i] < value[i]) {
-				return false;
+	namespace Math {
+		template <class T, size_t n>
+		forceinline T DotProduct(const TVector<T, n>& lhs, const TVector<T, n>& rhs) {
+			T res(0);
+			for (size_t i = 0; i < n; i++) {
+				res += lhs[i] * rhs[i];
 			}
+
+			return res;
 		}
 
-		return true;
-	}
+#ifdef USE_SSE
+		template <>
+		forceinline float DotProduct(const TVector<float, 4>& lhs, const TVector<float, 4>& rhs) {
+			TVector<float, 4> ret = StoreVector4f(_mm_dp_ps(LoadVector4f(lhs), LoadVector4f(rhs), 0xff));
+			return ret.data[0];
+			/*
+			// SSE2 only by now
+			__m128 mul0 = _mm_mul_ps(LoadVector4f(lhs), LoadVector4f(rhs));
+			__m128 swp0 = _mm_shuffle_ps(mul0, mul0, _MM_SHUFFLE(2, 3, 0, 1));
+			__m128 add0 = _mm_add_ps(mul0, swp0);
+			__m128 swp1 = _mm_shuffle_ps(add0, add0, _MM_SHUFFLE(0, 1, 2, 3));
+			__m128 add1 = _mm_add_ps(add0, swp1);
 
-	template <class T>
-	forceinline bool Contain(const std::pair<T, T>& host, const std::pair<T, T>& value) {
-		return Contain(host, value.first) && Contain(host, value.second);
-	}
+			TVector<float, 4> ret = StoreVector4f(add1);
+			return ret.data[0];*/
+		}
+#endif
 
-	template <class T>
-	forceinline T ToLocal(const std::pair<T, T>& val, const T& t) {
-		T r;
-		for (size_t i = 0; i < T::size; i++) {
-			r[i] = (t[i] - val.first[i]) / (val.second[i] - val.first[i]);
+		template <class T, size_t n>
+		forceinline T SquareLength(const TVector<T, n>& lhs) {
+			return DotProduct(lhs, lhs);
 		}
 
-		return r;
-	}
+#ifdef USE_SSE
+		template <>
+		forceinline float SquareLength<float, 4>(const TVector<float, 4>& lhs) {
+			__m128 v = LoadVector4f(lhs);
+			__m128 m = _mm_dp_ps(v, v, 0xff);
+			return StoreVector4f(m).data[0];
+		}
+#endif
 
-	template <class T>
-	forceinline T FromLocal(const std::pair<T, T>& val, const T& t) {
-		T r;
-		for (size_t i = 0; i < T::size; i++) {
-			r[i] = (val.second[i] - val.first[i]) * t[i] + val.first[i];
+		template <class T, size_t n>
+		forceinline T Length(const TVector<T, n>& lhs) {
+			return (T)sqrt(SquareLength(lhs));
 		}
 
-		return r;
+		template <class T, size_t n>
+		forceinline TVector<T, n> Normalize(const TVector<T, n>& lhs) {
+			return lhs / (T)sqrt(SquareLength(lhs));
+		}
+
+#ifdef USE_SSE
+		template <>
+		forceinline TVector<float, 4> Normalize<float, 4>(const TVector<float, 4>& lhs) {
+			__m128 v = LoadVector4f(lhs);
+			__m128 dot0 = _mm_dp_ps(v, v, 0xff);
+			__m128 isr0 = _mm_rsqrt_ps(dot0);
+			__m128 mul0 = _mm_mul_ps(v, isr0);
+
+			return StoreVector4f(mul0);
+		}
+#endif
+
+		template <class T, size_t n>
+		forceinline TVector<T, n> Abs(const TVector<T, n>& lhs) {
+			TVector<T, n> ret;
+			for (size_t i = 0; i < n; i++) {
+				ret[i] = (T)fabs(lhs[i]);
+			}
+
+			return ret;
+		}
+
+#ifdef USE_SSE
+		template <>
+		forceinline TVector<float, 4> Abs(const TVector<float, 4>& lhs) {
+			__m128 v = _mm_and_ps(LoadVector4f(lhs), _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF)));
+			return StoreVector4f(v);
+		}
+#endif
+
+		template <class T, size_t n>
+		forceinline T ReciprocalLength(const TVector<T, n>& lhs) {
+			return T(1) / Length(lhs, lhs);
+		}
+
+#ifdef USE_SSE
+		template <>
+		forceinline float ReciprocalLength<float, 4>(const TVector<float, 4>& lhs) {
+			__m128 v = LoadVector4f(lhs);
+			__m128 m = _mm_dp_ps(v, v, 0xff);
+			__m128 i = _mm_rsqrt_ps(m);
+			return StoreVector4f(i).data[0];
+		}
+#endif
+
+		template <class T>
+		forceinline T CrossProduct(const TVector<T, 2>& lhs, const TVector<T, 2>& rhs) {
+			return lhs[0] * rhs[1] - lhs[1] * rhs[0];
+		}
+
+		template <class T>
+		forceinline TVector<T, 3> CrossProduct(const TVector<T, 3>& lhs, const TVector<T, 3>& rhs) {
+			TVector<T, 3> t;
+			t[0] = lhs[1] * rhs[2] - lhs[2] * rhs[1];
+			t[1] = lhs[2] * rhs[0] - lhs[0] * rhs[2];
+			t[2] = lhs[0] * rhs[1] - lhs[1] * rhs[0];
+
+			return t;
+		}
+
+		// same as TVector<T, 3>
+		template <class T>
+		forceinline TVector<T, 4> CrossProduct(const TVector<T, 4>& lhs, const TVector<T, 4>& rhs) {
+			TVector<T, 4> t;
+			t[0] = lhs[1] * rhs[2] - lhs[2] * rhs[1];
+			t[1] = lhs[2] * rhs[0] - lhs[0] * rhs[2];
+			t[2] = lhs[0] * rhs[1] - lhs[1] * rhs[0];
+			t[3] = 0;
+
+			return t;
+		}
+
+#ifdef USE_SSE
+		template <>
+		forceinline TVector<float, 4> CrossProduct(const TVector<float, 4>& lhs, const TVector<float, 4>& rhs) {
+			__m128 v1 = LoadVector4f(lhs);
+			__m128 v2 = LoadVector4f(rhs);
+			__m128 swp0 = _mm_shuffle_ps(v1, v1, _MM_SHUFFLE(3, 0, 2, 1));
+			__m128 swp1 = _mm_shuffle_ps(v1, v1, _MM_SHUFFLE(3, 1, 0, 2));
+			__m128 swp2 = _mm_shuffle_ps(v2, v2, _MM_SHUFFLE(3, 0, 2, 1));
+			__m128 swp3 = _mm_shuffle_ps(v2, v2, _MM_SHUFFLE(3, 1, 0, 2));
+			__m128 mul0 = _mm_mul_ps(swp0, swp3);
+			__m128 mul1 = _mm_mul_ps(swp1, swp2);
+			__m128 sub0 = _mm_sub_ps(mul0, mul1);
+
+			return StoreVector4f(sub0);
+		}
+#endif
+
+		template <class T>
+		forceinline bool CrossPoint(TVector<T, 2>& result, const TVector<T, 2>& ps, const TVector<T, 2>& pt, const TVector<T, 2>& qs, const TVector<T, 2>& qt, T& alpha, T& beta) {
+			T z = CrossProduct(pt - ps, qt - qs);
+			if (fabs(z) < 1e-10)
+				return false;
+
+			T A1 = pt[0] - ps[0], A2 = qs[0] - qt[0];
+			T B1 = pt[1] - ps[1], B2 = qs[1] - qt[1];
+			T C1 = qs[0] - ps[0];
+			T C2 = qs[1] - ps[1];
+			T D = A1 * B2 - A2 * B1;
+
+			alpha = (B1 * C2 - B2 * C1) / D;
+			beta = (C1 * A2 - C2 * A1) / D;
+
+			result = ((ps + (pt - ps) * alpha) + (qs + (qt - qs) * beta)) / T(2);
+
+			return true;
+		}
+
+		template <class T>
+		forceinline bool Clip(std::pair<T, T>& lhs, const std::pair<T, T>& rhs) {
+			bool b = true;
+			for (size_t i = 0; i < T::size; i++) {
+				lhs.first[i] = Math::Max(lhs.first[i], rhs.first[i]);
+				lhs.second[i] = Math::Min(lhs.second[i], rhs.second[i]);
+
+				if (lhs.first[i] > lhs.second[i])
+					b = false;
+			}
+
+			return b;
+		}
+
+		template <class T>
+		forceinline std::pair<T, T>& Merge(std::pair<T, T>& host, const std::pair<T, T>& rhs) {
+			Union(host, rhs.first);
+			Union(host, rhs.second);
+			return host;
+		}
+
+		template <class T>
+		forceinline std::pair<T, T>& Union(std::pair<T, T>& host, const T& value) {
+			for (size_t i = 0; i < T::size; i++) {
+				host.first[i] = Math::Min(host.first[i], value[i]);
+				host.second[i] = Math::Max(host.second[i], value[i]);
+			}
+
+			return host;
+		}
+
+		template <class T>
+		forceinline bool Overlap(const std::pair<T, T>& lhs, const std::pair<T, T>& rhs) {
+			for (size_t i = 0; i < T::size; i++) {
+				if (rhs.second[i] < lhs.first[i] || lhs.second[i] < rhs.first[i])
+					return false;
+			}
+
+			return true;
+		}
+
+		template <class T>
+		forceinline bool Contain(const std::pair<T, T>& host, const T& value) {
+			for (size_t i = 0; i < T::size; i++) {
+				if (value[i] < host.first[i] || host.second[i] < value[i]) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		template <class T>
+		forceinline bool Contain(const std::pair<T, T>& host, const std::pair<T, T>& value) {
+			return Contain(host, value.first) && Contain(host, value.second);
+		}
+
+		template <class T>
+		forceinline T ToLocal(const std::pair<T, T>& val, const T& t) {
+			T r;
+			for (size_t i = 0; i < T::size; i++) {
+				r[i] = (t[i] - val.first[i]) / (val.second[i] - val.first[i]);
+			}
+
+			return r;
+		}
+
+		template <class T>
+		forceinline T FromLocal(const std::pair<T, T>& val, const T& t) {
+			T r;
+			for (size_t i = 0; i < T::size; i++) {
+				r[i] = (val.second[i] - val.first[i]) * t[i] + val.first[i];
+			}
+
+			return r;
+		}
 	}
 
 	template <class T, class D>

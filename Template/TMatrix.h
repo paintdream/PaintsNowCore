@@ -256,7 +256,7 @@ namespace PaintsNow {
 		TMatrix<T, n, m> trans = rhs.Transpose();
 		TVector<T, n> ret;
 		for (size_t i = 0; i < n; i++) {
-			ret[i] = DotProduct(value, trans(i));
+			ret[i] = Math::DotProduct(value, trans(i));
 		}
 
 		return ret;
