@@ -33,7 +33,7 @@ namespace PaintsNow {
 		using TMatrixBase<T, m, n>::data;
 		// #endif
 
-		forceinline TMatrix(const T* value) {
+		inline TMatrix(const T* value) {
 			for (size_t i = 0; i < m; i++) {
 				for (size_t j = 0; j < n; j++) {
 					data[i][j] = *value++;
@@ -42,7 +42,7 @@ namespace PaintsNow {
 		}
 
 		template <class D, size_t s, size_t t>
-		forceinline explicit TMatrix(const TMatrix<D, s, t>& mat) {
+		inline explicit TMatrix(const TMatrix<D, s, t>& mat) {
 			*this = TMatrix<T, m, n>();
 
 			for (size_t i = 0; i < Math::Min(m, s); i++) {
@@ -69,9 +69,9 @@ namespace PaintsNow {
 			return matrix;
 		}
 
-		forceinline TMatrix() {}
+		inline TMatrix() {}
 
-		forceinline TMatrix<T, n, m> Transpose() const {
+		inline TMatrix<T, n, m> Transpose() const {
 			TMatrix<T, n, m> target;
 			for (size_t i = 0; i < m; i++) {
 				for (size_t j = 0; j < n; j++) {
@@ -82,7 +82,7 @@ namespace PaintsNow {
 			return target;
 		}
 
-		forceinline static T Distance(const TMatrix<T, m, n>& lhs, const TMatrix<T, m, n>& rhs) {
+		static inline T Distance(const TMatrix<T, m, n>& lhs, const TMatrix<T, m, n>& rhs) {
 			TMatrix<T, m, n> diff;
 			TMatrix<T, n, m> star;
 			for (size_t i = 0; i < m; i++) {
@@ -100,11 +100,11 @@ namespace PaintsNow {
 			return (T)sqrt(length);
 		}
 
-		forceinline operator T* () {
+		inline operator T* () {
 			return data;
 		}
 
-		forceinline bool operator == (const TMatrix& rhs) const {
+		inline bool operator == (const TMatrix& rhs) const {
 			for (size_t i = 0; i < m; i++) {
 				for (size_t j = 0; j < n; j++) {
 					if (data[i][j] != rhs.data[i][j])
@@ -115,23 +115,23 @@ namespace PaintsNow {
 			return true;
 		}
 
-		forceinline bool operator != (const TMatrix& rhs) const {
+		inline bool operator != (const TMatrix& rhs) const {
 			return !(*this == rhs);
 		}
 
-		forceinline TVector<T, n>& operator () (size_t i) {
+		inline TVector<T, n>& operator () (size_t i) {
 			return *reinterpret_cast<TVector<T, n>*>(&data[i][0]);
 		}
 
-		forceinline const TVector<T, n>& operator () (size_t i) const {
+		inline const TVector<T, n>& operator () (size_t i) const {
 			return *reinterpret_cast<const TVector<T, n>*>(&data[i][0]);
 		}
 
-		forceinline T& operator () (size_t i, size_t j) {
+		inline T& operator () (size_t i, size_t j) {
 			return data[i][j];
 		}
 
-		forceinline const T& operator () (size_t i, size_t j) const {
+		inline const T& operator () (size_t i, size_t j) const {
 			return data[i][j];
 		}
 	};
@@ -162,7 +162,7 @@ namespace PaintsNow {
 		for (size_t i = 0; i < m; i++) {
 			const TVector<T, p>& left = lhs(i);
 			for (size_t j = 0; j < p; j++) {
-				ret(i, j) = DotProduct(left, trans(j));
+				ret(i, j) = Math::DotProduct(left, trans(j));
 			}
 		}
 
@@ -286,7 +286,7 @@ namespace PaintsNow {
 
 	namespace Math {
 		template <class T, size_t m, size_t n>
-		forceinline TMatrix<T, m, n> Scale(const TMatrix<T, m, n>& lhs, const TVector<T, m>& v) {
+		inline TMatrix<T, m, n> Scale(const TMatrix<T, m, n>& lhs, const TVector<T, m>& v) {
 			TMatrix<T, m, n> mat = TMatrix<T, m, n>::Identity();
 			for (size_t i = 0; i < Math::Min(m, n); i++) {
 				mat.data[i][i] = v[i];
@@ -326,9 +326,8 @@ namespace PaintsNow {
 			return inverse;
 		}
 
-		template <class T, size_t n, size_t k>
-		TMatrix<T, k, n> Inverse(const TMatrix<T, k, n>& m) {
-			static_assert(k == n && k == 4, "Inverse only applies to 4x4 matrix");
+		template <class T>
+		TMatrix<T, 4, 4> Inverse(const TMatrix<T, 4, 4>& m) {
 			T det
 				= m(0, 0) * m(1, 1) * m(2, 2) * m(3, 3) + m(0, 0) * m(1, 2) * m(2, 3) * m(3, 1) + m(0, 0) * m(1, 3) * m(2, 1) * m(3, 2)
 				+ m(0, 1) * m(1, 0) * m(2, 3) * m(3, 2) + m(0, 1) * m(1, 2) * m(2, 0) * m(3, 3) + m(0, 1) * m(1, 3) * m(2, 2) * m(3, 0)
@@ -340,11 +339,11 @@ namespace PaintsNow {
 				- m(0, 3) * m(1, 0) * m(2, 1) * m(3, 2) - m(0, 3) * m(1, 1) * m(2, 2) * m(3, 0) - m(0, 3) * m(1, 2) * m(2, 0) * m(3, 1);
 
 			if (fabs(det) < 0.000001f) {
-				return TMatrix<T, k, n>();
+				return TMatrix<T, 4, 4>::Identity();
 			}
 
 			T idet = (T)(1.0 / det);
-			TMatrix<T, k, n> result;
+			TMatrix<T, 4, 4> result;
 			result(0, 0) = (m(1, 1) * m(2, 2) * m(3, 3) + m(1, 2) * m(2, 3) * m(3, 1) + m(1, 3) * m(2, 1) * m(3, 2) - m(1, 1) * m(2, 3) * m(3, 2) - m(1, 2) * m(2, 1) * m(3, 3) - m(1, 3) * m(2, 2) * m(3, 1)) * idet;
 			result(0, 1) = (m(0, 1) * m(2, 3) * m(3, 2) + m(0, 2) * m(2, 1) * m(3, 3) + m(0, 3) * m(2, 2) * m(3, 1) - m(0, 1) * m(2, 2) * m(3, 3) - m(0, 2) * m(2, 3) * m(3, 1) - m(0, 3) * m(2, 1) * m(3, 2)) * idet;
 			result(0, 2) = (m(0, 1) * m(1, 2) * m(3, 3) + m(0, 2) * m(1, 3) * m(3, 1) + m(0, 3) * m(1, 1) * m(3, 2) - m(0, 1) * m(1, 3) * m(3, 2) - m(0, 2) * m(1, 1) * m(3, 3) - m(0, 3) * m(1, 2) * m(3, 1)) * idet;
@@ -364,5 +363,446 @@ namespace PaintsNow {
 
 			return result;
 		}
+
+#ifdef USE_SSE
+		// From GLM
+		template <>
+		inline TMatrix<float, 4, 4> Inverse(const TMatrix<float, 4, 4>& m) {
+			TMatrix<float, 4, 4> result;
+			__m128 in[4];
+			in[0] = LoadVector4f(m(0));
+			in[1] = LoadVector4f(m(1));
+			in[2] = LoadVector4f(m(2));
+			in[3] = LoadVector4f(m(3));
+
+			__m128 Fac0;
+			{
+				//	valType SubFactor00 = m[2][2] * m[3][3] - m[3][2] * m[2][3];
+				//	valType SubFactor00 = m[2][2] * m[3][3] - m[3][2] * m[2][3];
+				//	valType SubFactor06 = m[1][2] * m[3][3] - m[3][2] * m[1][3];
+				//	valType SubFactor13 = m[1][2] * m[2][3] - m[2][2] * m[1][3];
+
+				__m128 Swp0a = _mm_shuffle_ps(in[3], in[2], _MM_SHUFFLE(3, 3, 3, 3));
+				__m128 Swp0b = _mm_shuffle_ps(in[3], in[2], _MM_SHUFFLE(2, 2, 2, 2));
+
+				__m128 Swp00 = _mm_shuffle_ps(in[2], in[1], _MM_SHUFFLE(2, 2, 2, 2));
+				__m128 Swp01 = _mm_shuffle_ps(Swp0a, Swp0a, _MM_SHUFFLE(2, 0, 0, 0));
+				__m128 Swp02 = _mm_shuffle_ps(Swp0b, Swp0b, _MM_SHUFFLE(2, 0, 0, 0));
+				__m128 Swp03 = _mm_shuffle_ps(in[2], in[1], _MM_SHUFFLE(3, 3, 3, 3));
+
+				__m128 Mul00 = _mm_mul_ps(Swp00, Swp01);
+				__m128 Mul01 = _mm_mul_ps(Swp02, Swp03);
+				Fac0 = _mm_sub_ps(Mul00, Mul01);
+			}
+
+			__m128 Fac1;
+			{
+				//	valType SubFactor01 = m[2][1] * m[3][3] - m[3][1] * m[2][3];
+				//	valType SubFactor01 = m[2][1] * m[3][3] - m[3][1] * m[2][3];
+				//	valType SubFactor07 = m[1][1] * m[3][3] - m[3][1] * m[1][3];
+				//	valType SubFactor14 = m[1][1] * m[2][3] - m[2][1] * m[1][3];
+
+				__m128 Swp0a = _mm_shuffle_ps(in[3], in[2], _MM_SHUFFLE(3, 3, 3, 3));
+				__m128 Swp0b = _mm_shuffle_ps(in[3], in[2], _MM_SHUFFLE(1, 1, 1, 1));
+
+				__m128 Swp00 = _mm_shuffle_ps(in[2], in[1], _MM_SHUFFLE(1, 1, 1, 1));
+				__m128 Swp01 = _mm_shuffle_ps(Swp0a, Swp0a, _MM_SHUFFLE(2, 0, 0, 0));
+				__m128 Swp02 = _mm_shuffle_ps(Swp0b, Swp0b, _MM_SHUFFLE(2, 0, 0, 0));
+				__m128 Swp03 = _mm_shuffle_ps(in[2], in[1], _MM_SHUFFLE(3, 3, 3, 3));
+
+				__m128 Mul00 = _mm_mul_ps(Swp00, Swp01);
+				__m128 Mul01 = _mm_mul_ps(Swp02, Swp03);
+				Fac1 = _mm_sub_ps(Mul00, Mul01);
+			}
+
+
+			__m128 Fac2;
+			{
+				//	valType SubFactor02 = m[2][1] * m[3][2] - m[3][1] * m[2][2];
+				//	valType SubFactor02 = m[2][1] * m[3][2] - m[3][1] * m[2][2];
+				//	valType SubFactor08 = m[1][1] * m[3][2] - m[3][1] * m[1][2];
+				//	valType SubFactor15 = m[1][1] * m[2][2] - m[2][1] * m[1][2];
+
+				__m128 Swp0a = _mm_shuffle_ps(in[3], in[2], _MM_SHUFFLE(2, 2, 2, 2));
+				__m128 Swp0b = _mm_shuffle_ps(in[3], in[2], _MM_SHUFFLE(1, 1, 1, 1));
+
+				__m128 Swp00 = _mm_shuffle_ps(in[2], in[1], _MM_SHUFFLE(1, 1, 1, 1));
+				__m128 Swp01 = _mm_shuffle_ps(Swp0a, Swp0a, _MM_SHUFFLE(2, 0, 0, 0));
+				__m128 Swp02 = _mm_shuffle_ps(Swp0b, Swp0b, _MM_SHUFFLE(2, 0, 0, 0));
+				__m128 Swp03 = _mm_shuffle_ps(in[2], in[1], _MM_SHUFFLE(2, 2, 2, 2));
+
+				__m128 Mul00 = _mm_mul_ps(Swp00, Swp01);
+				__m128 Mul01 = _mm_mul_ps(Swp02, Swp03);
+				Fac2 = _mm_sub_ps(Mul00, Mul01);
+			}
+
+			__m128 Fac3;
+			{
+				//	valType SubFactor03 = m[2][0] * m[3][3] - m[3][0] * m[2][3];
+				//	valType SubFactor03 = m[2][0] * m[3][3] - m[3][0] * m[2][3];
+				//	valType SubFactor09 = m[1][0] * m[3][3] - m[3][0] * m[1][3];
+				//	valType SubFactor16 = m[1][0] * m[2][3] - m[2][0] * m[1][3];
+
+				__m128 Swp0a = _mm_shuffle_ps(in[3], in[2], _MM_SHUFFLE(3, 3, 3, 3));
+				__m128 Swp0b = _mm_shuffle_ps(in[3], in[2], _MM_SHUFFLE(0, 0, 0, 0));
+
+				__m128 Swp00 = _mm_shuffle_ps(in[2], in[1], _MM_SHUFFLE(0, 0, 0, 0));
+				__m128 Swp01 = _mm_shuffle_ps(Swp0a, Swp0a, _MM_SHUFFLE(2, 0, 0, 0));
+				__m128 Swp02 = _mm_shuffle_ps(Swp0b, Swp0b, _MM_SHUFFLE(2, 0, 0, 0));
+				__m128 Swp03 = _mm_shuffle_ps(in[2], in[1], _MM_SHUFFLE(3, 3, 3, 3));
+
+				__m128 Mul00 = _mm_mul_ps(Swp00, Swp01);
+				__m128 Mul01 = _mm_mul_ps(Swp02, Swp03);
+				Fac3 = _mm_sub_ps(Mul00, Mul01);
+			}
+
+			__m128 Fac4;
+			{
+				//	valType SubFactor04 = m[2][0] * m[3][2] - m[3][0] * m[2][2];
+				//	valType SubFactor04 = m[2][0] * m[3][2] - m[3][0] * m[2][2];
+				//	valType SubFactor10 = m[1][0] * m[3][2] - m[3][0] * m[1][2];
+				//	valType SubFactor17 = m[1][0] * m[2][2] - m[2][0] * m[1][2];
+
+				__m128 Swp0a = _mm_shuffle_ps(in[3], in[2], _MM_SHUFFLE(2, 2, 2, 2));
+				__m128 Swp0b = _mm_shuffle_ps(in[3], in[2], _MM_SHUFFLE(0, 0, 0, 0));
+
+				__m128 Swp00 = _mm_shuffle_ps(in[2], in[1], _MM_SHUFFLE(0, 0, 0, 0));
+				__m128 Swp01 = _mm_shuffle_ps(Swp0a, Swp0a, _MM_SHUFFLE(2, 0, 0, 0));
+				__m128 Swp02 = _mm_shuffle_ps(Swp0b, Swp0b, _MM_SHUFFLE(2, 0, 0, 0));
+				__m128 Swp03 = _mm_shuffle_ps(in[2], in[1], _MM_SHUFFLE(2, 2, 2, 2));
+
+				__m128 Mul00 = _mm_mul_ps(Swp00, Swp01);
+				__m128 Mul01 = _mm_mul_ps(Swp02, Swp03);
+				Fac4 = _mm_sub_ps(Mul00, Mul01);
+			}
+
+			__m128 Fac5;
+			{
+				//	valType SubFactor05 = m[2][0] * m[3][1] - m[3][0] * m[2][1];
+				//	valType SubFactor05 = m[2][0] * m[3][1] - m[3][0] * m[2][1];
+				//	valType SubFactor12 = m[1][0] * m[3][1] - m[3][0] * m[1][1];
+				//	valType SubFactor18 = m[1][0] * m[2][1] - m[2][0] * m[1][1];
+
+				__m128 Swp0a = _mm_shuffle_ps(in[3], in[2], _MM_SHUFFLE(1, 1, 1, 1));
+				__m128 Swp0b = _mm_shuffle_ps(in[3], in[2], _MM_SHUFFLE(0, 0, 0, 0));
+
+				__m128 Swp00 = _mm_shuffle_ps(in[2], in[1], _MM_SHUFFLE(0, 0, 0, 0));
+				__m128 Swp01 = _mm_shuffle_ps(Swp0a, Swp0a, _MM_SHUFFLE(2, 0, 0, 0));
+				__m128 Swp02 = _mm_shuffle_ps(Swp0b, Swp0b, _MM_SHUFFLE(2, 0, 0, 0));
+				__m128 Swp03 = _mm_shuffle_ps(in[2], in[1], _MM_SHUFFLE(1, 1, 1, 1));
+
+				__m128 Mul00 = _mm_mul_ps(Swp00, Swp01);
+				__m128 Mul01 = _mm_mul_ps(Swp02, Swp03);
+				Fac5 = _mm_sub_ps(Mul00, Mul01);
+			}
+
+			__m128 SignA = _mm_set_ps(1.0f, -1.0f, 1.0f, -1.0f);
+			__m128 SignB = _mm_set_ps(-1.0f, 1.0f, -1.0f, 1.0f);
+
+			// m[1][0]
+			// m[0][0]
+			// m[0][0]
+			// m[0][0]
+			__m128 Temp0 = _mm_shuffle_ps(in[1], in[0], _MM_SHUFFLE(0, 0, 0, 0));
+			__m128 Vec0 = _mm_shuffle_ps(Temp0, Temp0, _MM_SHUFFLE(2, 2, 2, 0));
+
+			// m[1][1]
+			// m[0][1]
+			// m[0][1]
+			// m[0][1]
+			__m128 Temp1 = _mm_shuffle_ps(in[1], in[0], _MM_SHUFFLE(1, 1, 1, 1));
+			__m128 Vec1 = _mm_shuffle_ps(Temp1, Temp1, _MM_SHUFFLE(2, 2, 2, 0));
+
+			// m[1][2]
+			// m[0][2]
+			// m[0][2]
+			// m[0][2]
+			__m128 Temp2 = _mm_shuffle_ps(in[1], in[0], _MM_SHUFFLE(2, 2, 2, 2));
+			__m128 Vec2 = _mm_shuffle_ps(Temp2, Temp2, _MM_SHUFFLE(2, 2, 2, 0));
+
+			// m[1][3]
+			// m[0][3]
+			// m[0][3]
+			// m[0][3]
+			__m128 Temp3 = _mm_shuffle_ps(in[1], in[0], _MM_SHUFFLE(3, 3, 3, 3));
+			__m128 Vec3 = _mm_shuffle_ps(Temp3, Temp3, _MM_SHUFFLE(2, 2, 2, 0));
+
+			// col0
+			// + (Vec1[0] * Fac0[0] - Vec2[0] * Fac1[0] + Vec3[0] * Fac2[0]),
+			// - (Vec1[1] * Fac0[1] - Vec2[1] * Fac1[1] + Vec3[1] * Fac2[1]),
+			// + (Vec1[2] * Fac0[2] - Vec2[2] * Fac1[2] + Vec3[2] * Fac2[2]),
+			// - (Vec1[3] * Fac0[3] - Vec2[3] * Fac1[3] + Vec3[3] * Fac2[3]),
+			__m128 Mul00 = _mm_mul_ps(Vec1, Fac0);
+			__m128 Mul01 = _mm_mul_ps(Vec2, Fac1);
+			__m128 Mul02 = _mm_mul_ps(Vec3, Fac2);
+			__m128 Sub00 = _mm_sub_ps(Mul00, Mul01);
+			__m128 Add00 = _mm_add_ps(Sub00, Mul02);
+			__m128 Inv0 = _mm_mul_ps(SignB, Add00);
+
+			// col1
+			// - (Vec0[0] * Fac0[0] - Vec2[0] * Fac3[0] + Vec3[0] * Fac4[0]),
+			// + (Vec0[0] * Fac0[1] - Vec2[1] * Fac3[1] + Vec3[1] * Fac4[1]),
+			// - (Vec0[0] * Fac0[2] - Vec2[2] * Fac3[2] + Vec3[2] * Fac4[2]),
+			// + (Vec0[0] * Fac0[3] - Vec2[3] * Fac3[3] + Vec3[3] * Fac4[3]),
+			__m128 Mul03 = _mm_mul_ps(Vec0, Fac0);
+			__m128 Mul04 = _mm_mul_ps(Vec2, Fac3);
+			__m128 Mul05 = _mm_mul_ps(Vec3, Fac4);
+			__m128 Sub01 = _mm_sub_ps(Mul03, Mul04);
+			__m128 Add01 = _mm_add_ps(Sub01, Mul05);
+			__m128 Inv1 = _mm_mul_ps(SignA, Add01);
+
+			// col2
+			// + (Vec0[0] * Fac1[0] - Vec1[0] * Fac3[0] + Vec3[0] * Fac5[0]),
+			// - (Vec0[0] * Fac1[1] - Vec1[1] * Fac3[1] + Vec3[1] * Fac5[1]),
+			// + (Vec0[0] * Fac1[2] - Vec1[2] * Fac3[2] + Vec3[2] * Fac5[2]),
+			// - (Vec0[0] * Fac1[3] - Vec1[3] * Fac3[3] + Vec3[3] * Fac5[3]),
+			__m128 Mul06 = _mm_mul_ps(Vec0, Fac1);
+			__m128 Mul07 = _mm_mul_ps(Vec1, Fac3);
+			__m128 Mul08 = _mm_mul_ps(Vec3, Fac5);
+			__m128 Sub02 = _mm_sub_ps(Mul06, Mul07);
+			__m128 Add02 = _mm_add_ps(Sub02, Mul08);
+			__m128 Inv2 = _mm_mul_ps(SignB, Add02);
+
+			// col3
+			// - (Vec1[0] * Fac2[0] - Vec1[0] * Fac4[0] + Vec2[0] * Fac5[0]),
+			// + (Vec1[0] * Fac2[1] - Vec1[1] * Fac4[1] + Vec2[1] * Fac5[1]),
+			// - (Vec1[0] * Fac2[2] - Vec1[2] * Fac4[2] + Vec2[2] * Fac5[2]),
+			// + (Vec1[0] * Fac2[3] - Vec1[3] * Fac4[3] + Vec2[3] * Fac5[3]));
+			__m128 Mul09 = _mm_mul_ps(Vec0, Fac2);
+			__m128 Mul10 = _mm_mul_ps(Vec1, Fac4);
+			__m128 Mul11 = _mm_mul_ps(Vec2, Fac5);
+			__m128 Sub03 = _mm_sub_ps(Mul09, Mul10);
+			__m128 Add03 = _mm_add_ps(Sub03, Mul11);
+			__m128 Inv3 = _mm_mul_ps(SignA, Add03);
+
+			__m128 Row0 = _mm_shuffle_ps(Inv0, Inv1, _MM_SHUFFLE(0, 0, 0, 0));
+			__m128 Row1 = _mm_shuffle_ps(Inv2, Inv3, _MM_SHUFFLE(0, 0, 0, 0));
+			__m128 Row2 = _mm_shuffle_ps(Row0, Row1, _MM_SHUFFLE(2, 0, 2, 0));
+
+			//	valType Determinant = m[0][0] * Inverse[0][0]
+			//						+ m[0][1] * Inverse[1][0]
+			//						+ m[0][2] * Inverse[2][0]
+			//						+ m[0][3] * Inverse[3][0];
+			__m128 Det0 = _Dot(in[0], Row2);
+			__m128 Rcp0 = _mm_div_ps(_mm_set1_ps(1.0f), Det0);
+			//__m128 Rcp0 = _mm_rcp_ps(Det0);
+
+			//	Inverse /= Determinant;
+			result(0) = StoreVector4f(_mm_mul_ps(Inv0, Rcp0)); 
+			result(1) = StoreVector4f(_mm_mul_ps(Inv1, Rcp0));
+			result(2) = StoreVector4f(_mm_mul_ps(Inv2, Rcp0));
+			result(3) = StoreVector4f(_mm_mul_ps(Inv3, Rcp0));
+			return result;
+		}
+#endif
 	}
+
+	template <class T>
+	class Quaternion : public TType4<T> {
+	public:
+		Quaternion(T ww = 1, T xx = 0, T yy = 0, T zz = 0) : TType4<T>(xx, yy, zz, ww) {}
+		Quaternion(const TType4<T>& quat) : TType4<T>(quat) {}
+		Quaternion(const TType3<T>& rot) {
+			const T fSinPitch((T)sin(rot.y() * 0.5));
+			const T fCosPitch((T)cos(rot.y() * 0.5));
+			const T fSinYaw((T)sin(rot.z() * 0.5));
+			const T fCosYaw((T)cos(rot.z() * 0.5));
+			const T fSinRoll((T)sin(rot.x() * 0.5));
+			const T fCosRoll((T)cos(rot.x() * 0.5));
+			const T fCosPitchCosYaw(fCosPitch * fCosYaw);
+			const T fSinPitchSinYaw(fSinPitch * fSinYaw);
+
+			this->x() = fSinRoll * fCosPitchCosYaw - fCosRoll * fSinPitchSinYaw;
+			this->y() = fCosRoll * fSinPitch * fCosYaw + fSinRoll * fCosPitch * fSinYaw;
+			this->z() = fCosRoll * fCosPitch * fSinYaw - fSinRoll * fSinPitch * fCosYaw;
+			this->w() = fCosRoll * fCosPitchCosYaw + fSinRoll * fSinPitchSinYaw;
+
+			Normalize();
+		}
+
+		static T Distance(const Quaternion& lhs, const Quaternion& rhs) {
+			Quaternion conj = rhs;
+			conj.Conjugate();
+			return (lhs * conj).w();
+		}
+
+		Quaternion(const TMatrix<T, 4, 4>& m) { // from OGRE
+			T tq[4];
+			int i, j;
+
+			// Use tq to store the largest trace
+			tq[0] = 1 + m(0, 0) + m(1, 1) + m(2, 2);
+			tq[1] = 1 + m(0, 0) - m(1, 1) - m(2, 2);
+			tq[2] = 1 - m(0, 0) + m(1, 1) - m(2, 2);
+			tq[3] = 1 - m(0, 0) - m(1, 1) + m(2, 2);
+
+			// Find the maximum (could also use stacked if's later)
+			j = 0;
+			for (i = 1; i < 4; i++) j = (tq[i] > tq[j]) ? i : j;
+
+			// check the diagonal
+			if (j == 0) {
+				/* perform instant calculation */
+				this->w() = tq[0];
+				this->x() = m(2, 1) - m(1, 2);
+				this->y() = m(0, 2) - m(2, 0);
+				this->z() = m(1, 0) - m(0, 1);
+			} else if (j == 1) {
+				this->w() = m(2, 1) - m(1, 2);
+				this->x() = tq[1];
+				this->y() = m(1, 0) + m(0, 1);
+				this->z() = m(0, 2) + m(2, 0);
+			} else if (j == 2) {
+				this->w() = m(0, 2) - m(2, 0);
+				this->x() = m(1, 0) + m(0, 1);
+				this->y() = tq[2];
+				this->z() = m(2, 1) + m(1, 2);
+			} else {
+				this->w() = m(1, 0) - m(0, 1);
+				this->x() = m(0, 2) + m(2, 0);
+				this->y() = m(2, 1) + m(1, 2);
+				this->z() = tq[3];
+			}
+
+			Normalize();
+		}
+
+		static Quaternion Flip() {
+			return Quaternion(0, 0, 0, 0);
+		}
+
+		static Quaternion Align(const TType3<T>& from, const TType3<T>& to) {
+			const T EPSILON = (T)1e-3;
+			TType3<T> axis = CrossProduct(to, from);
+			T pcos = DotProduct(from, to);
+			T halfcos = (T)sqrt(0.5 + pcos * 0.5);
+			T ratio = halfcos > EPSILON ? (T)(0.5 / halfcos) : 0;
+
+			return Quaternion(halfcos, axis.x() * ratio, axis.y() * ratio, axis.z() * ratio);
+		}
+
+		TType3<T> ToEulerAngle() const {
+			T xx = (T)atan2(2 * (this->w() * this->x() + this->y() * this->z()), 1 - 2.0 * (this->x() * this->x() + this->y() * this->y()));
+			T yy = (T)asin(2 * (this->w() * this->y() - this->z() * this->x()));
+			T zz = (T)atan2(2 * (this->w() * this->z() + this->x() * this->y()), 1 - 2.0 * (this->y() * this->y() + this->z() * this->z()));
+
+			return TType3<T>(xx, yy, zz);
+		}
+
+		Quaternion& Normalize() {
+			T mag = sqrt(this->x() * this->x() + this->y() * this->y() + this->z() * this->z() + this->w() * this->w());
+			if (mag > 1e-6) {
+				mag = 1.0f / mag;
+				this->x() *= mag;
+				this->y() *= mag;
+				this->z() *= mag;
+				this->w() *= mag;
+			}
+
+			return *this;
+		}
+
+		bool IsFlip() const {
+			return this->x() == 0 && this->y() == 0 && this->z() == 0 && this->w() == 0;
+		}
+
+		Quaternion operator * (const Quaternion& t) const {
+			assert(!this->IsFlip() && !t.IsFlip());
+			return Quaternion(this->w() * t.w() - this->x() * t.x() - this->y() * t.y() - this->z() * t.z(),
+				this->w() * t.x() + this->x() * t.w() + this->y() * t.z() - this->z() * t.y(),
+				this->w() * t.y() + this->y() * t.w() + this->z() * t.x() - this->x() * t.z(),
+				this->w() * t.z() + this->z() * t.w() + this->x() * t.y() - this->y() * t.x());
+		}
+
+		Quaternion& operator *= (const Quaternion& t) {
+			*this = *this * t;
+			return *this;
+		}
+
+		Quaternion& Conjugate() {
+			this->x() = -this->x();
+			this->y() = -this->y();
+			this->z() = -this->z();
+
+			return *this;
+		}
+
+		void Transform(TType3<T>& v) const {
+			v = (*this)(v);
+		}
+
+		TType3<T> operator () (const TType3<T>& v) const {
+			if (IsFlip()) {
+				return TType3<T>(-v.x(), -v.y(), -v.z());
+			} else {
+				Quaternion q2(0, v.x(), v.y(), v.z()), q = *this, qinv = *this;
+				q.Conjugate();
+
+				q = q * q2 * qinv;
+				return TType3<T>(q.x(), q.y(), q.z());
+			}
+		}
+
+		static void Interpolate(Quaternion& out, const Quaternion& start, const Quaternion& end, T factor) {
+			assert(!start.IsFlip() && !end.IsFlip());
+			T cosom = start.x() * end.x() + start.y() * end.y() + start.z() * end.z() + start.w() * end.w();
+
+			Quaternion qend = end;
+			if (cosom < 0) {
+				cosom = -cosom;
+				qend.x() = -qend.x();
+				qend.y() = -qend.y();
+				qend.z() = -qend.z();
+				qend.w() = -qend.w();
+			}
+
+			T sclp, sclq;
+			if ((T)1.0 - cosom > 1e-6) {
+				T omega, sinom;
+				omega = acos(cosom);
+				sinom = sin(omega);
+				sclp = sin((1.0f - factor) * omega) / sinom;
+				sclq = sin(factor * omega) / sinom;
+			} else {
+				sclp = (T)1.0 - factor;
+				sclq = factor;
+			}
+
+			out.x() = sclp * start.x() + sclq * qend.x();
+			out.y() = sclp * start.y() + sclq * qend.y();
+			out.z() = sclp * start.z() + sclq * qend.z();
+			out.w() = sclp * start.w() + sclq * qend.w();
+		}
+
+		static void InterpolateSquad(Quaternion& out, const Quaternion& left, const Quaternion& outTan, const Quaternion& right, const Quaternion& inTan, T factor) {
+			T t = (T)(2.0 * factor * (1.0 - factor));
+			Quaternion p, q;
+			Interpolate(p, left, right, t);
+			Interpolate(q, outTan, inTan, t);
+
+			Interpolate(out, p, q, t);
+		}
+
+		void WriteMatrix(TMatrix<T, 4U, 4U>& m) const {
+			if (!IsFlip()) {
+				T* mat = &m.data[0][0];
+				mat[0] = 1 - 2 * (this->y() * this->y() + this->z() * this->z());
+				mat[1] = 2 * (this->x() * this->y() - this->z() * this->w());
+				mat[2] = 2 * (this->x() * this->z() + this->y() * this->w());
+				mat[3] = 0;
+				mat[4] = 2 * (this->x() * this->y() + this->z() * this->w());
+				mat[5] = 1 - 2 * (this->x() * this->x() + this->z() * this->z());
+				mat[6] = 2 * (this->y() * this->z() - this->x() * this->w());
+				mat[7] = 0;
+				mat[8] = 2 * (this->x() * this->z() - this->y() * this->w());
+				mat[9] = 2 * (this->y() * this->z() + this->x() * this->w());
+				mat[10] = 1 - 2 * (this->x() * this->x() + this->y() * this->y());
+				mat[11] = mat[12] = mat[13] = mat[14] = 0;
+				mat[15] = 1;
+			} else {
+				T mat[16] = { -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1 };
+				m = TMatrix<T, 4U, 4U>(mat);
+			}
+		}
+	};
 }

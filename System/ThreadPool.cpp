@@ -226,7 +226,7 @@ bool ThreadPool::PollRoutine(uint32_t index) {
 }
 
 bool ThreadPool::IsRunning() const {
-	return runningToken.load(std::memory_order_acquire);
+	return runningToken.load(std::memory_order_acquire) != 0;
 }
 
 bool ThreadPool::PollWaitRoutine(std::atomic<uint32_t>& variable, uint32_t mask, uint32_t flag) {

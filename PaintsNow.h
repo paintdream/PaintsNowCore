@@ -45,6 +45,14 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+#if !defined(_MSC_VER) || _MSC_VER > 1200
+#include <cstddef>
+void* operator new (size_t size);
+void operator delete (void* ptr);
+void* operator new[](size_t size);
+void operator delete[](void* ptr);
+#endif
+
 #ifdef PAINTSNOW_DLL
 // From http://gcc.gnu.org/wiki/Visibility
 

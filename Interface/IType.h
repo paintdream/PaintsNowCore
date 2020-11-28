@@ -74,7 +74,11 @@ namespace PaintsNow {
 	typedef TType4<unsigned int> UInt4;
 	typedef TType2<float> Float2;
 	typedef TType3<float> Float3;
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+	typedef __declspec(align(16)) TType4<float> Float4;
+#else
 	typedef TType4<float> Float4;
+#endif
 	typedef TType2<double> Double2;
 	typedef TType3<double> Double3;
 	typedef TType4<double> Double4;
@@ -96,7 +100,11 @@ namespace PaintsNow {
 	typedef std::pair<UShort4, UShort4> UShort4Pair;
 	typedef std::pair<UShort3, UShort3> UShort3Pair;
 	typedef std::pair<UShort2, UShort2> UShort2Pair;
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+	typedef __declspec(align(16)) TMatrix<float, 4U, 4U> MatrixFloat4x4;
+#else
 	typedef TMatrix<float, 4U, 4U> MatrixFloat4x4;
+#endif
 	typedef TMatrix<float, 3U, 4U> MatrixFloat3x4;
 	typedef TMatrix<float, 3U, 3U> MatrixFloat3x3;
 	typedef TMatrix<int, 3U, 3U> MatrixInt3x3;
@@ -190,215 +198,5 @@ namespace PaintsNow {
 		}
 	}
 
-	template <class T>
-	class Quaternion : public TType4<T> {
-	public:
-		Quaternion(T ww = 1, T xx = 0, T yy = 0, T zz = 0) : Float4(xx, yy, zz, ww) {}
-		static T Distance(const Quaternion& lhs, const Quaternion& rhs) {
-			Quaternion conj = rhs;
-			conj.Conjugate();
-			return (lhs * conj).w();
-		}
-
-		Quaternion(const TMatrix<T, 4, 4>& m) { // from OGRE
-			T tq[4];
-			int i, j;
-
-			// Use tq to store the largest trace
-			tq[0] = 1 + m(0,0) + m(1,1) + m(2,2);
-			tq[1] = 1 + m(0,0) - m(1,1) - m(2,2);
-			tq[2] = 1 - m(0,0) + m(1,1) - m(2,2);
-			tq[3] = 1 - m(0,0) - m(1,1) + m(2,2);
-
-			// Find the maximum (could also use stacked if's later)
-			j = 0;
-			for (i = 1; i < 4; i++) j = (tq[i] > tq[j]) ? i : j;
-
-			// check the diagonal
-			if (j == 0) {
-				/* perform instant calculation */
-				this->w() = tq[0];
-				this->x() = m(2,1) - m(1,2);
-				this->y() = m(0,2) - m(2,0);
-				this->z() = m(1,0) - m(0,1);
-			} else if (j == 1) {
-				this->w() = m(2,1) - m(1,2);
-				this->x() = tq[1];
-				this->y() = m(1,0) + m(0,1);
-				this->z() = m(0,2) + m(2,0);
-			} else if (j == 2) {
-				this->w() = m(0,2) - m(2,0);
-				this->x() = m(1,0) + m(0,1);
-				this->y() = tq[2];
-				this->z() = m(2,1) + m(1,2);
-			} else {
-				this->w() = m(1,0) - m(0,1);
-				this->x() = m(0,2) + m(2,0);
-				this->y() = m(2,1) + m(1,2);
-				this->z() = tq[3];
-			}
-
-			Normalize();
-		}
-
-		static Quaternion Flip() {
-			return Quaternion(0, 0, 0, 0);
-		}
-
-		static Quaternion Align(const Float3& from, const Float3& to) {
-			const T EPSILON = (T)1e-3;
-			TType3<T> axis = CrossProduct(to, from);
-			T pcos = DotProduct(from, to);
-			T halfcos = (T)sqrt(0.5 + pcos * 0.5);
-			T ratio = halfcos > EPSILON ? (T)(0.5 / halfcos) : 0;
-
-			return Quaternion(halfcos, axis.x() * ratio, axis.y() * ratio, axis.z() * ratio);
-		}
-
-		TType3<T> ToEulerAngle() const {
-			T xx = (T)atan2(2 * (this->w() * this->x() + this->y() * this->z()), 1 - 2.0 * (this->x() * this->x() + this->y() * this->y()));
-			T yy = (T)asin(2 * (this->w() * this->y() - this->z() * this->x()));
-			T zz = (T)atan2(2 * (this->w() * this->z() + this->x() * this->y()), 1 - 2.0 * (this->y() * this->y() + this->z() * this->z()));
-
-			return TType3<T>(xx, yy, zz);
-		}
-
-		Quaternion(const TType4<T>& quat) : Float4(quat) {}
-		Quaternion(const TType3<T>& rot) {
-			const T fSinPitch((T)sin(rot.y() * 0.5));
-			const T fCosPitch((T)cos(rot.y() * 0.5));
-			const T fSinYaw((T)sin(rot.z() * 0.5));
-			const T fCosYaw((T)cos(rot.z() * 0.5));
-			const T fSinRoll((T)sin(rot.x() * 0.5));
-			const T fCosRoll((T)cos(rot.x() * 0.5));
-			const T fCosPitchCosYaw(fCosPitch * fCosYaw);
-			const T fSinPitchSinYaw(fSinPitch * fSinYaw);
-
-			this->x() = fSinRoll * fCosPitchCosYaw - fCosRoll * fSinPitchSinYaw;
-			this->y() = fCosRoll * fSinPitch * fCosYaw + fSinRoll * fCosPitch * fSinYaw;
-			this->z() = fCosRoll * fCosPitch * fSinYaw - fSinRoll * fSinPitch * fCosYaw;
-			this->w() = fCosRoll * fCosPitchCosYaw + fSinRoll * fSinPitchSinYaw;
-
-			Normalize();
-		}
-
-		Quaternion& Normalize() {
-			T mag = sqrt(this->x() * this->x() + this->y() * this->y() + this->z() * this->z() + this->w() * this->w());
-			if (mag > 1e-6) {
-				mag = 1.0f / mag;
-				this->x() *= mag;
-				this->y() *= mag;
-				this->z() *= mag;
-				this->w() *= mag;
-			}
-
-			return *this;
-		}
-
-		bool IsFlip() const {
-			return this->x() == 0 && this->y() == 0 && this->z() == 0 && this->w() == 0;
-		}
-
-		Quaternion operator * (const Quaternion& t) const {
-			assert(!this->IsFlip() && !t.IsFlip());
-			return Quaternion(this->w() * t.w() - this->x() * t.x() - this->y() * t.y() - this->z() * t.z(),
-				this->w() * t.x() + this->x() * t.w() + this->y() * t.z() - this->z() * t.y(),
-				this->w() * t.y() + this->y() * t.w() + this->z() * t.x() - this->x() * t.z(),
-				this->w() * t.z() + this->z() * t.w() + this->x() * t.y() - this->y() * t.x());
-		}
-
-		Quaternion& operator *= (const Quaternion& t) {
-			*this = *this * t;
-			return *this;
-		}
-
-		Quaternion& Conjugate() {
-			this->x() = -this->x();
-			this->y() = -this->y();
-			this->z() = -this->z();
-
-			return *this;
-		}
-
-		void Transform(TType3<T>& v) const {
-			v = (*this)(v);
-		}
-
-		TType3<T> operator () (const TType3<T>& v) const {
-			if (IsFlip()) {
-				return TType3<T>(-v.x(), -v.y(), -v.z());
-			} else {
-				Quaternion q2(0, v.x(), v.y(), v.z()), q = *this, qinv = *this;
-				q.Conjugate();
-
-				q = q * q2 * qinv;
-				return TType3<T>(q.x(), q.y(), q.z());
-			}
-		}
-
-		static void Interpolate(Quaternion& out, const Quaternion& start, const Quaternion& end, T factor) {
-			assert(!start.IsFlip() && !end.IsFlip());
-			T cosom = start.x() * end.x() + start.y() * end.y() + start.z() * end.z() + start.w() * end.w();
-
-			Quaternion qend = end;
-			if (cosom < 0) {
-				cosom = -cosom;
-				qend.x() = -qend.x();
-				qend.y() = -qend.y();
-				qend.z() = -qend.z();
-				qend.w() = -qend.w();
-			}
-
-			T sclp, sclq;
-			if ((T)1.0 - cosom > 1e-6) {
-				T omega, sinom;
-				omega = acos(cosom);
-				sinom = sin(omega);
-				sclp = sin((1.0f - factor) * omega) / sinom;
-				sclq = sin(factor * omega) / sinom;
-			} else {
-				sclp = (T)1.0 - factor;
-				sclq = factor;
-			}
-
-			out.x() = sclp * start.x() + sclq * qend.x();
-			out.y() = sclp * start.y() + sclq * qend.y();
-			out.z() = sclp * start.z() + sclq * qend.z();
-			out.w() = sclp * start.w() + sclq * qend.w();
-		}
-
-		static void InterpolateSquad(Quaternion& out, const Quaternion& left, const Quaternion& outTan,  const Quaternion& right, const Quaternion& inTan, float factor) {
-			T t = (T)(2.0 * factor * (1.0 - factor));
-			Quaternion p, q;
-			Interpolate(p, left, right, t);
-			Interpolate(q, outTan, inTan, t);
-
-			Interpolate(out, p, q, t);
-		}
-
-		void WriteMatrix(TMatrix<T, 4U, 4U>& m) const {
-			if (!IsFlip()) {
-				T mat[16];
-				mat[0] = 1 - 2 * (this->y() * this->y() + this->z() * this->z());
-				mat[1] = 2 * (this->x() * this->y() - this->z() * this->w());
-				mat[2] = 2 * (this->x() * this->z() + this->y() * this->w());
-				mat[3] = 0;
-				mat[4] = 2 * (this->x() * this->y() + this->z() * this->w());
-				mat[5] = 1 - 2 * (this->x() * this->x() + this->z() * this->z());
-				mat[6] = 2 * (this->y() * this->z() - this->x() * this->w());
-				mat[7] = 0;
-				mat[8] = 2 * (this->x() * this->z() - this->y() * this->w());
-				mat[9] = 2 * (this->y() * this->z() + this->x() * this->w());
-				mat[10] = 1 - 2 * (this->x() * this->x() + this->y() * this->y());
-				mat[11] = mat[12] = mat[13] = mat[14] = 0;
-				mat[15] = 1;
-
-				m = TMatrix<T, 4U, 4U>(mat);
-			} else {
-				T mat[16] = { -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1 };
-				m = TMatrix<T, 4U, 4U>(mat);
-			}
-		}
-	};
 }
 

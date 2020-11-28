@@ -139,9 +139,10 @@ namespace PaintsNow {
 		}
 
 		Float3 Transform3D(const MatrixFloat4x4& input, const Float3& v) {
-			Float4 position(v.x(), v.y(), v.z(), 1.0f);
+			Float4 position = Float4::Load(v, 1.0f);
 			position = position * input;
-			return Float3(position.x() / position.w(), position.y() / position.w(), position.z() / position.w());
+			position = position / position.w();
+			return (Float3)position;
 		}
 
 		bool Capture3D(const MatrixFloat4x4& matrix, const Float3Pair& vec, const Float2Pair& size) {
