@@ -156,7 +156,7 @@ bool ThreadPool::Push(ITask* task) {
 	}
 }
 
-bool ThreadPool::PollRoutine(uint32_t index) {
+bool ThreadPool::Poll(uint32_t index) {
 	// Wait for a moment
 	for (uint32_t k = 0; k < MAX_YIELD_COUNT; k++) {
 		if ((ITask*)taskHead.load(std::memory_order_acquire) == nullptr) {
@@ -229,13 +229,57 @@ bool ThreadPool::IsRunning() const {
 	return runningToken.load(std::memory_order_acquire) != 0;
 }
 
-bool ThreadPool::PollWaitRoutine(std::atomic<uint32_t>& variable, uint32_t mask, uint32_t flag) {
+void ThreadPool::PollDelay(uint32_t index, uint32_t delay) {
+	if (delay == 0) {
+		Poll(safe_cast<uint32_t>(index));
+	} else {
+		if (!Poll(safe_cast<uint32_t>(index)) && runningToken.load(std::memory_order_acquire) != 0) {
+			threadApi.DoLock(mutex);
+			++waitEventCounter;
+			std::atomic_thread_fence(std::memory_order_release);
+			threadApi.Wait(eventPump, mutex, delay);
+			--waitEventCounter;
+			threadApi.UnLock(mutex);
+		}
+	}
+}
+
+bool ThreadPool::PollWait(std::atomic<uint32_t>& variable, uint32_t mask, uint32_t flag, uint32_t delay) {
 	uint32_t threadIndex = GetCurrentThreadIndex();
-	while (((variable.load(std::memory_order_acquire) & mask) != flag) && IsRunning()) {
-		PollRoutine(threadIndex);
+	bool result;
+	while ((result = ((variable.load(std::memory_order_acquire) & mask) != flag)) && IsRunning()) {
+		PollDelay(threadIndex, delay);
 	}
 
-	return IsRunning();
+	return !result;
+}
+
+uint32_t ThreadPool::PollExchange(std::atomic<uint32_t>& variable, uint32_t value, uint32_t delay) {
+	uint32_t threadIndex = GetCurrentThreadIndex();
+	uint32_t target;
+	while ((target = variable.exchange(value, std::memory_order_acq_rel)) == value && IsRunning()) {
+		PollDelay(threadIndex, delay);
+	}
+
+	return target;
+}
+
+bool ThreadPool::PollCompareExchange(std::atomic<uint32_t>& variable, uint32_t mask, uint32_t flag, uint32_t delay) {
+	uint32_t threadIndex = GetCurrentThreadIndex();
+	uint32_t current = variable.load(std::memory_order_acquire);
+	uint32_t target;
+	bool result = false;
+
+	while (IsRunning()) {
+		target = (current & ~mask) | ((current & mask) & flag);
+		if (!(result = variable.compare_exchange_strong(current, target, std::memory_order_release))) {
+			PollDelay(threadIndex, delay);
+		} else {
+			break;
+		}
+	}
+
+	return result;
 }
 
 bool ThreadPool::Run(IThread::Thread* thread, size_t index) {
@@ -244,14 +288,7 @@ bool ThreadPool::Run(IThread::Thread* thread, size_t index) {
 	// fetch one and execute
 	liveThreadCount.fetch_add(1, std::memory_order_acquire);
 	while (runningToken.load(std::memory_order_acquire) != 0) {
-		if (!PollRoutine(safe_cast<uint32_t>(index)) && runningToken.load(std::memory_order_acquire) != 0) {
-			threadApi.DoLock(mutex);
-			++waitEventCounter;
-			std::atomic_thread_fence(std::memory_order_release);
-			threadApi.Wait(eventPump, mutex, MAX_WAIT_MILLISECONDS);
-			--waitEventCounter;
-			threadApi.UnLock(mutex);
-		}
+		PollDelay(index, MAX_WAIT_MILLISECONDS);
 	}
 
 	liveThreadCount.fetch_sub(1, std::memory_order_release);

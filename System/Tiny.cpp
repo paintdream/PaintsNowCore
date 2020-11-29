@@ -17,7 +17,7 @@ TObject<IReflect>& Tiny::operator () (IReflect& reflect) {
 Tiny::Tiny(FLAG fl) : flag(fl) {}
 
 bool Tiny::Wait(ThreadPool& threadPool, FLAG mask, FLAG flag) {
-	return threadPool.PollWaitRoutine(Flag(), mask, flag);
+	return threadPool.PollWait(Flag(), mask, flag);
 }
 
 #ifdef _DEBUG

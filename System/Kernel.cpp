@@ -65,7 +65,7 @@ bool Kernel::WaitWarp(uint32_t warpIndex) {
 	uint32_t threadIndex = threadPool.GetCurrentThreadIndex();
 	SubTaskQueue& queue = taskQueueGrid[warpIndex];
 	while (!queue.PreemptExecution() && threadPool.IsRunning()) {
-		threadPool.PollRoutine(threadIndex);
+		threadPool.Poll(threadIndex);
 	}
 
 	// ok
@@ -86,7 +86,7 @@ void Kernel::Clear() {
 
 		if (threadPool.GetThreadCount() != 0) {
 			while (!q.PreemptExecution()) {
-				if (!threadPool.PollRoutine(threadIndex)) {
+				if (!threadPool.Poll(threadIndex)) {
 					YieldThread();
 				}
 			}
