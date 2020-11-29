@@ -187,8 +187,7 @@ bool ZArchiveDirent::Exists(const String& path) const {
 		return GetFileAttributesW((LPCWSTR)wpath.c_str()) != 0xFFFFFFFF;
 	}
 #else
-	struct stat buffer;
-	return stat((root + path).c_str(), &buffer) != 0;
+	return access((root + path).c_str(), F_OK) == 0;
 #endif
 }
 
