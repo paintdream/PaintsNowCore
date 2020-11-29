@@ -288,7 +288,7 @@ bool ThreadPool::Run(IThread::Thread* thread, size_t index) {
 	// fetch one and execute
 	liveThreadCount.fetch_add(1, std::memory_order_acquire);
 	while (runningToken.load(std::memory_order_acquire) != 0) {
-		PollDelay(index, MAX_WAIT_MILLISECONDS);
+		PollDelay(safe_cast<uint32_t>(index), MAX_WAIT_MILLISECONDS);
 	}
 
 	liveThreadCount.fetch_sub(1, std::memory_order_release);
