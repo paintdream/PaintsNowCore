@@ -327,6 +327,29 @@ namespace PaintsNow {
 		}
 
 		template <class T>
+		TMatrix<T, 3, 3> Inverse(const TMatrix<T, 3, 3>& m) {
+			T det = m(0, 0) * (m(1, 1) * m(2, 2) - m(2, 1) * m(1, 2)) -
+				m(0, 1) * (m(1, 0) * m(2, 2) - m(1, 2) * m(2, 0)) +
+				m(0, 2) * (m(1, 0) * m(2, 1) - m(1, 1) * m(2, 0));
+
+			T invdet = (T)1 / det;
+
+			TMatrix<T, 3, 3> minv;
+			minv(0, 0) = (m(1, 1) * m(2, 2) - m(2, 1) * m(1, 2)) * invdet;
+			minv(0, 1) = (m(0, 2) * m(2, 1) - m(0, 1) * m(2, 2)) * invdet;
+			minv(0, 2) = (m(0, 1) * m(1, 2) - m(0, 2) * m(1, 1)) * invdet;
+			minv(1, 0) = (m(1, 2) * m(2, 0) - m(1, 0) * m(2, 2)) * invdet;
+			minv(1, 1) = (m(0, 0) * m(2, 2) - m(0, 2) * m(2, 0)) * invdet;
+			minv(1, 2) = (m(1, 0) * m(0, 2) - m(0, 0) * m(1, 2)) * invdet;
+			minv(2, 0) = (m(1, 0) * m(2, 1) - m(2, 0) * m(1, 1)) * invdet;
+			minv(2, 1) = (m(2, 0) * m(0, 1) - m(0, 0) * m(2, 1)) * invdet;
+			minv(2, 2) = (m(0, 0) * m(1, 1) - m(1, 0) * m(0, 1)) * invdet;
+
+			return minv;
+		}
+
+
+		template <class T>
 		TMatrix<T, 4, 4> Inverse(const TMatrix<T, 4, 4>& m) {
 			T det
 				= m(0, 0) * m(1, 1) * m(2, 2) * m(3, 3) + m(0, 0) * m(1, 2) * m(2, 3) * m(3, 1) + m(0, 0) * m(1, 3) * m(2, 1) * m(3, 2)
@@ -588,13 +611,236 @@ namespace PaintsNow {
 			//__m128 Rcp0 = _mm_rcp_ps(Det0);
 
 			//	Inverse /= Determinant;
-			result(0) = StoreVector4f(_mm_mul_ps(Inv0, Rcp0)); 
+			result(0) = StoreVector4f(_mm_mul_ps(Inv0, Rcp0));
 			result(1) = StoreVector4f(_mm_mul_ps(Inv1, Rcp0));
 			result(2) = StoreVector4f(_mm_mul_ps(Inv2, Rcp0));
 			result(3) = StoreVector4f(_mm_mul_ps(Inv3, Rcp0));
 			return result;
 		}
 #endif
+		template <class T>
+		TMatrix<T, 4, 4> MatrixRotate3D(const TVector<T, 4>& dir) {
+			T c = (T)cos(dir[3]);
+			T s = (T)sin(dir[3]);
+
+			TMatrix<T, 4, 4> mat;
+			mat.data[0][0] = c + (1 - c) * dir[0] * dir[0];
+			mat.data[0][1] = (1 - c) * dir[1] * dir[0] + s * dir[2];
+			mat.data[0][2] = (1 - c) * dir[2] * dir[0] - s * dir[1];
+			mat.data[0][3] = 0;
+			mat.data[1][0] = (1 - c) * dir[0] * dir[1] - s * dir[2];
+			mat.data[1][1] = c + (1 - c) * dir[1] * dir[1];
+			mat.data[1][2] = (1 - c) * dir[2] * dir[1] + s * dir[0];
+			mat.data[1][3] = 0;
+			mat.data[2][0] = (1 - c) * dir[0] * dir[2] + s * dir[1];
+			mat.data[2][1] = (1 - c) * dir[1] * dir[2] - s * dir[0];
+			mat.data[2][2] = c + (1 - c) * dir[2] * dir[2];
+			mat.data[2][3] = 0;
+			mat.data[3][0] = mat.data[3][1] = mat.data[3][2] = 0;
+			mat.data[3][3] = 1;
+
+			return mat;
+		}
+
+		template <class T>
+		TMatrix<T, 4, 4> MatrixOrtho(const TVector<T, 3>& size) {
+			TMatrix<T, 4, 4> ret;
+			ret.data[0][0] = (T)1 / size[0];
+			ret.data[0][1] = ret.data[0][2] = ret.data[0][3] = 0;
+
+			ret.data[1][1] = (T)1 / size[1];
+			ret.data[1][0] = ret.data[1][2] = ret.data[1][3] = 0;
+
+			ret.data[2][2] = (T)2 / size[2];
+			ret.data[2][0] = ret.data[2][1] = ret.data[2][3] = 0;
+
+			ret.data[3][3] = 1;
+			ret.data[3][0] = ret.data[3][1] = ret.data[3][2] = 0;
+
+			return ret;
+		}
+
+		template <class T>
+		TMatrix<T, 4, 4> MatrixPerspective(T d, T rr, T n, T f) {
+			T t = n * (T)tan(d / 2);
+			T r = rr * t;
+			TMatrix<T, 4, 4> ret;
+			ret.data[0][0] = n / r;
+			ret.data[0][1] = ret.data[0][2] = ret.data[0][3] = 0;
+
+			ret.data[1][1] = n / t;
+			ret.data[1][0] = ret.data[1][2] = ret.data[1][3] = 0;
+
+			ret.data[2][2] = (f + n) / (f - n);
+			ret.data[2][3] = -1;
+			ret.data[2][0] = ret.data[2][1] = 0;
+
+			ret.data[3][2] = 2 * f * n / (f - n);
+			ret.data[3][0] = ret.data[3][1] = ret.data[3][3] =0;
+
+			return ret;
+		}
+
+		template <class T>
+		TMatrix<T, 4, 4> InverseProjection(const TMatrix<T, 4, 4>& m) {
+			T a = m(0, 0);
+			T b = m(1, 1);
+			T c = m(2, 2);
+			T d = m(3, 2);
+			T s = m(2, 0);
+			T t = m(2, 1);
+
+			TMatrix<T, 4, 4> ret;
+			ret.data[0][0] = 1 / a;
+			ret.data[0][1] = ret.data[0][2] = ret.data[0][3] = 0;
+
+			ret.data[1][1] = 1 / b;
+			ret.data[1][0] = ret.data[1][2] = ret.data[1][3] = 0;
+
+			ret.data[2][3] = 1 / d;
+			ret.data[2][0] = ret.data[2][1] = ret.data[2][2] = 0;
+
+			ret.data[3][0] = -s / a;
+			ret.data[3][1] = -t / b;
+			ret.data[3][2] = -1;
+			ret.data[3][3] = c / d;
+
+			return ret;
+		}
+
+		template <class T>
+		TMatrix<T, 4, 4> MatrixTranslate3D(const TVector<T, 3>& v) {
+			TMatrix<T, 4, 4> ret;
+			ret.data[0][0] = 1;
+			ret.data[0][1] = ret.data[0][2] = ret.data[0][3] = 0;
+
+			ret.data[1][1] = 1;
+			ret.data[1][0] = ret.data[1][2] = ret.data[1][3] = 0;
+
+			ret.data[2][2] = 1;
+			ret.data[2][0] = ret.data[2][1] = ret.data[2][3] = 0;
+
+			ret.data[3][0] = v[0];
+			ret.data[3][1] = v[1];
+			ret.data[3][2] = v[2];
+			ret.data[3][3] = 1;
+
+			return ret;
+		}
+
+		template <class T>
+		TMatrix<T, 4, 4> MatrixLookAt(const TVector<T, 3>& position, const TVector<T, 3>& dir, const TVector<T, 3>& u) {
+			TVector<T, 3> direction = dir;
+			TVector<T, 3> up = u;
+
+			direction = Normalize(direction);
+			up = Normalize(up);
+
+			/* Side = forward x up */
+			TVector<T, 3> side = CrossProduct(direction, up);
+			side = Normalize(side);
+			up = CrossProduct(side, direction);
+
+			TMatrix<T, 4, 4> m;
+
+			m(0, 0) = side[0];
+			m(1, 0) = side[1];
+			m(2, 0) = side[2];
+			m(3, 0) = 0;
+
+			m(0, 1) = up[0];
+			m(1, 1) = up[1];
+			m(2, 1) = up[2];
+			m(3, 1) = 0;
+
+			m(0, 2) = -direction[0];
+			m(1, 2) = -direction[1];
+			m(2, 2) = -direction[2];
+			m(3, 2) = 0;
+
+			m(0, 3) = 0;
+			m(1, 3) = 0;
+			m(2, 3) = 0;
+			m(3, 3) = 1;
+
+			return MatrixTranslate3D(-position) * m;
+		}
+
+		template <class T>
+		TVector<T, 3> Transform3D(const TMatrix<T, 4, 4>& input, const TVector<T, 3>& v) {
+			TVector<T, 4> position;
+			position[0] = v[0];
+			position[1] = v[1];
+			position[2] = v[2];
+			position[3] = 1;
+
+			position = position * input;
+			position = position / position[3];
+			return (TVector<T, 3>)position;
+		}
+
+		template <class T>
+		void IntersectTriangle(TVector<T, 3>& res, TVector<T, 2>& uv, const TVector<T, 3> face[3], const std::pair<TType3<T>, TType3<T> >& vec) {
+			// handle size!!!!
+			const TVector<T, 3>& v = vec.second;
+			const TVector<T, 3>& u = vec.first;
+			const TVector<T, 3>& base = face[0];
+			const TVector<T, 3>& m = face[1];
+			const TVector<T, 3>& n = face[2];
+
+			TVector<T, 3> N = n - base;
+			TVector<T, 3> M = m - base;
+
+			// make linear equations
+			TMatrix<T, 3, 3> mat;
+			mat(0) = M;
+			mat(1) = N;
+			mat(2) = -v;
+			mat = Inverse(mat);
+
+			TVector<T, 3> target = (u - base) * mat;
+
+			T alpha = target[0];
+			T beta = target[1];
+
+			res = base + M * alpha + N * beta;
+
+			uv[0] = alpha;
+			uv[1] = beta;
+		}
+
+		// https://github.com/gszauer/GamePhysicsCookbook/blob/master/Code/Geometry3D.cpp
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+#define fminf Math::Min
+#define fmaxf Math::Max
+#endif
+
+		template <class T>
+		TVector<T, 2> IntersectBox(const std::pair<TType3<T>, TType3<T> >& aabb, const std::pair<TType3<T>, TType3<T> >& ray) {
+			const TVector<T, 3>& minValue = aabb.first;
+			const TVector<T, 3>& maxValue = aabb.second;
+
+			T dx = ray.second[0];
+			T dy = ray.second[1];
+			T dz = ray.second[2];
+			T dxdy = dx * dy;
+			T dydz = dy * dz;
+			T dxdz = dx * dz;
+			T sign = dxdy * dz >= 0;
+
+			T t1 = (minValue[0] - ray.first[0]) * (dydz * sign);
+			T t2 = (maxValue[0] - ray.first[0]) * (dydz * sign);
+			T t3 = (minValue[1] - ray.first[1]) * (dxdz * sign);
+			T t4 = (maxValue[1] - ray.first[1]) * (dxdz * sign);
+			T t5 = (minValue[2] - ray.first[2]) * (dxdy * sign);
+			T t6 = (maxValue[2] - ray.first[2]) * (dxdy * sign);
+
+			TVector<T, 2> ret;
+			ret[0] = (T)Max(Max(Min(t1, t2), Min(t3, t4)), Min(t5, t6));
+			ret[1] = (T)Min(Min(Max(t1, t2), Max(t3, t4)), Max(t5, t6));
+			return ret;
+		//	return tmax >= 0 && tmin <= tmax;
+		}
 	}
 
 	template <class T>
