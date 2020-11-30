@@ -111,6 +111,7 @@ namespace PaintsNow {
 #define constexpr
 #define nullptr (0)
 #define thread_local __declspec(thread)
+#define alignof __alignof
 #define emplace_back push_back
 #define emplace_front push_front
 
