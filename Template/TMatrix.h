@@ -285,15 +285,6 @@ namespace PaintsNow {
 #endif
 
 	namespace Math {
-		template <class T, size_t m, size_t n>
-		inline TMatrix<T, m, n> Scale(const TMatrix<T, m, n>& lhs, const TVector<T, m>& v) {
-			TMatrix<T, m, n> mat = TMatrix<T, m, n>::Identity();
-			for (size_t i = 0; i < Math::Min(m, n); i++) {
-				mat.data[i][i] = v[i];
-			}
-
-			return mat * lhs;
-		}
 
 		// from: https://github.com/gszauer/GamePhysicsCookbook/blob/master/Code/matrices.cpp
 		template <class T, size_t n, size_t m>
@@ -618,8 +609,38 @@ namespace PaintsNow {
 			return result;
 		}
 #endif
+		template <class T, size_t n>
+		inline TMatrix<T, n, n> MatrixScale(const TVector<T, n>& v) {
+			TMatrix<T, n, n> mat = TMatrix<T, n, n>::Identity();
+			for (size_t i = 0; i < n; i++) {
+				mat.data[i][i] = v[i];
+			}
+
+			return mat;
+		}
+
 		template <class T>
-		TMatrix<T, 4, 4> MatrixRotate3D(const TVector<T, 4>& dir) {
+		TMatrix<T, 4, 4> MatrixTranslate(const TVector<T, 3>& v) {
+			TMatrix<T, 4, 4> ret;
+			ret.data[0][0] = 1;
+			ret.data[0][1] = ret.data[0][2] = ret.data[0][3] = 0;
+
+			ret.data[1][1] = 1;
+			ret.data[1][0] = ret.data[1][2] = ret.data[1][3] = 0;
+
+			ret.data[2][2] = 1;
+			ret.data[2][0] = ret.data[2][1] = ret.data[2][3] = 0;
+
+			ret.data[3][0] = v[0];
+			ret.data[3][1] = v[1];
+			ret.data[3][2] = v[2];
+			ret.data[3][3] = 1;
+
+			return ret;
+		}
+
+		template <class T>
+		TMatrix<T, 4, 4> MatrixRotate(const TVector<T, 4>& dir) {
 			T c = (T)cos(dir[3]);
 			T s = (T)sin(dir[3]);
 
@@ -709,26 +730,6 @@ namespace PaintsNow {
 		}
 
 		template <class T>
-		TMatrix<T, 4, 4> MatrixTranslate3D(const TVector<T, 3>& v) {
-			TMatrix<T, 4, 4> ret;
-			ret.data[0][0] = 1;
-			ret.data[0][1] = ret.data[0][2] = ret.data[0][3] = 0;
-
-			ret.data[1][1] = 1;
-			ret.data[1][0] = ret.data[1][2] = ret.data[1][3] = 0;
-
-			ret.data[2][2] = 1;
-			ret.data[2][0] = ret.data[2][1] = ret.data[2][3] = 0;
-
-			ret.data[3][0] = v[0];
-			ret.data[3][1] = v[1];
-			ret.data[3][2] = v[2];
-			ret.data[3][3] = 1;
-
-			return ret;
-		}
-
-		template <class T>
 		TMatrix<T, 4, 4> MatrixLookAt(const TVector<T, 3>& position, const TVector<T, 3>& dir, const TVector<T, 3>& u) {
 			TVector<T, 3> direction = dir;
 			TVector<T, 3> up = u;
@@ -763,11 +764,11 @@ namespace PaintsNow {
 			m(2, 3) = 0;
 			m(3, 3) = 1;
 
-			return MatrixTranslate3D(-position) * m;
+			return MatrixTranslate(-position) * m;
 		}
 
 		template <class T>
-		TVector<T, 3> Transform3D(const TMatrix<T, 4, 4>& input, const TVector<T, 3>& v) {
+		TVector<T, 3> Transform(const TMatrix<T, 4, 4>& input, const TVector<T, 3>& v) {
 			TVector<T, 4> position;
 			position[0] = v[0];
 			position[1] = v[1];
@@ -810,11 +811,6 @@ namespace PaintsNow {
 		}
 
 		// https://github.com/gszauer/GamePhysicsCookbook/blob/master/Code/Geometry3D.cpp
-#if defined(_MSC_VER) && _MSC_VER <= 1200
-#define fminf Math::Min
-#define fmaxf Math::Max
-#endif
-
 		template <class T>
 		TVector<T, 2> IntersectBox(const std::pair<TType3<T>, TType3<T> >& aabb, const std::pair<TType3<T>, TType3<T> >& ray) {
 			const TVector<T, 3>& minValue = aabb.first;
