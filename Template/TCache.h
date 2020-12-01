@@ -12,7 +12,7 @@ namespace PaintsNow {
 	template <class T, size_t K>
 	class TCache {
 	public:
-		TBuffer<T> New(const T* ptr, uint32_t size, uint32_t alignment = 16) {
+		TBuffer<T> New(uint32_t size, uint32_t alignment = 16) {
 			uint32_t pack = allocator.GetPackCount(alignment);
 			static_assert(alignof(TBuffer<T>) % sizeof(T) == 0, "TBuffer<T> must be aligned at least sizeof(T).");
 			const uint32_t headCount = sizeof(TBuffer<T>) / sizeof(T);
@@ -42,6 +42,16 @@ namespace PaintsNow {
 			}
 		}
 
+		void Link(TBuffer<T>& from, const TBuffer<T>& to) {
+			if (from.Empty()) {
+				from = to;
+			} else {
+				assert(from.IsViewStorage() && to.IsViewStorage());
+				TBuffer<T> storage = New(sizeof(TBuffer<T>));
+				from.Append(*new (storage.GetData()) TBuffer<T>(to));
+			}
+		}
+
 		void Reset() {
 			allocator.Reset(~(uint32_t)0);
 		}
@@ -53,4 +63,6 @@ namespace PaintsNow {
 	protected:
 		TQueueList<T, K> allocator;
 	};
+
+	typedef TCache<uint8_t, 12> BytesCache;
 }

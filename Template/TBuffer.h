@@ -23,7 +23,7 @@ namespace PaintsNow {
 		};
 
 		TBuffer() : size(0) {
-			static_assert(N >= 2 * sizeof(size_t), "Must has stock storage of at least 2 pointer size.");
+			static_assert(N >= 3 * sizeof(size_t), "Must has stock storage of at least 3 pointer size.");
 #if !defined(_MSC_VER) || _MSC_VER > 1200
 			static_assert(std::is_trivially_constructible<T>::value, "Must be trivially constructible.");
 #endif
@@ -103,6 +103,8 @@ namespace PaintsNow {
 			buffer.size = length | (EXT_STORE_MASK | DATA_VIEW_MASK);
 			buffer.buffer = data;
 			buffer.next = nullptr;
+			buffer.tail = nullptr;
+
 			return buffer;
 		}
 
@@ -115,7 +117,7 @@ namespace PaintsNow {
 
 		size_t GetViewSize() const {
 			assert(IsViewStorage());
-			TBuffer* p = this;
+			const TBuffer* p = this;
 			size_t size = 0;
 			while (p != nullptr) {
 				size += p->GetSize();
@@ -125,21 +127,40 @@ namespace PaintsNow {
 			return size;
 		}
 
+		void Import(size_t offset, const T* ptr, size_t size) {
+			if (IsViewStorage()) {
+				TBuffer* p = this;
+				size_t k = 0;
+				while (p != nullptr && k < size) {
+					size_t len = p->GetSize();
+					if (offset < len) {
+						memcpy(p->GetData() + offset, ptr + k, Math::Min(len - offset, size - k) * sizeof(T));
+						k += len - offset;
+						offset = 0;
+					} else {
+						offset -= len;
+					}
+
+					p = p->next;
+				}
+			} else {
+				memcpy(GetData() + offset, ptr, size * sizeof(T));
+			}
+		}
+
 		void Export(TBuffer& target) const {
 			assert(!target.IsViewStorage() && IsViewStorage());
 			target.Resize(GetViewSize());
 
-			TBuffer* p = this;
+			const TBuffer* p = this;
 			T* buffer = target.GetData();
 
 			while (p != nullptr) {
 				size_t size = p->GetSize();
-				memcpy(buffer, p->GetData(), size);
+				memcpy(buffer, p->GetData(), size * sizeof(T));
 				buffer += size;
 				p = p->next;
 			}
-
-			assert(buffer - p->GetData() == GetViewSize());
 		}
 
 		bool Empty() const { return size == 0; }
@@ -221,10 +242,35 @@ namespace PaintsNow {
 		}
 
 		TBuffer& Append(const TBuffer& rhs) {
-			if (IsViewStorage()) {
+			if (Empty()) {
+				*this = rhs;
+				return *this;
+			} else if (IsViewStorage()) {
 				assert(rhs.IsViewStorage());
-				assert(next == nullptr); // can only be append once
-				next = const_cast<TBuffer*>(&rhs);
+				TBuffer* p = this;
+
+				while (true) {
+					uint32_t curSize = p->GetSize();
+					if (curSize == 0) {
+						*p = rhs;
+						tail = p->tail == nullptr ? tail : p->tail;
+						return *this;
+					} else if (rhs.buffer == buffer + curSize) { // continuous?
+						p->size += rhs.GetSize();
+						tail = p->tail == nullptr ? tail : p->tail;
+						return *this;
+					} else {
+						if (p->tail == nullptr) {
+							assert(p->next == nullptr);
+							tail = p->next = p->tail = const_cast<TBuffer*>(&rhs);
+							return *this;
+						} else {
+							p = p->tail;
+						}
+					}
+				}
+
+				// never reach here
 				return *this;
 			} else {
 				assert(!rhs.IsViewStorage() || rhs.next == nullptr);
@@ -268,6 +314,7 @@ namespace PaintsNow {
 			struct {
 				T* buffer;
 				TBuffer* next;
+				TBuffer* tail;
 			};
 			T stockStorage[N];
 		};

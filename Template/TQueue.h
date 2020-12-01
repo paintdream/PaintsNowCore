@@ -119,13 +119,14 @@ namespace PaintsNow {
 			count += (uint32_t)(alignment - Math::Alignment(pushIndex)) & (alignment - 1);
 			if (count >= N - 1 - Count()) return nullptr;
 
+			uint32_t retIndex = pushIndex;
 			uint32_t nextIndex = pushIndex + count;
 			if (count != 1 && nextIndex >= N) return nullptr; // non-continous!
 
 			nextIndex = nextIndex & Mask;
 			pushIndex = nextIndex;
 
-			return ringBuffer + nextIndex;
+			return ringBuffer + retIndex;
 		}
 
 		inline void Deallocate(uint32_t count, uint32_t alignment) {
@@ -178,11 +179,11 @@ namespace PaintsNow {
 		}
 		
 		inline uint32_t Count() const {
-			return (pushIndex + Mask - popIndex) & Mask;
+			return (pushIndex + N - popIndex) & Mask;
 		}
 
 		inline uint32_t GetPackCount(uint32_t alignment) const {
-			assert(N <= alignment);
+			assert(N >= alignment);
 			uint32_t index = pushIndex + (uint32_t)(alignment - Math::Alignment(pushIndex)) & (alignment - 1);
 
 			if (popIndex > pushIndex) {
