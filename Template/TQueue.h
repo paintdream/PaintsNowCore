@@ -181,6 +181,17 @@ namespace PaintsNow {
 			return (pushIndex + Mask - popIndex) & Mask;
 		}
 
+		inline uint32_t GetPackCount(uint32_t alignment) const {
+			assert(N <= alignment);
+			uint32_t index = pushIndex + (uint32_t)(alignment - Math::Alignment(pushIndex)) & (alignment - 1);
+
+			if (popIndex > pushIndex) {
+				return popIndex > index ? popIndex - index : 0;
+			} else {
+				return N - index;
+			}
+		}
+
 		inline Iterator Begin() const {
 			return popIndex;
 		}
@@ -195,6 +206,10 @@ namespace PaintsNow {
 
 		inline const T& operator [] (Iterator it) const {
 			return ringBuffer[it.index];
+		}
+
+		static uint32_t GetFullPackCount() {
+			return N;
 		}
 
 	protected:
@@ -316,6 +331,11 @@ namespace PaintsNow {
 			}
 		}
 
+		inline uint32_t GetPackCount(uint32_t alignment) const {
+			uint32_t v = pushHead->GetPackCount(alignment);
+			return v == 0 ? GetFullPackCount() : v;
+		}
+
 		inline T* Allocate(uint32_t count, uint32_t alignment) {
 			T* address;
 			while ((address = pushHead->Allocate(count, alignment)) == nullptr) {
@@ -347,18 +367,25 @@ namespace PaintsNow {
 
 		inline void Reset(uint32_t reserved) {
 			Node* p = pushHead = popHead;
-			uint32_t c = 0;
+			p->Reset(); // always reserved
+			uint32_t c = GetFullPackCount();
+			Node* q = p;
+			p = p->next;
+
 			while (p != nullptr && c < reserved) {
 				p->Reset();
-				c += Node::N;
+				c += GetFullPackCount();
+				q = p;
 				p = p->next;
 			}
 
 			while (p != nullptr) {
-				Node* q = p;
+				Node* t = p;
 				p = p->next;
-				delete q;
+				delete t;
 			}
+
+			q->next = nullptr;
 		}
 
 		inline bool Empty() const {
@@ -406,6 +433,10 @@ namespace PaintsNow {
 			}
 
 			return counter;
+		}
+
+		static inline uint32_t GetFullPackCount() {
+			return Node::GetFullPackCount();
 		}
 
 		inline const T& operator [] (Iterator it) const {
