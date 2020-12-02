@@ -116,15 +116,18 @@ namespace PaintsNow {
 		T* GetData() { return IsStockStorage() ? stockStorage : buffer; }
 
 		size_t GetViewSize() const {
-			assert(IsViewStorage());
-			const TBuffer* p = this;
-			size_t size = 0;
-			while (p != nullptr) {
-				size += p->GetSize();
-				p = p->next;
-			}
+			if (IsViewStorage()) {
+				const TBuffer* p = this;
+				size_t s = 0;
+				while (p != nullptr) {
+					s += p->GetSize();
+					p = p->next;
+				}
 
-			return size;
+				return s;
+			} else {
+				return GetSize();
+			}
 		}
 
 		void Import(size_t offset, const T* ptr, size_t size) {
@@ -134,8 +137,9 @@ namespace PaintsNow {
 				while (p != nullptr && k < size) {
 					size_t len = p->GetSize();
 					if (offset < len) {
-						memcpy(p->GetData() + offset, ptr + k, Math::Min(len - offset, size - k) * sizeof(T));
-						k += len - offset;
+						size_t r = Math::Min(len - offset, size - k);
+						memcpy(p->GetData() + offset, ptr + k, r * sizeof(T));
+						k += r;
 						offset = 0;
 					} else {
 						offset -= len;
@@ -253,16 +257,17 @@ namespace PaintsNow {
 					uint32_t curSize = p->GetSize();
 					if (curSize == 0) {
 						*p = rhs;
-						tail = p->tail == nullptr ? tail : p->tail;
 						return *this;
-					} else if (rhs.buffer == buffer + curSize) { // continuous?
+					} else if (rhs.buffer == p->buffer + curSize && p->next == nullptr) { // continuous?
 						p->size += rhs.GetSize();
-						tail = p->tail == nullptr ? tail : p->tail;
+						p->next = rhs.next;
+						tail = rhs.tail == nullptr ? tail : rhs.tail;
 						return *this;
 					} else {
 						if (p->tail == nullptr) {
 							assert(p->next == nullptr);
-							tail = p->next = p->tail = const_cast<TBuffer*>(&rhs);
+							p->next = const_cast<TBuffer*>(&rhs);
+							tail = rhs.tail == nullptr ? p->next : rhs.tail;
 							return *this;
 						} else {
 							p = p->tail;

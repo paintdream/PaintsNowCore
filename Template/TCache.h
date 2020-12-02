@@ -47,7 +47,7 @@ namespace PaintsNow {
 				from = to;
 			} else {
 				assert(from.IsViewStorage() && to.IsViewStorage());
-				TBuffer<T> storage = New(sizeof(TBuffer<T>));
+				TBuffer<T> storage = New(sizeof(TBuffer<T>) / sizeof(T), alignof(TBuffer<T>) / sizeof(T));
 				from.Append(*new (storage.GetData()) TBuffer<T>(to));
 			}
 		}
