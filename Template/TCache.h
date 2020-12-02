@@ -42,6 +42,10 @@ namespace PaintsNow {
 			}
 		}
 
+		T* NewLinear(uint32_t size, uint32_t alignment = 16) {
+			return allocator.Allocate(size, alignment);
+		}
+
 		void Link(TBuffer<T>& from, const TBuffer<T>& to) {
 			if (from.Empty()) {
 				from = to;
@@ -65,4 +69,78 @@ namespace PaintsNow {
 	};
 
 	typedef TCache<uint8_t, 12> BytesCache;
+
+	template <class T, class D = uint8_t, size_t K = 12>
+	struct TCacheAllocator {
+		typedef T value_type;
+		typedef T* pointer;
+		typedef const T* const_pointer;
+		typedef T& reference;
+		typedef const T& const_reference;
+		typedef size_t size_type;
+		typedef ptrdiff_t difference_type;
+		typedef std::true_type propagate_on_container_move_assignment;
+		template <class M>
+		struct rebind { typedef TCacheAllocator<M, D, K> other; };
+		typedef std::false_type is_always_equal;
+
+		typedef TCache<D, K> Allocator;
+		Allocator* allocator;
+
+		TCacheAllocator(Allocator* alloc) : allocator(alloc) {}
+		TCacheAllocator(const TCacheAllocator& al) : allocator(al.allocator) {}
+
+#if defined(_MSC_VER) && _MSC_VER > 1200
+		// maybe a bug of VC (Debug Build), just add these lines to make compiler happy
+		template <class M>
+		TCacheAllocator(const TCacheAllocator<M, D, K>& rhs) : allocator(rhs.allocator) {}
+#endif
+
+		template <class M>
+		bool operator == (const M& rhs) const noexcept {
+			return allocator == rhs.allocator;
+		}
+
+		template <class M>
+		bool operator != (const M& rhs) const noexcept {
+			return allocator != rhs.allocator;
+		}
+
+		pointer address(reference x) const noexcept {
+			return &x;
+		};
+
+		const_pointer address(const_reference x) const noexcept {
+			return &x;
+		}
+
+		size_type max_size() const noexcept {
+			return ~(size_type)0 / sizeof(T);
+		}
+
+		void construct(pointer p, const_reference val) {
+			new ((void*)p) T(val);
+		}
+
+#if !defined(_MSC_VER) || _MSC_VER > 1200
+		template <class M, class... Args>
+		void construct(M* p, Args&&... args) {
+			new ((void*)p) M(std::forward<Args>(args)...);
+		}
+#endif
+		template <class M>
+		void destroy(M* p) {
+			((M*)p)->~M();
+		}
+
+		pointer allocate(size_type n, const void* hint = nullptr) {
+			assert(allocator != nullptr);
+			static_assert(sizeof(T) % sizeof(D) == 0, "Must be aligned.");
+			return reinterpret_cast<pointer>(allocator->NewLinear(n * sizeof(T) / sizeof(D), alignof(T)));
+		}
+
+		void deallocate(T* p, size_t n) {
+			// do not deallocate in cache allocator.	
+		}
+	};
 }
