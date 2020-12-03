@@ -153,17 +153,21 @@ namespace PaintsNow {
 		}
 
 		void Export(TBuffer& target) const {
-			assert(!target.IsViewStorage() && IsViewStorage());
-			target.Resize(GetViewSize());
+			if (Empty()) {
+				target.Clear();
+			} else {
+				assert(!target.IsViewStorage() && IsViewStorage());
+				target.Resize(GetViewSize());
 
-			const TBuffer* p = this;
-			T* buffer = target.GetData();
+				const TBuffer* p = this;
+				T* buffer = target.GetData();
 
-			while (p != nullptr) {
-				size_t size = p->GetSize();
-				memcpy(buffer, p->GetData(), size * sizeof(T));
-				buffer += size;
-				p = p->next;
+				while (p != nullptr) {
+					size_t size = p->GetSize();
+					memcpy(buffer, p->GetData(), size * sizeof(T));
+					buffer += size;
+					p = p->next;
+				}
 			}
 		}
 
@@ -254,7 +258,7 @@ namespace PaintsNow {
 				TBuffer* p = this;
 
 				while (true) {
-					uint32_t curSize = p->GetSize();
+					size_t curSize = p->GetSize();
 					if (curSize == 0) {
 						*p = rhs;
 						return *this;

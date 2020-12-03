@@ -136,7 +136,7 @@ namespace PaintsNow {
 		pointer allocate(size_type n, const void* hint = nullptr) {
 			assert(allocator != nullptr);
 			static_assert(sizeof(T) % sizeof(D) == 0, "Must be aligned.");
-			return reinterpret_cast<pointer>(allocator->NewLinear(n * sizeof(T) / sizeof(D), alignof(T)));
+			return reinterpret_cast<pointer>(allocator->NewLinear(safe_cast<uint32_t>(n * sizeof(T) / sizeof(D)), safe_cast<uint32_t>(alignof(T))));
 		}
 
 		void deallocate(T* p, size_t n) {
