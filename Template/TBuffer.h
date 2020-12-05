@@ -26,6 +26,7 @@ namespace PaintsNow {
 			static_assert(N >= 3 * sizeof(size_t), "Must has stock storage of at least 3 pointer size.");
 #if !defined(_MSC_VER) || _MSC_VER > 1200
 			static_assert(std::is_trivially_constructible<T>::value, "Must be trivially constructible.");
+			static_assert(std::is_trivially_destructible<T>::value, "Must be trivially destructible.");
 #endif
 		}
 
@@ -130,44 +131,96 @@ namespace PaintsNow {
 			}
 		}
 
-		void Import(size_t offset, const T* ptr, size_t size) {
+		void Import(size_t offset, const T* ptr, size_t size, size_t repeat = 1) {
 			if (IsViewStorage()) {
 				TBuffer* p = this;
-				size_t k = 0;
-				while (p != nullptr && k < size) {
-					size_t len = p->GetSize();
-					if (offset < len) {
-						size_t r = Math::Min(len - offset, size - k);
-						memcpy(p->GetData() + offset, ptr + k, r * sizeof(T));
-						k += r;
-						offset = 0;
-					} else {
-						offset -= len;
-					}
+				assert(offset + size * repeat <= GetViewSize());
+				while (repeat-- != 0) {
+					size_t k = 0;
+					while (p != nullptr && k < size) {
+						size_t len = p->GetSize();
+						if (offset < len) {
+							size_t r = Math::Min(len - offset, size - k);
+							memcpy(p->GetData() + offset, ptr + k, r * sizeof(T));
+							k += r;
+							offset = 0;
+						} else {
+							offset -= len;
+						}
 
-					p = p->next;
+						p = p->next;
+					}
 				}
 			} else {
-				memcpy(GetData() + offset, ptr, size * sizeof(T));
+				T* buffer = GetData();
+				while (repeat-- != 0) {
+					memcpy(buffer + offset, ptr, size * sizeof(T));
+					offset += size;
+				}
 			}
 		}
 
-		void Export(TBuffer& target) const {
-			if (Empty()) {
-				target.Clear();
-			} else {
-				assert(!target.IsViewStorage() && IsViewStorage());
-				target.Resize(GetViewSize());
+		void Import(size_t dstOffset, const TBuffer& buffer, size_t repeat = 1) {
+			if (buffer.IsViewStorage()) {
+				if (IsViewStorage()) {
+					assert(GetViewSize() >= dstOffset + buffer.GetViewSize() * repeat);
+					TBuffer* p = this;
 
-				const TBuffer* p = this;
-				T* buffer = target.GetData();
+					while (repeat-- != 0) {
+						const TBuffer* q = &buffer;
+						size_t srcSize = q->GetSize();
+						const T* src = q->GetData();
+						size_t dstSize = p->GetSize();
+						T* dst = p->GetData();
+						size_t srcOffset = 0;
 
-				while (p != nullptr) {
-					size_t size = p->GetSize();
-					memcpy(buffer, p->GetData(), size * sizeof(T));
-					buffer += size;
-					p = p->next;
+						do {
+							if (dstOffset < dstSize) {
+								size_t r = Math::Min(dstSize - dstOffset, srcSize - srcOffset);
+								memcpy(dst + dstOffset, src + srcOffset, r * sizeof(T));
+								dstOffset += r;
+								srcOffset += r;
+
+								if (dstOffset >= dstSize) {
+									p = p->next;
+									if (p != nullptr) {
+										dstSize = p->GetSize();
+										dst = p->GetData();
+										dstOffset = 0;
+									}
+								}
+
+								if (srcOffset >= srcSize) {
+									q = q->next;
+									if (q != nullptr) {
+										srcSize = q->GetSize();
+										src = q->GetData();
+										srcOffset = 0;
+									}
+								}
+							} else {
+								dstOffset -= dstSize;
+								p = p->next;
+							}
+						} while (p != nullptr && q != nullptr);
+					}
+				} else {
+					assert(GetSize() >= dstOffset + buffer.GetViewSize() * repeat);
+					T* target = GetData() + dstOffset;
+
+					while (repeat-- != 0) {
+						const TBuffer* p = &buffer;
+
+						while (p != nullptr) {
+							size_t size = p->GetSize();
+							memcpy(target, p->GetData(), size * sizeof(T));
+							target += size;
+							p = p->next;
+						}
+					}
 				}
+			} else {
+				Import(dstOffset, buffer.GetData(), buffer.GetSize(), repeat);
 			}
 		}
 
