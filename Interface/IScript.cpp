@@ -26,7 +26,7 @@ IScript::Object::~Object() {
 }
 
 void IScript::Object::ScriptUninitialize(Request& request) {
-	ReleaseObject();
+	Destroy();
 }
 
 void IScript::Object::ScriptInitialize(Request& request) {}
@@ -530,6 +530,6 @@ IScript::Request* IScript::RequestPool::New() {
 void IScript::RequestPool::Delete(IScript::Request* request) {
 	script.DoLock();
 	assert(request->GetRequestPool() == this);
-	request->ReleaseObject();
+	request->Destroy();
 	script.UnLock();
 }

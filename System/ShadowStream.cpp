@@ -16,7 +16,7 @@ ShadowStream& ShadowStream::operator = (const ShadowStream& rhs) {
 
 void ShadowStream::Cleanup() {
 	if (baseStream != nullptr) {
-		baseStream->ReleaseObject();
+		baseStream->Destroy();
 	}
 }
 

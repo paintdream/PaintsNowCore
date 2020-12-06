@@ -204,9 +204,7 @@ namespace PaintsNow {
 			return QueryInterfaceEx(const_cast<IReflectObject*>(this), GetUnique(), t);
 		}
 
-		virtual void ReleaseObject(); // call `FinalDestroy` by default.
-		virtual void FinalDestroy();
-
+		virtual void Destroy();
 
 #if defined(_MSC_VER) && _MSC_VER <= 1200
 		// These two functions are work-arounds for msvc compiler.

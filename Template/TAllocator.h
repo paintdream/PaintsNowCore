@@ -372,11 +372,11 @@ namespace PaintsNow {
 			Base::DeallocateUnsafe(object);
 		}
 
-		void ReferenceObject() override {
+		forceinline void ReferenceObject() {
 			Base::ReferenceObject();
 		}
 
-		void ReleaseObject() override {
+		forceinline void ReleaseObject() {
 			Base::ReleaseObject();
 		}
 
@@ -625,7 +625,7 @@ namespace PaintsNow {
 		TAllocatedTiny(Args&&... args) : TReflected<T, B>(std::forward<Args>(args)...) {}
 #endif
 
-		void FinalDestroy() override {
+		void Destroy() override {
 			if (MT) {
 				Allocator::Delete(static_cast<T*>(this));
 			} else {

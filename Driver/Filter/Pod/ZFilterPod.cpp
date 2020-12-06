@@ -75,7 +75,7 @@ protected:
 FilterPodImpl::Type::Type() : pod(nullptr), iterator(nullptr), persister(nullptr), subPersister(nullptr) {}
 FilterPodImpl::Type::~Type() {
 	if (persister != nullptr) {
-		persister->ReleaseObject();
+		persister->Destroy();
 	}
 }
 
@@ -177,7 +177,7 @@ static void* StreamLocateHandler(void* locateContext, void** iterator, PodSize* 
 			obj = it->Get();
 		}
 
-		it->ReleaseObject();
+		it->Destroy();
 		return obj;
 	} else {
 		*iterator = (void*)it;
@@ -192,7 +192,7 @@ static void* StreamIterateHandler(void* locateContext, void** pointer, void* con
 	if (iterator->Next()) {
 		return iterator->Get();
 	} else {
-		iterator->ReleaseObject();
+		iterator->Destroy();
 		*pointer = nullptr;
 		return nullptr;
 	}
@@ -282,7 +282,7 @@ FilterPodImpl::~FilterPodImpl() {
 	for (std::map<std::pair<Unique, String>, Type>::iterator it = mapTypes.begin(); it != mapTypes.end(); ++it) {
 		IIterator* p = it->second.iterator;
 		if (p != nullptr) {
-			p->ReleaseObject();
+			p->Destroy();
 		}
 
 		// PodDelete(it->second.pod);

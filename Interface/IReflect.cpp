@@ -23,11 +23,7 @@ String UniqueInfo::GetBriefName() const {
 IReflectObject::IReflectObject() {}
 IReflectObject::~IReflectObject() {}
 
-void IReflectObject::ReleaseObject() {
-	FinalDestroy();
-}
-
-void IReflectObject::FinalDestroy() {
+void IReflectObject::Destroy() {
 	delete this;
 }
 

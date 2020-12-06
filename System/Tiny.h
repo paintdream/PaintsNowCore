@@ -55,17 +55,20 @@ namespace PaintsNow {
 			ReferenceObject();
 		}
 
-		void ReleaseObject() override {
+		void ScriptUninitialize(IScript::Request& request) override {
+			ReleaseObject();
+		}
+
+		forceinline void ReleaseObject() {
 			// every external references released?
 			if (referCount.fetch_sub(1, std::memory_order_relaxed) == 1) {
-				Tiny::ReleaseObject();
+				Destroy();
 			}
 		}
 
-		virtual void ReferenceObject() {
+		forceinline void ReferenceObject() {
 			referCount.fetch_add(1, std::memory_order_relaxed);
 		}
-
 
 	protected:
 		std::atomic<int32_t> referCount;
