@@ -1,5 +1,9 @@
 #include "ZThreadPthread.h"
 
+#if defined(_DEBUG) && defined(_MSC_VER)
+#include <Windows.h>
+#endif
+
 #if !defined(_MSC_VER) || _MSC_VER > 1200
 #define USE_STD_THREAD
 #include <thread>
@@ -21,6 +25,9 @@ class LockImpl : public IThread::Lock {
 public:
 	#ifdef USE_STD_THREAD
 	std::mutex cs;
+#if defined(_DEBUG) && defined(_MSC_VER)
+	DWORD owner;
+#endif
 	#else
 	CRITICAL_SECTION cs;
 	#endif
@@ -134,6 +141,9 @@ void ZThreadPthread::DeleteThread(Thread* thread) {
 IThread::Lock* ZThreadPthread::NewLock() {
 	LockImpl* lock = new LockImpl();
 	lock->lockCount = 0;
+#if defined(_DEBUG) && defined(_MSC_VER)
+	lock->owner = 0;
+#endif
 
 #ifndef USE_STD_THREAD
 	::InitializeCriticalSection(&lock->cs);
@@ -146,7 +156,14 @@ void ZThreadPthread::DoLock(Lock* l) {
 	assert(l != nullptr);
 	LockImpl* lock = static_cast<LockImpl*>(l);
 #ifdef USE_STD_THREAD
+#if defined(_DEBUG) && defined(_MSC_VER)
+	assert(lock->owner != ::GetCurrentThreadId());
+#endif
 	lock->cs.lock();
+#if defined(_DEBUG) && defined(_MSC_VER)
+	lock->owner = ::GetCurrentThreadId();
+	// printf("Thread %d, takes: %p\n", lock->owner, lock);
+#endif
 #else
 	::EnterCriticalSection(&lock->cs);
 #endif
@@ -160,6 +177,11 @@ void ZThreadPthread::UnLock(Lock* l) {
 	lock->lockCount--;
 
 #ifdef USE_STD_THREAD
+#if defined(_DEBUG) && defined(_MSC_VER)
+	// printf("Thread %d, releases: %p\n", lock->owner, lock);
+	lock->owner = ::GetCurrentThreadId();
+	lock->owner = 0;
+#endif
 	lock->cs.unlock();
 #else
 	::LeaveCriticalSection(&lock->cs);
@@ -229,6 +251,7 @@ void ZThreadPthread::Wait(Event* event, Lock* lock, size_t timeout) {
 	assert(lock != nullptr);
 	EventImpl* ev = static_cast<EventImpl*>(event);
 	LockImpl* l = static_cast<LockImpl*>(lock);
+	assert(l->lockCount != 0);
 	l->lockCount--; // it's safe because we still hold this lock
 
 #ifdef USE_STD_THREAD
@@ -255,7 +278,13 @@ void ZThreadPthread::Wait(Event* event, Lock* lock) {
 	l->lockCount--; // it's safe because we still hold this lock
 #ifdef USE_STD_THREAD
 	std::unique_lock<std::mutex> u(l->cs, std::adopt_lock);
+#if defined(_DEBUG) && defined(_MSC_VER)
+	l->owner = 0;
+#endif
 	ev->cond.wait(u);
+#if defined(_DEBUG) && defined(_MSC_VER)
+	l->owner = ::GetCurrentThreadId();
+#endif
 	u.release();
 #else
 #if HAS_CONDITION_VARIABLE
