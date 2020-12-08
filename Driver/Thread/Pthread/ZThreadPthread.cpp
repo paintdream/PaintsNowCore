@@ -30,6 +30,9 @@ public:
 #endif
 	#else
 	CRITICAL_SECTION cs;
+#if defined(_DEBUG)
+	DWORD owner;
+#endif
 	#endif
 	size_t lockCount;
 };
