@@ -709,7 +709,7 @@ namespace PaintsNow {
 				static ArrayStart beginarray;
 				static ArrayEnd endarray;
 				request << beginarray;
-				for (typename std::list<T>::iterator it = vec.begin(); it != vec.end(); ++it) {
+				for (typename std::list<T>::const_iterator it = vec.begin(); it != vec.end(); ++it) {
 					request << *it;
 				}
 				request << endarray;
