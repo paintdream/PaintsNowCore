@@ -24,7 +24,7 @@ namespace PaintsNow {
 
 		TBuffer() : size(0) {
 			static_assert(N >= 3 * sizeof(size_t), "Must has stock storage of at least 3 pointer size.");
-#if !defined(_MSC_VER) || _MSC_VER > 1200
+#if defined(_MSC_VER) && _MSC_VER > 1200
 			static_assert(std::is_trivially_constructible<T>::value, "Must be trivially constructible.");
 			static_assert(std::is_trivially_destructible<T>::value, "Must be trivially destructible.");
 #endif
