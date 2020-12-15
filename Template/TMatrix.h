@@ -143,8 +143,8 @@ namespace PaintsNow {
 		TMatrix<T, m, m> ret;
 		for (size_t i = 0; i < m; i++) {
 			for (size_t j = 0; j < m; j++) {
-				T sum(0);
-				for (size_t k = 0; k < n; k++) {
+				T sum = lhs(i, 0) * rhs(0, j);
+				for (size_t k = 1; k < n; k++) {
 					sum += lhs(i, k) * rhs(k, j);
 				}
 
@@ -157,12 +157,15 @@ namespace PaintsNow {
 #else
 	template <class T, size_t m, size_t n, size_t p>
 	TMatrix<T, m, p> operator * (const TMatrix<T, m, n>& lhs, const TMatrix<T, n, p>& rhs) {
-		TMatrix<T, n, p> trans = rhs.Transpose();
 		TMatrix<T, m, p> ret;
 		for (size_t i = 0; i < m; i++) {
-			const TVector<T, p>& left = lhs(i);
 			for (size_t j = 0; j < p; j++) {
-				ret(i, j) = Math::DotProduct(left, trans(j));
+				T sum = lhs(i, 0) * rhs(0, j);
+				for (size_t k = 1; k < n; k++) {
+					sum += lhs(i, k) * rhs(k, j);
+				}
+
+				ret(i, j) = sum;
 			}
 		}
 
@@ -253,10 +256,12 @@ namespace PaintsNow {
 
 	template <class T, size_t m, size_t n>
 	TVector<T, n> operator * (const TVector<T, m>& value, const TMatrix<T, m, n>& rhs) {
-		TMatrix<T, n, m> trans = rhs.Transpose();
 		TVector<T, n> ret;
 		for (size_t i = 0; i < n; i++) {
-			ret[i] = Math::DotProduct(value, trans(i));
+			ret[i] = value[0] * rhs(0, i);
+			for (size_t j = 1; j < m; j++) {
+				ret[i] += value[j] * rhs(j, i);
+			}
 		}
 
 		return ret;
@@ -323,7 +328,7 @@ namespace PaintsNow {
 				m(0, 1) * (m(1, 0) * m(2, 2) - m(1, 2) * m(2, 0)) +
 				m(0, 2) * (m(1, 0) * m(2, 1) - m(1, 1) * m(2, 0));
 
-			T invdet = (T)1 / det;
+			T invdet = T(1) / det;
 
 			TMatrix<T, 3, 3> minv;
 			minv(0, 0) = (m(1, 1) * m(2, 2) - m(2, 1) * m(1, 2)) * invdet;
@@ -356,7 +361,7 @@ namespace PaintsNow {
 				return TMatrix<T, 4, 4>::Identity();
 			}
 
-			T idet = (T)(1.0 / det);
+			T idet = T(1) / det;
 			TMatrix<T, 4, 4> result;
 			result(0, 0) = (m(1, 1) * m(2, 2) * m(3, 3) + m(1, 2) * m(2, 3) * m(3, 1) + m(1, 3) * m(2, 1) * m(3, 2) - m(1, 1) * m(2, 3) * m(3, 2) - m(1, 2) * m(2, 1) * m(3, 3) - m(1, 3) * m(2, 2) * m(3, 1)) * idet;
 			result(0, 1) = (m(0, 1) * m(2, 3) * m(3, 2) + m(0, 2) * m(2, 1) * m(3, 3) + m(0, 3) * m(2, 2) * m(3, 1) - m(0, 1) * m(2, 2) * m(3, 3) - m(0, 2) * m(2, 3) * m(3, 1) - m(0, 3) * m(2, 1) * m(3, 2)) * idet;
@@ -776,12 +781,17 @@ namespace PaintsNow {
 			position[3] = 1;
 
 			position = position * input;
-			position = position / position[3];
-			return (TVector<T, 3>)position;
+
+			TVector<T, 3> r;
+			r[0] = position[0] / position[3];
+			r[1] = position[1] / position[3];
+			r[2] = position[2] / position[3];
+
+			return r;
 		}
 
 		template <class T>
-		void IntersectTriangle(TVector<T, 3>& res, TVector<T, 2>& uv, const TVector<T, 3> face[3], const std::pair<TType3<T>, TType3<T> >& vec) {
+		void IntersectTriangle(TVector<T, 3>& res, TVector<T, 2>& uv, const TVector<T, 3> face[3], const std::pair<TVector<T, 3>, TVector<T, 3> >& vec) {
 			// handle size!!!!
 			const TVector<T, 3>& v = vec.second;
 			const TVector<T, 3>& u = vec.first;

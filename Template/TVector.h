@@ -51,16 +51,18 @@ namespace PaintsNow {
 		using TVectorBase<T, n>::data;
 // #endif
 
+		inline TVector() {}
 		// Construct from half pair
+		/*
 		inline TVector(const std::pair<TVector<T, n / 2>, TVector<T, n / 2> >& p) {
 			memcpy(data, &p.first.data[0], n * sizeof(T) / 2);
 			memcpy(data + n / 2, &p.second.data[0], n * sizeof(T) / 2);
-		}
+		}*/
 
-		// Construct from element array
-		inline TVector(T* v = nullptr) {
-			if (v != nullptr) {
-				std::copy(v, v + n, data);
+		// Construct from element scalar
+		inline TVector(const T& v) {
+			for (size_t i = 0; i < n; i++) {
+				data[i] = v;
 			}
 		}
 
@@ -470,7 +472,7 @@ namespace PaintsNow {
 	template <class T>
 	struct TType4 : public TVector<T, 4> {
 		TType4() {}
-		TType4(const std::pair<TVector<T, 2>, TVector<T, 2> >& p) : TVector<T, 4>(p) {}
+		// TType4(const std::pair<TVector<T, 2>, TVector<T, 2> >& p) : TVector<T, 4>(p) {}
 		TType4(const TVector<T, 4>& v) : TVector<T, 4>(v) {}
 		TType4(T xx, T yy, T zz, T ww) { x() = xx; y() = yy; z() = zz; w() = ww; }
 
@@ -907,10 +909,30 @@ namespace PaintsNow {
 	}
 
 	namespace Math {
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+		template <class T, size_t n>
+		void ExtendVector(TVector<TVector<T, 4>, n>& result, const TVector<T, n>& v) {
+			for (size_t i = 0; i < 4; i++) {
+				for (size_t j = 0; j < n; j++) {
+					result[j][i] = v[j];
+				}
+			}
+		}
+#else
+		template <class T, size_t k, size_t n>
+		void ExtendVector(TVector<TVector<T, k>, n>& result, const TVector<T, n>& v) {
+			for (size_t i = 0; i < k; i++) {
+				for (size_t j = 0; j < n; j++) {
+					result[j][i] = v[j];
+				}
+			}
+		}
+#endif
+
 		template <class T, size_t n>
 		inline T DotProduct(const TVector<T, n>& lhs, const TVector<T, n>& rhs) {
-			T res(0);
-			for (size_t i = 0; i < n; i++) {
+			T res = lhs[0] * rhs[0];
+			for (size_t i = 1; i < n; i++) {
 				res += lhs[i] * rhs[i];
 			}
 
