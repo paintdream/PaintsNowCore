@@ -11,7 +11,7 @@
 #include <cmath>
 #include <algorithm>
 
-#if defined(_MSC_VER) && _MSC_VER > 1200
+#if defined(_MSC_VER)
 #define USE_SSE
 #if _MSC_VER > 1200
 #define USE_SSE_LATEST
@@ -106,7 +106,11 @@ namespace PaintsNow {
 
 #ifdef USE_SSE
 	inline __m128 LoadVector4f(const TVector<float, 4>& value) {
+#if defined(_MSC_VER) && _MSC_VER <= 1200
+		return _mm_loadu_ps(&value.data[0]);
+#else
 		return *(const __m128*)&value.data[0];
+#endif
 	}
 
 	inline TVector<float, 4> StoreVector4f(__m128 v) {
