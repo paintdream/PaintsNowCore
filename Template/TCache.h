@@ -42,6 +42,10 @@ namespace PaintsNow {
 			}
 		}
 
+		static inline uint32_t GetFullPackCount() {
+			return TQueueList<T, K>::GetFullPackCount();
+		}
+
 		T* NewLinear(uint32_t size, uint32_t alignment = 16) {
 			return allocator.Allocate(size, alignment);
 		}
@@ -133,14 +137,24 @@ namespace PaintsNow {
 			((M*)p)->~M();
 		}
 
-		pointer allocate(size_type n, const void* hint = nullptr) {
+		forceinline pointer allocate(size_type n, const void* hint = nullptr) {
 			assert(allocator != nullptr);
 			static_assert(sizeof(T) % sizeof(D) == 0, "Must be aligned.");
-			return reinterpret_cast<pointer>(allocator->NewLinear(safe_cast<uint32_t>(n * sizeof(T) / sizeof(D)), safe_cast<uint32_t>(alignof(T))));
+			uint32_t count = safe_cast<uint32_t>(n * sizeof(T) / sizeof(D));
+			if (count <= Allocator::GetFullPackCount()) {
+				return reinterpret_cast<pointer>(allocator->NewLinear(count, safe_cast<uint32_t>(alignof(T))));
+			} else {
+				return reinterpret_cast<pointer>(::operator new(sizeof(T) * n));
+			}
 		}
 
-		void deallocate(T* p, size_t n) {
-			// do not deallocate in cache allocator.	
+		forceinline void deallocate(T* p, size_t n) {
+			uint32_t count = safe_cast<uint32_t>(n * sizeof(T) / sizeof(D));
+			if (count <= Allocator::GetFullPackCount()) {
+				// do not deallocate in cache allocator.
+			} else {
+				::operator delete(p);
+			}
 		}
 	};
 }
