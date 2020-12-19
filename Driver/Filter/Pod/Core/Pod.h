@@ -16,8 +16,8 @@ typedef unsigned long uint32_t;
 #endif
 #endif
 
-#define MAX_FIELDNAME_LENGTH 253
-#define MAX_TYPENAME_LENGTH 1024
+#define MAX_FIELDNAME_LENGTH 256
+#define MAX_TYPENAME_LENGTH 510
 #define MAX_META_LENGTH (MAX_TYPENAME_LENGTH - 1)
 
 typedef struct tagPodRoot PodRoot;
@@ -31,23 +31,29 @@ typedef PodSize (*PodLocater)(const PodStream* stream, void* context);
 typedef int (*PodSeeker)(const PodStream* stream, uint8_t direct, PodSize step, void* context);
 
 struct tagPod;
+typedef uint32_t Checksum;
+
+typedef struct tagPodField {
+	Checksum type;
+	uint8_t isArray;
+	uint8_t isInteger;
+	uint8_t isDynamic;
+	uint8_t nameLength;
+	uint8_t name[MAX_FIELDNAME_LENGTH];
+} PodField;
 
 typedef struct tagPodList {
 	struct tagPodList* front;
 	struct tagPodList* next;
-	PodSize offset;
 	struct tagPod* node;
-	uint8_t isArray;
-	uint8_t isInteger;
-	uint8_t isDynamic;
-	uint8_t name[MAX_FIELDNAME_LENGTH];
+	PodSize offset;
+	PodField field;
 } PodList;
 
 /* data processing handlers */
 typedef void* (*PodLocateHandler)(void* locateContext, void** iterator, PodSize* count, void* base, char* dynamicMeta, uint32_t* metaLength, const struct tagPod** dynamicType, void* context);
 typedef void* (*PodIterateHandler)(void* locateContext, void** iterator, void* context);
 
-typedef uint32_t Checksum;
 typedef struct tagPod {
 	Checksum type;
 	uint32_t fieldCount;
@@ -88,7 +94,7 @@ typedef struct tagPodStream {
 /* call it before other Pod* functions */
 void PodInit();
 /* call it when pod is no longer used */
-void PodExit();
+void PodUninit();
 int PodIsPlain(const Pod* p);
 
 /* create pod type tree root */

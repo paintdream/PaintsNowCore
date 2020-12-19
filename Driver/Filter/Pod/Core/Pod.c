@@ -11,22 +11,10 @@
 #pragma pack(push, 4)
 
 typedef struct {
-	uint8_t isArray;
-	uint8_t isInteger;
-	uint8_t isDynamic;
-	uint8_t reserved;
-	Checksum type;
-	uint16_t nameLength;
-	uint16_t reserved2;
-	uint8_t name[MAX_FIELDNAME_LENGTH];
-} Field;
-
-typedef struct {
 	uint8_t magic[4]; /* .DAT */
-	uint8_t reserved[2];
-	uint16_t idLength;
 	PodSize size;
 	Checksum type;
+	uint16_t idLength;
 	uint8_t id[MAX_TYPENAME_LENGTH];
 } DataHeader;
 
@@ -35,7 +23,6 @@ typedef struct {
 	Checksum type;
 	PodSize fieldCount;
 	uint16_t idLength;
-	uint8_t reserved[2];
 	uint8_t id[MAX_TYPENAME_LENGTH];
 } PodHeader;
 
@@ -60,16 +47,16 @@ static int WriteData(const PodList* p, const PodStream* stream, const void* base
 static uint8_t GetSize(const PodList* p);
 static int WriteStream(const PodStream* stream, const void* pos, PodSize size, int isInteger, void* context);
 static int WriteDataHeaderStream(const PodStream* stream, const DataHeader* header, void* context);
-static int WriteFieldStream(const PodStream* stream, const Field* field, void* context);
+static int WritePodFieldStream(const PodStream* stream, const PodField* field, void* context);
 static int WriteHeaderStream(const PodStream* stream, const PodHeader* header, void* context);
 static int ReadStream(const PodStream* stream, void* base, PodSize size, int isInteger, void* context);
 static int ReadDataHeaderStream(const PodStream* stream, DataHeader* header, void* context);
 static int ReadHeaderStream(const PodStream* stream, PodHeader* header, void* context);
-static int ReadFieldStream(const PodStream* stream, Field* field, void* context);
+static int ReadPodFieldStream(const PodStream* stream, PodField* field, void* context);
 
 static int SeekStream(const PodStream* stream, uint8_t direct, PodSize step, void* context);
 static PodSize TellStream(const PodStream* stream, void* context);
-static void WriteField(Field* field, PodList* list);
+static void WritePodField(PodField* field, PodList* list);
 static uint32_t GetCRC32(uint32_t org, const uint8_t* buffer, PodSize size);
 static uint32_t Reflect(uint32_t ref, char ch);
 static void InitCRC32();
@@ -78,7 +65,7 @@ static int EqualType(const Checksum* lhs, const Checksum* rhs);
 static void GetType(const Pod* p, Checksum* type);
 static void InsertToRoot(PodRoot* root, Pod* p);
 static const Pod* QueryID(const PodRoot* pod, const uint8_t* id);
-static const PodList* QueryName(const PodList* head, const uint8_t* name);
+static PodList* QueryName(PodList* head, PodList* end, const uint8_t* name);
 
 static int IsStdEndian() {
 	static const int a = 0x01;
@@ -98,14 +85,14 @@ static void ReverseBytes(void* buf, uint32_t size) {
 }
 
 /* Internal functions */
-static const PodList* QueryName(const PodList* head, const uint8_t* name) {
-	const PodList* p = head;
-	if (p != NULL) {
+static PodList* QueryName(PodList* head, PodList* end, const uint8_t* name) {
+	PodList* p = head;
+	if (p != end) {
 		do {
-			if (strncmp((const char*)p->name, (const char*)name, MAX_FIELDNAME_LENGTH) == 0)
+			if (strncmp((const char*)p->field.name, (const char*)name, MAX_FIELDNAME_LENGTH) == 0)
 				return p;
 			p = p->next;
-		} while (p != head);
+		} while (p != end);
 	}
 
 	return NULL;
@@ -154,6 +141,7 @@ static const Pod* QueryType(const PodRoot* pod,  const Checksum* type, const Pod
 				return p->pod;
 			}
 		}
+
 		p = p->next;
 	}
 
@@ -202,8 +190,9 @@ static uint32_t GetCRC32(uint32_t org, const uint8_t* buffer, PodSize size) {
 }
 
 static void InsertPodList(Pod* type, PodList* pl) {
-	Field field;
+	PodField field;
 	PodList* q = type->subList;
+	Checksum old = type->type;
 	pl->front = q;
 
 	if (q == NULL) {
@@ -217,17 +206,19 @@ static void InsertPodList(Pod* type, PodList* pl) {
 	}
 
 	type->fieldCount++;
-	WriteField(&field, pl);
-	type->type = GetCRC32(type->type, (const uint8_t*)&field, sizeof(field));
+	WritePodField(&field, pl);
+
+	type->type = GetCRC32(type->type, (const uint8_t*)&field, POD_OFFSET(PodField, name) + field.nameLength);
 }
 
-static void WriteField(Field* field, PodList* list) {
-	memset(field, 0, sizeof(Field));
+static void WritePodField(PodField* field, PodList* list) {
+	memset(field, 0, sizeof(PodField));
 	field->type = PodIsPlain(list->node) ? *(Checksum*)&list->node : list->node->type;
-	field->isArray = list->isArray;
-	field->isInteger = list->isInteger;
-	field->isDynamic = list->isDynamic;
-	strncpy((char*)field->name, (const char*)list->name, MAX_FIELDNAME_LENGTH);
+	field->isArray = list->field.isArray;
+	field->isInteger = list->field.isInteger;
+	field->isDynamic = list->field.isDynamic;
+	strncpy((char*)field->name, (const char*)list->field.name, MAX_FIELDNAME_LENGTH);
+	((char*)field->name)[MAX_FIELDNAME_LENGTH - 1] = '\0';
 	field->nameLength = (uint16_t)strlen((const char*)field->name) + 1;
 }
 
@@ -261,13 +252,12 @@ static int ReadData(const PodList* p, const PodStream* stream, void* base, void*
 		return POD_SUCCESS;
 	}
  
-
 	do {
 		if (p->offset != (PodSize)-1) {
 			buf = (uint8_t*)base + p->offset;
 			if (PodIsPlain(p->node)) {
-				assert(!p->isArray);
-				if ((status = ReadStream(stream, buf, GetSize(p), p->isInteger, context)) != POD_SUCCESS)
+				assert(!p->field.isArray);
+				if ((status = ReadStream(stream, buf, GetSize(p), p->field.isInteger, context)) != POD_SUCCESS)
 					return status;
 			} else {
 				/* printf("Read %s at offset %p\n", p->name, (uint32_t)TellStream(stream, context)); */
@@ -276,13 +266,13 @@ static int ReadData(const PodList* p, const PodStream* stream, void* base, void*
 					return status;
 				/* read count */
 				count = 1;
-				if (p->isArray) {
+				if (p->field.isArray) {
 					if ((status = ReadStream(stream, &count, sizeof(count), 1, context)) != POD_SUCCESS)
 						return status;
 				}
 
 				if (count != 0) {
-					if (p->isDynamic) {
+					if (p->field.isDynamic) {
 						/* read meta data */
 						if ((status = ReadStream(stream, &metaLength, sizeof(metaLength), 1, context)) != POD_SUCCESS)
 							return status;
@@ -297,7 +287,7 @@ static int ReadData(const PodList* p, const PodStream* stream, void* base, void*
 					}
 
 					t = p->node;
-					pos = t->locateHandler(t->locateContext, &iterator, &count, buf, p->isDynamic ? metaData : NULL, p->isDynamic ? &metaLength : NULL, &t, context);
+					pos = t->locateHandler(t->locateContext, &iterator, &count, buf, p->field.isDynamic ? metaData : NULL, p->field.isDynamic ? &metaLength : NULL, &t, context);
 					if (t == NULL) {
 						assert(iterator == NULL);
 						return POD_ERROR_FORMAT;
@@ -305,7 +295,7 @@ static int ReadData(const PodList* p, const PodStream* stream, void* base, void*
 
 					if (pos != NULL && t->subList != NULL) {
 						if (PodIsPlain(t->subList->node) &&
-							((t->iterateHandler != NULL && !t->subList->isDynamic) || (IsStdEndian() || !t->subList->isInteger))) {
+							((t->iterateHandler != NULL && !t->subList->field.isDynamic) || (IsStdEndian() || !t->subList->field.isInteger))) {
 							/* accelerate plain data */
 							if ((status = ReadStream(stream, (char*)pos + t->subList->offset, count * GetSize(t->subList), 0, context)) != POD_SUCCESS) {
 								CLEAN_ITERATOR(t, iterator, context);
@@ -389,21 +379,21 @@ static int WriteDataHeaderStream(const PodStream* stream, const DataHeader* head
 		ReverseBytes(&temp.type, sizeof(temp.type));
 		ReverseBytes(&temp.idLength, sizeof(temp.idLength));
 
-		return WriteStream(stream, &temp, sizeof(DataHeader) - sizeof(header->id) + header->idLength, 0, context);
+		return WriteStream(stream, &temp, POD_OFFSET(DataHeader, id) + header->idLength, 0, context);
 	} else {
-		return WriteStream(stream, header, sizeof(DataHeader) - sizeof(header->id) + header->idLength, 0, context);
+		return WriteStream(stream, header, POD_OFFSET(DataHeader, id) + header->idLength, 0, context);
 	}
 }
 
-static int WriteFieldStream(const PodStream* stream, const Field* field, void* context) {
-	Field temp;
+static int WritePodFieldStream(const PodStream* stream, const PodField* field, void* context) {
+	PodField temp;
 	if (!IsStdEndian()) {
-		memcpy(&temp, field, sizeof(Field));
+		memcpy(&temp, field, sizeof(PodField));
 		ReverseBytes(&temp.type, sizeof(temp.type));
 		ReverseBytes(&temp.nameLength, sizeof(temp.nameLength));
-		return WriteStream(stream, &temp, sizeof(Field) - sizeof(field->name) + field->nameLength, 0, context);
+		return WriteStream(stream, &temp, POD_OFFSET(PodField, name) + field->nameLength, 0, context);
 	} else {
-		return WriteStream(stream, field, sizeof(Field) - sizeof(field->name) + field->nameLength, 0, context);
+		return WriteStream(stream, field, POD_OFFSET(PodField, name) + field->nameLength, 0, context);
 	}
 }
 
@@ -414,15 +404,21 @@ static int WriteHeaderStream(const PodStream* stream, const PodHeader* header, v
 		ReverseBytes(&temp.fieldCount, sizeof(temp.fieldCount));
 		ReverseBytes(&temp.type, sizeof(temp.type));
 		ReverseBytes(&temp.idLength, sizeof(temp.idLength));
-		return WriteStream(stream, &temp, sizeof(PodHeader) - sizeof(header->id) + header->idLength, 0, context);
+		return WriteStream(stream, &temp, POD_OFFSET(PodHeader, id) + header->idLength, 0, context);
 	} else {
-		return WriteStream(stream, header, sizeof(PodHeader) - sizeof(header->id) + header->idLength, 0, context);
+		return WriteStream(stream, header, POD_OFFSET(PodHeader, id) + header->idLength, 0, context);
 	}
 }
 
 static int ReadDataHeaderStream(const PodStream* stream, DataHeader* header, void* context) {
-	int status = ReadStream(stream, header, sizeof(DataHeader) - sizeof(header->id), 0, context);
+	int status = ReadStream(stream, header, POD_OFFSET(DataHeader, id), 0, context);
 	if (status == POD_SUCCESS) {
+		if (memcmp(header->magic, ".DAT", 4) != 0) {
+			if ((status = SeekStream(stream, 0, POD_OFFSET(DataHeader, id), context)) != POD_SUCCESS)
+				return status;
+			return POD_ERROR_FORMAT;
+		}
+
 		if (!IsStdEndian())
 			ReverseBytes(&header->idLength, sizeof(header->idLength));
 
@@ -442,11 +438,17 @@ static int ReadDataHeaderStream(const PodStream* stream, DataHeader* header, voi
 }
 
 static int ReadHeaderStream(const PodStream* stream, PodHeader* header, void* context) {
-	int status = ReadStream(stream, header, sizeof(PodHeader) - sizeof(header->id), 0, context);
+	int status = ReadStream(stream, header, POD_OFFSET(PodHeader, id), 0, context);
 	if (status == POD_SUCCESS) {
+		if (memcmp(header->magic, ".POD", 4) != 0) {
+			SeekStream(stream, 0, POD_OFFSET(PodHeader, id), context);
+			return POD_ERROR_FORMAT;
+		}
+
 		if (!IsStdEndian())
 			ReverseBytes(&header->idLength, sizeof(header->idLength));
 
+		assert(header->idLength <= MAX_TYPENAME_LENGTH);
 		if ((status = ReadStream(stream, header->id, header->idLength, 0, context)) != POD_SUCCESS) {
 			return status;
 		}
@@ -462,15 +464,17 @@ static int ReadHeaderStream(const PodStream* stream, PodHeader* header, void* co
 	}
 }
 
-static int ReadFieldStream(const PodStream* stream, Field* field, void* context) {
-	int status = ReadStream(stream, field, sizeof(Field) - sizeof(field->name), 0, context);
+static int ReadPodFieldStream(const PodStream* stream, PodField* field, void* context) {
+	int status = ReadStream(stream, field, POD_OFFSET(PodField, name), 0, context);
 	if (status == POD_SUCCESS) {
 		if (!IsStdEndian())
 			ReverseBytes(&field->nameLength, sizeof(field->nameLength));
+
 		if ((status = ReadStream(stream, field->name, field->nameLength, 0, context)) != POD_SUCCESS) {
 			return status;
 		}
 
+		assert(field->nameLength != 0);
 		if (!IsStdEndian())
 			ReverseBytes(&field->type, sizeof(field->type));
 		return POD_SUCCESS;
@@ -503,8 +507,8 @@ static int WriteData(const PodList* p, const PodStream* stream, const void* base
 		if (p->offset != (PodSize)-1) { // -1 is reserved for future purpose
 			buf = (uint8_t*)base + p->offset;
 			if (PodIsPlain(p->node)) {
-				assert(!p->isArray);
-				if ((status = WriteStream(stream, buf, GetSize(p), p->isInteger, context)) != POD_SUCCESS)
+				assert(!p->field.isArray);
+				if ((status = WriteStream(stream, buf, GetSize(p), p->field.isInteger, context)) != POD_SUCCESS)
 					return status;
 			} else {
 				/* printf("Write %s at offset %p\n", p->name, (uint32_t)TellStream(stream, context)); */
@@ -520,7 +524,7 @@ static int WriteData(const PodList* p, const PodStream* stream, const void* base
 				}
 
 				size = TellStream(stream, context);
-				if (p->isArray) {
+				if (p->field.isArray) {
 					/* count will be rewritten soon */
 					if ((status = WriteStream(stream, &count, sizeof(count), 1, context)) != POD_SUCCESS) {
 						CLEAN_ITERATOR(t, iterator, context);
@@ -536,7 +540,7 @@ static int WriteData(const PodList* p, const PodStream* stream, const void* base
 				}
 
 				if (count != 0) {
-					if (p->isDynamic) { /* notice here we use p [maybe pointer], not t*/
+					if (p->field.isDynamic) { /* notice here we use p [maybe pointer], not t*/
 						if ((status = WriteStream(stream, &metaLength, sizeof(metaLength), 1, context)) != POD_SUCCESS) {
 							CLEAN_ITERATOR(t, iterator, context);
 							return status;
@@ -551,7 +555,7 @@ static int WriteData(const PodList* p, const PodStream* stream, const void* base
 					if (t->subList != NULL) {
 						if (pos != NULL) {
 							if (PodIsPlain(t->subList->node) &&
-								((t->iterateHandler != NULL && !t->subList->isDynamic) || (IsStdEndian() || !t->subList->isInteger))) {
+								((t->iterateHandler != NULL && !t->subList->field.isDynamic) || (IsStdEndian() || !t->subList->field.isInteger))) {
 								/* accelerate plain data */
 								if ((status = WriteStream(stream, (char*)pos + t->subList->offset, count * GetSize(t->subList), 0, context)) != POD_SUCCESS) {
 									CLEAN_ITERATOR(t, iterator, context);
@@ -587,7 +591,7 @@ static int WriteData(const PodList* p, const PodStream* stream, const void* base
 					return status;
 				}
 
-				if (p->isArray) {
+				if (p->field.isArray) {
 					/* rewritten */
 					if ((status = WriteStream(stream, &count, sizeof(count), 1, context)) != POD_SUCCESS) {
 						CLEAN_ITERATOR(t, iterator, context);
@@ -665,18 +669,20 @@ void PodInsert(Pod* type, const uint8_t* name, PodSize offset, uint8_t isArray, 
 	assert(type != NULL);
 	pl = (PodList*)malloc(sizeof(PodList));
 
+	/*
 	if (!PodIsPlain(subType)) {
 		assert(subType->locateHandler != NULL);
-	}
-
+	}*/
 	if (pl != NULL) {
 		memset(pl, 0, sizeof(PodList));
-		pl->isArray = isArray;
-		pl->isInteger = isInteger;
-		pl->isDynamic = isDynamic;
-		pl->node = subType;
 		pl->offset = offset;
-		strncpy((char*)pl->name, (const char*)name, MAX_FIELDNAME_LENGTH);
+		pl->field.isArray = isArray;
+		pl->field.isInteger = isInteger;
+		pl->field.isDynamic = isDynamic;
+		pl->field.nameLength = (uint8_t)strlen(name);
+		pl->node = subType;
+		strncpy((char*)pl->field.name, (const char*)name, MAX_FIELDNAME_LENGTH);
+		((char*)pl->field.name)[MAX_FIELDNAME_LENGTH - 1] = '\0';
 		InsertPodList(type, pl);
 	}
 }
@@ -731,7 +737,7 @@ int PodWriteData(const Pod* type, const PodStream* stream, const void* base, voi
 
 	size = TellStream(stream, context) - size;
 	header.size = size;
-	if ((status = SeekStream(stream, 0, size + sizeof(header) - sizeof(header.id) + header.idLength, context)) != POD_SUCCESS)
+	if ((status = SeekStream(stream, 0, size + POD_OFFSET(DataHeader, id) + header.idLength, context)) != POD_SUCCESS)
 		return status;
 
 	if ((status = WriteDataHeaderStream(stream, &header, context)) != POD_SUCCESS)
@@ -746,32 +752,13 @@ int PodWriteData(const Pod* type, const PodStream* stream, const void* base, voi
 int PodWriteSpecRoot(const PodRoot* root, const PodStream* stream, void* context) {
 	/* make reverse listed list */
 	int status = POD_SUCCESS;
-	PodNode* w = NULL;
-	PodNode* t;
 	PodNode* p = root->head;
-
 	while (p != NULL) {
-		t = (PodNode*)malloc(sizeof(PodNode));
-		if (t == NULL) {
-			return POD_ERROR_MEMORY;
-		}
-
-		t->pod = p->pod;
-		t->next = w;
-		w = t;
-
-		p = p->next;
-	}
-
-	p = w;
-	while (p != NULL) {
-		p = p->next;
 		if (status == POD_SUCCESS) {
-			status = PodWriteSpec(w->pod, stream, context);
+			status = PodWriteSpec(p->pod, stream, context);
 		}
 
-		free(w);
-		w = p;
+		p = p->next;
 	}
 
 	return status;
@@ -781,13 +768,12 @@ int PodWriteSpec(const Pod* type, const PodStream* stream, void* context) {
 	// PodSize fc = 0;
 	// uint32_t crc32 = 0;
 	PodHeader header;
-	Field field;
+	PodField field;
 	PodList* p;
 	int status;
-	memcpy(header.magic, ".POD", 4);
-
-	header.fieldCount = type->fieldCount;
 	header.type = type->type;
+	memcpy(header.magic, ".POD", 4);
+	header.fieldCount = type->fieldCount;
 	strncpy((char*)header.id, (const char*)type->id, MAX_TYPENAME_LENGTH);
 	header.idLength = (uint16_t)strlen((const char*)header.id) + 1;
 	if ((status = WriteHeaderStream(stream, &header, context)) != POD_SUCCESS)
@@ -796,8 +782,8 @@ int PodWriteSpec(const Pod* type, const PodStream* stream, void* context) {
 	p = type->subList;
 	if (p != NULL) {
 		do {
-			WriteField(&field, p);
-			if ((status = WriteFieldStream(stream, &field, context)) != POD_SUCCESS)
+			WritePodField(&field, p);
+			if ((status = WritePodFieldStream(stream, &field, context)) != POD_SUCCESS)
 				return status;
 			p = p->next;
 		} while (p != type->subList);
@@ -808,7 +794,7 @@ int PodWriteSpec(const Pod* type, const PodStream* stream, void* context) {
 
 int PodParseSpec(PodRoot* root, const PodStream* stream, void* context) {
 	PodHeader header;
-	Field field;
+	PodField field;
 	Pod* pod;
 	Pod* p;
 	PodSize i;
@@ -817,22 +803,18 @@ int PodParseSpec(PodRoot* root, const PodStream* stream, void* context) {
 	if ((status = ReadHeaderStream(stream, &header, context)) != POD_SUCCESS)
 		return status;
 
-	if (memcmp(header.magic, ".POD", 4) != 0) {
-		SeekStream(stream, 0, sizeof(header), context);
-		return POD_ERROR_FORMAT;
-	}
-
-	/* create new pod */
+	/*
 	pod = (Pod*)QueryType(root, &header.type, NULL);
 	if (pod != NULL)
-		return POD_SUCCESS; /* already exists */
+		return POD_SUCCESS;*/
 
+	/* create new pod */
 	pod = PodCreate(root, header.id);
 	if (pod == NULL)
 		return POD_ERROR_MEMORY;
 
 	for (i = 0; i < header.fieldCount; i++) {
-		if ((status = ReadFieldStream(stream, &field, context)) != POD_SUCCESS)
+		if ((status = ReadPodFieldStream(stream, &field, context)) != POD_SUCCESS)
 			return status;
 
 		if (field.type < POD_MAX_TYPE_SIZE) {
@@ -855,27 +837,75 @@ int PodSyncRoot(PodRoot* root, const PodRoot* ref) {
 	PodNode* w;
 	const Pod* qd;
 	PodList* tp;
-	const PodList* t;
+	PodList* t;
 
 	w = root->head;
 	while (w != NULL) {
 		if (!PodIsPlain(w->pod)) {
 			tp = w->pod->subList;
 			qd = QueryID(ref, w->pod->id);
-			if (qd != NULL && tp != NULL) {
-				do {
-					t = QueryName(qd->subList, tp->name);
-					if (t != NULL) {
-						tp->offset = t->offset;
-						if (!PodIsPlain(tp->node) && !PodIsPlain(t->node)) {
-							tp->node->locateHandler = t->node->locateHandler;
-							tp->node->locateContext = t->node->locateContext;
+			if (qd != NULL) {
+				/* compare list */
+				PodList* tq = qd->subList;
+				if (tp != NULL && tq == NULL) {
+					/* not even match, clear all */
+					do {
+						t = tp;
+						tp = tp->next;
+						free(t);
+					} while (tp != w->pod->subList);
+
+					w->pod->subList = NULL;
+				} else if (tp == NULL && tq != NULL) {
+					/* insert dummy fields */
+					do {
+						PodInsert(w->pod, tq->field.name, (PodSize)-1, tq->field.isArray, tq->field.isInteger, tq->field.isDynamic, NULL); /* just null here, since we do not actually read from it. */
+						tq = tq->next;
+					} while (tq != qd->subList);
+				} else if (tp != NULL && tq != NULL) {
+					do {
+						if (tq->field.nameLength == tp->field.nameLength && memcmp(tq->field.name, tp->field.name, tp->field.nameLength) == 0) { /* same */
+							tp = tp->next;
+							tq = tq->next;
+						} else {
+							t = QueryName(tp->next, w->pod->subList, tq->field.name);
+							if (t == NULL) { /* data format is newer: unrecognized field, just padding it */
+								PodList* v = (PodList*)malloc(sizeof(PodList));
+								v->offset = (PodSize)-1;
+								v->front = tp->front;
+								v->next = tp;
+								v->field = tp->field;
+								tp->front->next = v;
+								tp->front = v;
+								tq = tq->next;
+							} else {
+								t = QueryName(tq->next, qd->subList, tp->field.name); /* data format is older ? */
+								if (t == NULL) { /* not found, remove it */
+									PodList* v = tp;
+
+									if (v->front == v) { /* the only node */
+										tp = w->pod->subList = NULL;
+									} else {
+										tp = tp->next;
+										v->front->next = v->next;
+										v->next->front = v->front;
+										if (v == w->pod->subList) {
+											w->pod->subList = v->front;
+										}
+									}
+
+									free(v);
+								} else {
+									tp = tp->next;
+									tq = t->next; /* skip unmatched fields */
+								}
+							}
 						}
-					}
-					tp = tp->next;
-				} while (tp != w->pod->subList);
+					} while (tp != w->pod->subList && tq != qd->subList);
+				}
 			}
 		}
+
 		w = w->next;
 	}
 
@@ -890,12 +920,6 @@ int PodParseData(const PodRoot* root, const PodStream* stream, void* base, void*
 
 	if ((status = ReadDataHeaderStream(stream, &header, context)) != POD_SUCCESS)
 		return status;
-
-	if (memcmp(header.magic, ".DAT", 4) != 0) {
-		if ((status = SeekStream(stream, 0, sizeof(header), context)) != POD_SUCCESS)
-			return status;
-		return POD_ERROR_FORMAT;
-	}
 
 	/* search type */
 	p = QueryType(root, &header.type, NULL);
@@ -966,7 +990,7 @@ void PodInit() {
 	stockFileStream.locater = PodLocaterFile;
 }
 
-void PodExit() {}
+void PodUninit() {}
 
 /* A sample */
 
@@ -1059,6 +1083,6 @@ int PodMain(void) {
 	PodInit();
 	Write();
 	Read();
-	PodExit();
+	PodUninit();
 	return 0;
 }

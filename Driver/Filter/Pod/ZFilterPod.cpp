@@ -13,6 +13,14 @@ extern "C" {
 
 using namespace PaintsNow;
 
+ZFilterPod::ZFilterPod() {
+	PodInit();
+}
+
+ZFilterPod::~ZFilterPod() {
+	PodUninit();
+}
+
 class FilterPodImpl : public IStreamBase, public IReflect {
 public:
 	FilterPodImpl(IStreamBase& streamBase);
@@ -261,7 +269,6 @@ static PodStream streamAdapter = { StreamWriterFile, StreamReaderFile, StreamSee
 FilterPodImpl::FilterPodImpl(IStreamBase& streamBase) : stream(streamBase), IReflect(true, false), current(nullptr), offset(0) {
 	SetEnvironment(streamBase.GetEnvironment());
 
-	PodInit();
 	root = PodCreateRoot();
 	readRoot = PodCreateRoot();
 }
@@ -284,13 +291,10 @@ FilterPodImpl::~FilterPodImpl() {
 		if (p != nullptr) {
 			p->Destroy();
 		}
-
-		// PodDelete(it->second.pod);
 	}
 
 	PodDeleteRoot(readRoot);
 	PodDeleteRoot(root);
-	PodExit();
 }
 
 void FilterPodImpl::Flush() {
@@ -344,6 +348,7 @@ const FilterPodImpl::Type& FilterPodImpl::GetRegisteredType(IReflectObject& s, U
 
 bool FilterPodImpl::Write(IReflectObject& s, Unique unique, void* ptr, size_t length) {
 	const Type& type = GetRegisteredType(s, unique);
+	WriteTree();
 	return PodWriteData(type.pod, &streamAdapter, ptr, this) == POD_SUCCESS;
 }
 
@@ -353,7 +358,10 @@ bool FilterPodImpl::WriteDummy(size_t& len) {
 
 bool FilterPodImpl::Read(IReflectObject& s, Unique unique, void* ptr, size_t length) {
 	GetRegisteredType(s, unique);
-	return PodParseData(root, &streamAdapter, ptr, this) == POD_SUCCESS;
+	ReadTree();
+	SyncTree();
+	bool v = PodParseData(root, &streamAdapter, ptr, this) == POD_SUCCESS;
+	return v;
 }
 
 void FilterPodImpl::OnSubClass(IReflectObject& s, const char* name) {
@@ -431,7 +439,7 @@ void FilterPodImpl::Property(IReflectObject& s, Unique typeID, Unique refTypeID,
 	} else if (s.IsIterator()) {
 		IIterator& iter = static_cast<IIterator&>(s);
 		std::stringstream os;
-		os << name << "[" << (size_t)typeID.GetInfo() << "]";
+		os << name << "[" << typeID->GetName() << "]";
 		bool created = false;
 		Type& type = NewType(typeID, StdToUtf8(os.str()), postfix, created);
 

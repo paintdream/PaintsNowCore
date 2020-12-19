@@ -9,6 +9,8 @@
 namespace PaintsNow {
 	class ZFilterPod final : public IFilterBase {
 	public:
+		ZFilterPod();
+		~ZFilterPod() override;
 		IStreamBase* CreateFilter(IStreamBase& stream) override;
 	};
 }
