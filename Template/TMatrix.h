@@ -178,16 +178,21 @@ namespace PaintsNow {
 	inline TMatrix<float, 4, 4> operator * (const TMatrix<float, 4, 4>& lhs, const TMatrix<float, 4, 4>& rhs) {
 		// SIMD from glm library
 		TMatrix<float, 4, 4> ret;
-		{
-			__m128 e0 = _mm_shuffle_ps(LoadVector4f(lhs(0)), LoadVector4f(lhs(0)), _MM_SHUFFLE(0, 0, 0, 0));
-			__m128 e1 = _mm_shuffle_ps(LoadVector4f(lhs(0)), LoadVector4f(lhs(0)), _MM_SHUFFLE(1, 1, 1, 1));
-			__m128 e2 = _mm_shuffle_ps(LoadVector4f(lhs(0)), LoadVector4f(lhs(0)), _MM_SHUFFLE(2, 2, 2, 2));
-			__m128 e3 = _mm_shuffle_ps(LoadVector4f(lhs(0)), LoadVector4f(lhs(0)), _MM_SHUFFLE(3, 3, 3, 3));
+		__m128 rhs0 = LoadVector4f(rhs(0));
+		__m128 rhs1 = LoadVector4f(rhs(1));
+		__m128 rhs2 = LoadVector4f(rhs(2));
+		__m128 rhs3 = LoadVector4f(rhs(3));
 
-			__m128 m0 = _mm_mul_ps(LoadVector4f(rhs(0)), e0);
-			__m128 m1 = _mm_mul_ps(LoadVector4f(rhs(1)), e1);
-			__m128 m2 = _mm_mul_ps(LoadVector4f(rhs(2)), e2);
-			__m128 m3 = _mm_mul_ps(LoadVector4f(rhs(3)), e3);
+		{
+			__m128 e0 = _mm_set_ps1(lhs(0, 0));
+			__m128 e1 = _mm_set_ps1(lhs(0, 1));
+			__m128 e2 = _mm_set_ps1(lhs(0, 2));
+			__m128 e3 = _mm_set_ps1(lhs(0, 3));
+
+			__m128 m0 = _mm_mul_ps(rhs0, e0);
+			__m128 m1 = _mm_mul_ps(rhs1, e1);
+			__m128 m2 = _mm_mul_ps(rhs2, e2);
+			__m128 m3 = _mm_mul_ps(rhs3, e3);
 
 			__m128 a0 = _mm_add_ps(m0, m1);
 			__m128 a1 = _mm_add_ps(m2, m3);
@@ -197,15 +202,15 @@ namespace PaintsNow {
 		}
 
 		{
-			__m128 e0 = _mm_shuffle_ps(LoadVector4f(lhs(1)), LoadVector4f(lhs(1)), _MM_SHUFFLE(0, 0, 0, 0));
-			__m128 e1 = _mm_shuffle_ps(LoadVector4f(lhs(1)), LoadVector4f(lhs(1)), _MM_SHUFFLE(1, 1, 1, 1));
-			__m128 e2 = _mm_shuffle_ps(LoadVector4f(lhs(1)), LoadVector4f(lhs(1)), _MM_SHUFFLE(2, 2, 2, 2));
-			__m128 e3 = _mm_shuffle_ps(LoadVector4f(lhs(1)), LoadVector4f(lhs(1)), _MM_SHUFFLE(3, 3, 3, 3));
+			__m128 e0 = _mm_set_ps1(lhs(1, 0));
+			__m128 e1 = _mm_set_ps1(lhs(1, 1));
+			__m128 e2 = _mm_set_ps1(lhs(1, 2));
+			__m128 e3 = _mm_set_ps1(lhs(1, 3));
 
-			__m128 m0 = _mm_mul_ps(LoadVector4f(rhs(0)), e0);
-			__m128 m1 = _mm_mul_ps(LoadVector4f(rhs(1)), e1);
-			__m128 m2 = _mm_mul_ps(LoadVector4f(rhs(2)), e2);
-			__m128 m3 = _mm_mul_ps(LoadVector4f(rhs(3)), e3);
+			__m128 m0 = _mm_mul_ps(rhs0, e0);
+			__m128 m1 = _mm_mul_ps(rhs1, e1);
+			__m128 m2 = _mm_mul_ps(rhs2, e2);
+			__m128 m3 = _mm_mul_ps(rhs3, e3);
 
 			__m128 a0 = _mm_add_ps(m0, m1);
 			__m128 a1 = _mm_add_ps(m2, m3);
@@ -215,15 +220,15 @@ namespace PaintsNow {
 		}
 
 		{
-			__m128 e0 = _mm_shuffle_ps(LoadVector4f(lhs(2)), LoadVector4f(lhs(2)), _MM_SHUFFLE(0, 0, 0, 0));
-			__m128 e1 = _mm_shuffle_ps(LoadVector4f(lhs(2)), LoadVector4f(lhs(2)), _MM_SHUFFLE(1, 1, 1, 1));
-			__m128 e2 = _mm_shuffle_ps(LoadVector4f(lhs(2)), LoadVector4f(lhs(2)), _MM_SHUFFLE(2, 2, 2, 2));
-			__m128 e3 = _mm_shuffle_ps(LoadVector4f(lhs(2)), LoadVector4f(lhs(2)), _MM_SHUFFLE(3, 3, 3, 3));
+			__m128 e0 = _mm_set_ps1(lhs(2, 0));
+			__m128 e1 = _mm_set_ps1(lhs(2, 1));
+			__m128 e2 = _mm_set_ps1(lhs(2, 2));
+			__m128 e3 = _mm_set_ps1(lhs(2, 3));
 
-			__m128 m0 = _mm_mul_ps(LoadVector4f(rhs(0)), e0);
-			__m128 m1 = _mm_mul_ps(LoadVector4f(rhs(1)), e1);
-			__m128 m2 = _mm_mul_ps(LoadVector4f(rhs(2)), e2);
-			__m128 m3 = _mm_mul_ps(LoadVector4f(rhs(3)), e3);
+			__m128 m0 = _mm_mul_ps(rhs0, e0);
+			__m128 m1 = _mm_mul_ps(rhs1, e1);
+			__m128 m2 = _mm_mul_ps(rhs2, e2);
+			__m128 m3 = _mm_mul_ps(rhs3, e3);
 
 			__m128 a0 = _mm_add_ps(m0, m1);
 			__m128 a1 = _mm_add_ps(m2, m3);
@@ -233,15 +238,15 @@ namespace PaintsNow {
 		}
 
 		{
-			__m128 e0 = _mm_shuffle_ps(LoadVector4f(lhs(3)), LoadVector4f(lhs(3)), _MM_SHUFFLE(0, 0, 0, 0));
-			__m128 e1 = _mm_shuffle_ps(LoadVector4f(lhs(3)), LoadVector4f(lhs(3)), _MM_SHUFFLE(1, 1, 1, 1));
-			__m128 e2 = _mm_shuffle_ps(LoadVector4f(lhs(3)), LoadVector4f(lhs(3)), _MM_SHUFFLE(2, 2, 2, 2));
-			__m128 e3 = _mm_shuffle_ps(LoadVector4f(lhs(3)), LoadVector4f(lhs(3)), _MM_SHUFFLE(3, 3, 3, 3));
+			__m128 e0 = _mm_set_ps1(lhs(3, 0));
+			__m128 e1 = _mm_set_ps1(lhs(3, 1));
+			__m128 e2 = _mm_set_ps1(lhs(3, 2));
+			__m128 e3 = _mm_set_ps1(lhs(3, 3));
 
-			__m128 m0 = _mm_mul_ps(LoadVector4f(rhs(0)), e0);
-			__m128 m1 = _mm_mul_ps(LoadVector4f(rhs(1)), e1);
-			__m128 m2 = _mm_mul_ps(LoadVector4f(rhs(2)), e2);
-			__m128 m3 = _mm_mul_ps(LoadVector4f(rhs(3)), e3);
+			__m128 m0 = _mm_mul_ps(rhs0, e0);
+			__m128 m1 = _mm_mul_ps(rhs1, e1);
+			__m128 m2 = _mm_mul_ps(rhs2, e2);
+			__m128 m3 = _mm_mul_ps(rhs3, e3);
 
 			__m128 a0 = _mm_add_ps(m0, m1);
 			__m128 a1 = _mm_add_ps(m2, m3);
@@ -271,10 +276,10 @@ namespace PaintsNow {
 	template <>
 	inline TVector<float, 4> operator * (const TVector<float, 4>& value, const TMatrix<float, 4, 4>& rhs) {
 		// SIMD from glm library
-		__m128 v0 = _mm_shuffle_ps(LoadVector4f(value), LoadVector4f(value), _MM_SHUFFLE(0, 0, 0, 0));
-		__m128 v1 = _mm_shuffle_ps(LoadVector4f(value), LoadVector4f(value), _MM_SHUFFLE(1, 1, 1, 1));
-		__m128 v2 = _mm_shuffle_ps(LoadVector4f(value), LoadVector4f(value), _MM_SHUFFLE(2, 2, 2, 2));
-		__m128 v3 = _mm_shuffle_ps(LoadVector4f(value), LoadVector4f(value), _MM_SHUFFLE(3, 3, 3, 3));
+		__m128 v0 = _mm_set_ps1(value[0]);
+		__m128 v1 = _mm_set_ps1(value[1]);
+		__m128 v2 = _mm_set_ps1(value[2]);
+		__m128 v3 = _mm_set_ps1(value[3]);
 
 		__m128 m0 = _mm_mul_ps(LoadVector4f(rhs(0)), v0);
 		__m128 m1 = _mm_mul_ps(LoadVector4f(rhs(1)), v1);

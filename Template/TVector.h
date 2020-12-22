@@ -648,8 +648,7 @@ namespace PaintsNow {
 #ifdef USE_SSE
 	template <>
 	inline TVector<float, 4> operator + (const TVector<float, 4>& lhs, float rhs) {
-		__m128 v = _mm_loadu_ps(&rhs);
-		__m128 vv = _mm_shuffle_ps(v, v, _MM_SHUFFLE(0, 0, 0, 0));
+		__m128 vv = _mm_set_ps1(rhs);
 		return StoreVector4f(_mm_add_ps(LoadVector4f(lhs), vv));
 	}
 #endif
@@ -679,8 +678,7 @@ namespace PaintsNow {
 #ifdef USE_SSE
 	template <>
 	inline TVector<float, 4>& operator += (TVector<float, 4>& lhs, float t) {
-		__m128 v = _mm_loadu_ps(&t);
-		__m128 vv = _mm_shuffle_ps(v, v, _MM_SHUFFLE(0, 0, 0, 0));
+		__m128 vv = _mm_set_ps1(t);
 		return lhs = StoreVector4f(_mm_add_ps(LoadVector4f(lhs), vv));
 	}
 #endif
@@ -715,8 +713,7 @@ namespace PaintsNow {
 #ifdef USE_SSE
 	template <>
 	inline TVector<float, 4> operator - (const TVector<float, 4>& lhs, float rhs) {
-		__m128 v = _mm_loadu_ps(&rhs);
-		__m128 vv = _mm_shuffle_ps(v, v, _MM_SHUFFLE(0, 0, 0, 0));
+		__m128 vv = _mm_set_ps1(rhs);
 		return StoreVector4f(_mm_sub_ps(LoadVector4f(lhs), vv));
 	}
 #endif
@@ -746,8 +743,7 @@ namespace PaintsNow {
 #ifdef USE_SSE
 	template <>
 	inline TVector<float, 4>& operator -= (TVector<float, 4>& lhs, float t) {
-		__m128 v = _mm_loadu_ps(&t);
-		__m128 vv = _mm_shuffle_ps(v, v, _MM_SHUFFLE(0, 0, 0, 0));
+		__m128 vv = _mm_set_ps1(t);
 		return lhs = StoreVector4f(_mm_sub_ps(LoadVector4f(lhs), vv));
 	}
 #endif
@@ -782,8 +778,7 @@ namespace PaintsNow {
 #ifdef USE_SSE
 	template <>
 	inline TVector<float, 4> operator * (const TVector<float, 4>& lhs, float rhs) {
-		__m128 v = _mm_loadu_ps(&rhs);
-		__m128 vv = _mm_shuffle_ps(v, v, _MM_SHUFFLE(0, 0, 0, 0));
+		__m128 vv = _mm_set_ps1(rhs);
 		return StoreVector4f(_mm_mul_ps(LoadVector4f(lhs), vv));
 	}
 #endif
@@ -813,8 +808,7 @@ namespace PaintsNow {
 #ifdef USE_SSE
 	template <>
 	inline TVector<float, 4>& operator *= (TVector<float, 4>& lhs, float t) {
-		__m128 v = _mm_loadu_ps(&t);
-		__m128 vv = _mm_shuffle_ps(v, v, _MM_SHUFFLE(0, 0, 0, 0));
+		__m128 vv = _mm_set_ps1(t);
 		return lhs = StoreVector4f(_mm_mul_ps(LoadVector4f(lhs), vv));
 	}
 #endif
@@ -849,8 +843,7 @@ namespace PaintsNow {
 #ifdef USE_SSE
 	template <>
 	inline TVector<float, 4> operator / (const TVector<float, 4>& lhs, float rhs) {
-		__m128 v = _mm_loadu_ps(&rhs);
-		__m128 vv = _mm_shuffle_ps(v, v, _MM_SHUFFLE(0, 0, 0, 0));
+		__m128 vv = _mm_set_ps1(rhs);
 		return StoreVector4f(_mm_div_ps(LoadVector4f(lhs), vv));
 	}
 #endif
@@ -880,8 +873,7 @@ namespace PaintsNow {
 #ifdef USE_SSE
 	template <>
 	inline TVector<float, 4>& operator /= (TVector<float, 4>& lhs, float t) {
-		__m128 v = _mm_loadu_ps(&t);
-		__m128 vv = _mm_shuffle_ps(v, v, _MM_SHUFFLE(0, 0, 0, 0));
+		__m128 vv = _mm_set_ps1(t);
 		return lhs = StoreVector4f(_mm_div_ps(LoadVector4f(lhs), vv));
 	}
 #endif
