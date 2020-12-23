@@ -679,7 +679,7 @@ void PodInsert(Pod* type, const uint8_t* name, PodSize offset, uint8_t isArray, 
 		pl->field.isArray = isArray;
 		pl->field.isInteger = isInteger;
 		pl->field.isDynamic = isDynamic;
-		pl->field.nameLength = (uint8_t)strlen(name);
+		pl->field.nameLength = (uint8_t)strlen((const char*)name);
 		pl->node = subType;
 		strncpy((char*)pl->field.name, (const char*)name, MAX_FIELDNAME_LENGTH);
 		((char*)pl->field.name)[MAX_FIELDNAME_LENGTH - 1] = '\0';
