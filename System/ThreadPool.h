@@ -30,7 +30,7 @@ namespace PaintsNow {
 
 		// Pool specified thread task on current thread. (can be run with non-pooled thread)
 		bool Poll(uint32_t index);
-		void PollDelay(uint32_t index, uint32_t delayMilliseconds);
+		bool PollDelay(uint32_t index, uint32_t delayMilliseconds);
 		bool PollWait(std::atomic<uint32_t>& variable, uint32_t mask = ~(uint32_t)0, uint32_t flag = 0, uint32_t delay = 20);
 		uint32_t PollExchange(std::atomic<uint32_t>& variable, uint32_t value, uint32_t delay = 20);
 		bool PollCompareExchange(std::atomic<uint32_t>& variable, uint32_t mask, uint32_t flag, uint32_t delay = 20);

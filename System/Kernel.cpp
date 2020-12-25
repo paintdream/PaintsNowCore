@@ -64,8 +64,13 @@ bool Kernel::WaitWarp(uint32_t warpIndex) {
 
 	uint32_t threadIndex = threadPool.GetCurrentThreadIndex();
 	SubTaskQueue& queue = taskQueueGrid[warpIndex];
+	uint32_t tryCount = 0;
 	while (!queue.PreemptExecution() && threadPool.IsRunning()) {
-		threadPool.Poll(threadIndex);
+		if (threadPool.PollDelay(threadIndex, tryCount >> 4)) {
+			tryCount = 0;
+		} else {
+			tryCount++;
+		}
 	}
 
 	// ok

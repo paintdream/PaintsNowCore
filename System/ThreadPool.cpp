@@ -229,9 +229,9 @@ bool ThreadPool::IsRunning() const {
 	return runningToken.load(std::memory_order_acquire) != 0;
 }
 
-void ThreadPool::PollDelay(uint32_t index, uint32_t delay) {
+bool ThreadPool::PollDelay(uint32_t index, uint32_t delay) {
 	if (delay == 0) {
-		Poll(safe_cast<uint32_t>(index));
+		return Poll(safe_cast<uint32_t>(index));
 	} else {
 		if (!Poll(safe_cast<uint32_t>(index)) && runningToken.load(std::memory_order_acquire) != 0) {
 			threadApi.DoLock(mutex);
@@ -240,6 +240,10 @@ void ThreadPool::PollDelay(uint32_t index, uint32_t delay) {
 			threadApi.Wait(eventPump, mutex, delay);
 			--waitEventCounter;
 			threadApi.UnLock(mutex);
+
+			return false;
+		} else {
+			return true;
 		}
 	}
 }
