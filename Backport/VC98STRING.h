@@ -285,12 +285,12 @@ public:
 			*_F1 = *_F2;
 		return (*this); }
 	iterator begin()
-		{_Freeze();
+		{
 		return (_Ptr); }
 	const_iterator begin() const
 		{return (_Ptr); }
 	iterator end()
-		{_Freeze();
+		{
 		return ((iterator)_Psum(_Ptr, _Len)); }
 	const_iterator end() const
 		{return ((const_iterator)_Psum(_Ptr, _Len)); }
@@ -305,7 +305,6 @@ public:
 	reference at(size_type _P0)
 		{if (_Len <= _P0)
 			_Xran();
-		_Freeze();
 		return (_Ptr[_P0]); }
 	const_reference at(size_type _P0) const
 		{if (_Len <= _P0)
