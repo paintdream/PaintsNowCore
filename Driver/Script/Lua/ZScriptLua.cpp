@@ -59,9 +59,14 @@ static void HandleError(ZScriptLua* script, lua_State* L) {
 	lua_pop(L, 1);
 }
 
-static int ContinueProxy(lua_State* L, int status, lua_KContext ctx);
+static int FunctionProxy(lua_State* L) {
+	// const TProxy<void, IScript::Request&>* proxy = reinterpret_cast<TProxy<void, IScript::Request&>* const>(lua_touserdata(L, lua_upvalueindex(1)));
+	// IHost* handler = reinterpret_cast<IHost*>(lua_touserdata(L, lua_upvalueindex(2)));
+	const IScript::Request::AutoWrapperBase* wrapper = *reinterpret_cast<const IScript::Request::AutoWrapperBase**>(lua_touserdata(L, lua_upvalueindex(1)));
 
-static int FunctionProxyEx(ZScriptLua* pRet, const IScript::Request::AutoWrapperBase* wrapper, lua_State* L) {
+	ZScriptLua* pRet = GetScript(L);
+	if (pRet->IsClosing()) return 0;
+
 	int valsize = 0;
 	ZScriptLua::Request s(pRet, L);
 
@@ -74,55 +79,6 @@ static int FunctionProxyEx(ZScriptLua* pRet, const IScript::Request::AutoWrapper
 	assert(pRet->IsLocked());
 	valsize = lua_gettop(L) - ptr;
 	return valsize;
-}
-
-static int ContinueProxy(lua_State* L, int status, lua_KContext ctx) {
-	IScript::Request::AutoWrapperBase* wrapper = reinterpret_cast<IScript::Request::AutoWrapperBase*>(ctx);
-	ZScriptLua* pRet = GetScript(L);
-	if (status != LUA_OK && status != LUA_YIELD) {
-		HandleError(pRet, L);
-		return 0;
-	} else {
-		if (wrapper != nullptr) {
-			FunctionProxyEx(pRet, wrapper, L);
-			delete wrapper;
-		}
-
-		int count = pRet->GetInitDeferCount();
-		lua_State* state = pRet->GetDeferState();
-		int savedValsize = (int)lua_tointeger(state, -1);
-		lua_pop(state, 1);
-
-		if (count != 0) {
-			int paramsize = lua_gettop(state) - count;
-
-			lua_xmove(state, L, paramsize);
-			wrapper = reinterpret_cast<IScript::Request::AutoWrapperBase*>(lua_touserdata(L, -1));
-			lua_pop(L, 1);
-
-			pRet->SetInitDeferCount((int)lua_tointeger(state, -1));
-			lua_pop(state, 1);
-			lua_pushinteger(state, savedValsize); // repush
-
-			return ContinueProxy(L, lua_pcallk(L, paramsize - 2, LUA_MULTRET, 0, (lua_KContext)wrapper, ContinueProxy), (lua_KContext)wrapper);
-		} else {
-			return savedValsize;
-		}
-	}
-}
-
-static int FunctionProxy(lua_State* L) {
-	// const TProxy<void, IScript::Request&>* proxy = reinterpret_cast<TProxy<void, IScript::Request&>* const>(lua_touserdata(L, lua_upvalueindex(1)));
-	// IHost* handler = reinterpret_cast<IHost*>(lua_touserdata(L, lua_upvalueindex(2)));
-	const IScript::Request::AutoWrapperBase* wrapper = *reinterpret_cast<const IScript::Request::AutoWrapperBase**>(lua_touserdata(L, lua_upvalueindex(1)));
-
-	ZScriptLua* pRet = GetScript(L);
-	if (pRet->IsClosing()) return 0;
-
-	int valsize = FunctionProxyEx(pRet, wrapper, L);
-	lua_State* defer = pRet->GetDeferState();
-	lua_pushinteger(defer, valsize);
-	return ContinueProxy(L, LUA_OK, (lua_KContext)nullptr);
 }
 
 static int FreeMem(lua_State* L) {

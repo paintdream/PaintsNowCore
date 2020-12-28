@@ -14,7 +14,6 @@ namespace PaintsNow {
 	IScript::Request::Global global;
 	IScript::Request::Ref ref;
 	IScript::Request::Sync sync;
-	IScript::Request::Deferred deferred;
 }
 
 using namespace PaintsNow;
@@ -496,17 +495,7 @@ IScript::Request::AutoWrapperBase* IScript::Request::Sync::Clone() const {
 	return nullptr;
 }
 
-bool IScript::Request::Deferred::IsSync() const {
-	return false;
-}
-
-void IScript::Request::Deferred::Execute(Request& request) const {}
-
-IScript::Request::AutoWrapperBase* IScript::Request::Deferred::Clone() const {
-	return nullptr;
-}
-
-IScript::MetaMethod::MetaMethod(const String& k) : key(k) {}
+IScript::MetaMethod::MetaMethod(const String& k, bool lock) : key(k), lockOnCall(lock) {}
 IScript::MetaMethod::~MetaMethod() {}
 
 IScript::MetaMethod IScript::MetaMethod::operator = (const String& key) {

@@ -159,15 +159,8 @@ namespace PaintsNow {
 				AutoWrapperBase* Clone() const override;
 			};
 
-			class Deferred : public AutoWrapperBase {
-			public:
-				bool IsSync() const override;
-				void Execute(Request& request) const override;
-				AutoWrapperBase* Clone() const override;
-			};
-
 #if (defined(_MSC_VER) && _MSC_VER < 1800)
-			template <class R = Void, class A = Void, class B = Void, class C = Void, class D = Void, class E = Void, class F = Void, class G = Void, class H = Void, class I = Void, class J = Void, class K = Void, class L = Void, class M = Void, class N = Void, class O = Void>
+			template <bool LockOnCall, class R = Void, class A = Void, class B = Void, class C = Void, class D = Void, class E = Void, class F = Void, class G = Void, class H = Void, class I = Void, class J = Void, class K = Void, class L = Void, class M = Void, class N = Void, class O = Void>
 			class AutoWrapper : public AutoWrapperBase, public TWrapper<R, Request&, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> {
 			public:
 				AutoWrapper(const TWrapper<R, Request&, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>& m) : TWrapper<R, Request&, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(m) {}
@@ -188,99 +181,99 @@ namespace PaintsNow {
 						assert(false);
 						break;
 					case 1:
-						request.UnLock();
+						if (!LockOnCall) request.UnLock();
 						ret = (*this)(request);
-						request.DoLock();
+						if (!LockOnCall) request.DoLock();
 						break;
 					case 2:
 						request >> a;
-						request.UnLock();
+						if (!LockOnCall) request.UnLock();
 						ret = (*this)(request, a);
-						request.DoLock();
+						if (!LockOnCall) request.DoLock();
 						break;
 					case 3:
 						request >> a >> b;
-						request.UnLock();
+						if (!LockOnCall) request.UnLock();
 						ret = (*this)(request, a, b);
-						request.DoLock();
+						if (!LockOnCall) request.DoLock();
 						break;
 					case 4:
 						request >> a >> b >> c;
-						request.UnLock();
+						if (!LockOnCall) request.UnLock();
 						ret = (*this)(request, a, b, c);
-						request.DoLock();
+						if (!LockOnCall) request.DoLock();
 						break;
 					case 5:
 						request >> a >> b >> c >> d;
-						request.UnLock();
+						if (!LockOnCall) request.UnLock();
 						ret = (*this)(request, a, b, c, d);
-						request.DoLock();
+						if (!LockOnCall) request.DoLock();
 						break;
 					case 6:
 						request >> a >> b >> c >> d >> e;
-						request.UnLock();
+						if (!LockOnCall) request.UnLock();
 						ret = (*this)(request, a, b, c, d, e);
-						request.DoLock();
+						if (!LockOnCall) request.DoLock();
 						break;
 					case 7:
 						request >> a >> b >> c >> d >> e >> f;
-						request.UnLock();
+						if (!LockOnCall) request.UnLock();
 						ret = (*this)(request, a, b, c, d, e, f);
-						request.DoLock();
+						if (!LockOnCall) request.DoLock();
 						break;
 					case 8:
 						request >> a >> b >> c >> d >> e >> f >> g;
-						request.UnLock();
+						if (!LockOnCall) request.UnLock();
 						ret = (*this)(request, a, b, c, d, e, f, g);
-						request.DoLock();
+						if (!LockOnCall) request.DoLock();
 						break;
 					case 9:
 						request >> a >> b >> c >> d >> e >> f >> g >> h;
-						request.UnLock();
+						if (!LockOnCall) request.UnLock();
 						ret = (*this)(request, a, b, c, d, e, f, g, h);
-						request.DoLock();
+						if (!LockOnCall) request.DoLock();
 						break;
 					case 10:
 						request >> a >> b >> c >> d >> e >> f >> g >> h >> i;
-						request.UnLock();
+						if (!LockOnCall) request.UnLock();
 						ret = (*this)(request, a, b, c, d, e, f, g, h, i);
-						request.DoLock();
+						if (!LockOnCall) request.DoLock();
 						break;
 					case 11:
 						request >> a >> b >> c >> d >> e >> f >> g >> h >> i >> j;
-						request.UnLock();
+						if (!LockOnCall) request.UnLock();
 						ret = (*this)(request, a, b, c, d, e, f, g, h, i, j);
-						request.DoLock();
+						if (!LockOnCall) request.DoLock();
 						break;
 					case 12:
 						request >> a >> b >> c >> d >> e >> f >> g >> h >> i >> j >> k;
-						request.UnLock();
+						if (!LockOnCall) request.UnLock();
 						ret = (*this)(request, a, b, c, d, e, f, g, h, i, j, k);
-						request.DoLock();
+						if (!LockOnCall) request.DoLock();
 						break;
 					case 13:
 						request >> a >> b >> c >> d >> e >> f >> g >> h >> i >> j >> k >> l;
-						request.UnLock();
+						if (!LockOnCall) request.UnLock();
 						ret = (*this)(request, a, b, c, d, e, f, g, h, i, j, k, l);
-						request.DoLock();
+						if (!LockOnCall) request.DoLock();
 						break;
 					case 14:
 						request >> a >> b >> c >> d >> e >> f >> g >> h >> i >> j >> k >> l >> m;
-						request.UnLock();
+						if (!LockOnCall) request.UnLock();
 						ret = (*this)(request, a, b, c, d, e, f, g, h, i, j, k, l, m);
-						request.DoLock();
+						if (!LockOnCall) request.DoLock();
 						break;
 					case 15:
 						request >> a >> b >> c >> d >> e >> f >> g >> h >> i >> j >> k >> l >> m >> n;
-						request.UnLock();
+						if (!LockOnCall) request.UnLock();
 						ret = (*this)(request, a, b, c, d, e, f, g, h, i, j, k, l, m, n);
-						request.DoLock();
+						if (!LockOnCall) request.DoLock();
 						break;
 					case 16:
 						request >> a >> b >> c >> d >> e >> f >> g >> h >> i >> j >> k >> l >> m >> n >> o;
-						request.UnLock();
+						if (!LockOnCall) request.UnLock();
 						ret = (*this)(request, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o);
-						request.DoLock();
+						if (!LockOnCall) request.DoLock();
 						break;
 					default:
 						break;
@@ -301,8 +294,13 @@ namespace PaintsNow {
 			};
 
 			template <class R, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N, class O>
-			static AutoWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> Adapt(const TWrapper<R, Request&, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>& wrapper) {
-				return AutoWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(wrapper);
+			static AutoWrapper<false, R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> Adapt(const TWrapper<R, Request&, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>& wrapper) {
+				return AutoWrapper<false, R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(wrapper);
+			}
+
+			template <class R, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N, class O>
+			static AutoWrapper<true, R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> AdaptLocked(const TWrapper<R, Request&, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>& wrapper) {
+				return AutoWrapper<true, R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(wrapper);
 			}
 
 			template <class A>
@@ -402,7 +400,7 @@ namespace PaintsNow {
 			}
 
 #else
-			template <typename R, typename... Args>
+			template <bool LockOnCall, typename R, typename... Args>
 			class AutoWrapper : public AutoWrapperBase, public TWrapper<R, Request&, Args...> {
 			public:
 				AutoWrapper(const TWrapper<R, Request&, Args...>& m) : TWrapper<R, Request&, Args...>(m) {}
@@ -414,7 +412,10 @@ namespace PaintsNow {
 				typename std::enable_if<!std::is_void<Ret>::value>::type Apply(Request& request, T& arg, seq<I...>) const {
 					// request.AssertUnlocked();
 					Ret ret = (*this)(request, (Args)std::get<I>(arg)...);
-					request.DoLock();
+					if (!LockOnCall) {
+						request.DoLock();
+					}
+
 					request << ret;
 					// request.AssertUnlocked();
 				}
@@ -423,7 +424,10 @@ namespace PaintsNow {
 				typename std::enable_if<std::is_void<Ret>::value>::type Apply(Request& request, T& arg, seq<I...>) const {
 					// request.AssertUnlocked();
 					(*this)(request, (Args)std::get<I>(arg)...);
-					request.DoLock();
+
+					if (!LockOnCall) {
+						request.DoLock();
+					}
 					// request.AssertUnlocked();
 				}
 
@@ -443,7 +447,9 @@ namespace PaintsNow {
 				void InvokeRoutine(Request& request) const {
 					std::tuple<typename std::decay<Args>::type...> arg;
 					Reader<decltype(arg), sizeof...(Args)>()(request, arg);
-					request.UnLock();
+					if (!LockOnCall) {
+						request.UnLock();
+					}
 					Apply<R>(request, arg, gen_seq<sizeof...(Args)>());
 				}
 
@@ -462,8 +468,13 @@ namespace PaintsNow {
 			};
 
 			template <typename R, typename... Args>
-			static AutoWrapper<R, Args...> Adapt(const TWrapper<R, Request&, Args...>& wrapper) {
-				return AutoWrapper<R, Args...>(wrapper);
+			static AutoWrapper<false, R, Args...> Adapt(const TWrapper<R, Request&, Args...>& wrapper) {
+				return AutoWrapper<false, R, Args...>(wrapper);
+			}
+
+			template <typename R, typename... Args>
+			static AutoWrapper<true, R, Args...> AdaptLocked(const TWrapper<R, Request&, Args...>& wrapper) {
+				return AutoWrapper<true, R, Args...>(wrapper);
 			}
 
 			template <typename First, typename... Args>
@@ -796,7 +807,7 @@ namespace PaintsNow {
 
 		class MetaMethod : public TReflected<MetaMethod, MetaNodeBase> {
 		public:
-			MetaMethod(const String& key = "");
+			MetaMethod(const String& key = "", bool locked = false);
 			~MetaMethod() override;
 			MetaMethod operator = (const String& key);
 
@@ -834,12 +845,16 @@ namespace PaintsNow {
 			template <class T, class D>
 			class Typed : public TypedBase {
 			public:
-				Typed(const String& n, T* p, D* m) : pointer(p), member(m) {
+				Typed(const String& n, T* p, D* m, bool locked) : pointer(p), member(m), lockOnCall(locked) {
 					name = n;
 				}
 
 				Request& Register(Request& request, const String& defName) const override {
-					request << IScript::Request::Key(name.empty() ? defName : name) << Request::Adapt(Wrap(pointer, *member));
+					if (lockOnCall) {
+						request << IScript::Request::Key(name.empty() ? defName : name) << Request::AdaptLocked(Wrap(pointer, *member));
+					} else {
+						request << IScript::Request::Key(name.empty() ? defName : name) << Request::Adapt(Wrap(pointer, *member));
+					}
 
 					return request;
 				}
@@ -850,18 +865,19 @@ namespace PaintsNow {
 
 				T* pointer;
 				D* member;
+				bool lockOnCall;
 			};
 
 #if defined(_MSC_VER) && _MSC_VER <= 1200
 			template <class T, class D>
 			Type FilterField(T* pointer, D* member) const {
-				Typed<T, D> typed(key, pointer, member);
+				Typed<T, D> typed(key, pointer, member, lockOnCall);
 				return *(reinterpret_cast<Type*>(&typed));
 			}
 #else
 			template <class T, class D>
 			Typed<T, D> FilterField(T* pointer, D* member) const {
-				return Typed<T, D>(key, pointer, member);
+				return Typed<T, D>(key, pointer, member, lockOnCall);
 			}
 #endif
 
@@ -871,6 +887,7 @@ namespace PaintsNow {
 			};
 
 			String key;
+			bool lockOnCall;
 		};
 
 		class MetaVariable : public TReflected<MetaVariable, MetaNodeBase> {
@@ -1219,14 +1236,38 @@ namespace PaintsNow {
 								request.Dereference(refs[i]); \
 							} \
 						} \
-						request.UnLock(); \
 						assert(false);\
 					} \
 				} \
 				request.UnLock(); \
 			}
+
+#define CHECK_REFERENCES_WITH_TYPE_LOCKED(d, t) \
+			const int MUST_CHECK_REFERENCE_ONCE = 0; \
+			{ \
+				static const String _methodName = __func__; \
+				IScript::Request::Ref refs[] = { d }; \
+				IScript::Request::TYPE types[] = { t }; \
+				static_assert(sizeof(refs) / sizeof(refs[0]) == sizeof(types) / sizeof(types[0]), "Unmatched type checking count"); \
+				for (size_t i = 0; i < sizeof(refs) / sizeof(refs[0]); i++) { \
+					IScript::Request::TYPE p = request.GetReferenceType(refs[i]); \
+					if (types[i] != IScript::Request::ANY && !request.GetScript()->IsTypeCompatible(types[i], p)) {\
+						char digit[32]; \
+						sprintf(digit, "%d", (int)i); \
+						request.Error(_methodName + ": Invalid (or wrong type) references (" #d ") [" + digit + "], expect (" #t ")"); \
+						for (size_t j = 0; j < sizeof(refs) / sizeof(refs[0]); j++) { \
+							if (refs[i]) { \
+								request.Dereference(refs[i]); \
+							} \
+						} \
+						assert(false);\
+					} \
+				} \
+			}
 #else
 #define CHECK_REFERENCES_WITH_TYPE(d, t) \
+			const int MUST_CHECK_REFERENCE_ONCE = 0;
+#define CHECK_REFERENCES_WITH_TYPE_LOCKED(d, t) \
 			const int MUST_CHECK_REFERENCE_ONCE = 0;
 #endif
 
@@ -1356,6 +1397,5 @@ namespace PaintsNow {
 	extern IScript::Request::Global global;
 	extern IScript::Request::Ref ref;
 	extern IScript::Request::Sync sync;
-	extern IScript::Request::Deferred deferred;
 }
 
