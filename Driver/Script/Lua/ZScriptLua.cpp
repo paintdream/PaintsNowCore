@@ -257,7 +257,6 @@ void ZScriptLua::Init() {
 	lua_pop(state, 1);
 
 	totalReference = 0;
-	initCountDefer = 0;
 
 	if (rawState != nullptr) {
 		delete defaultRequest;
@@ -265,7 +264,6 @@ void ZScriptLua::Init() {
 		state = defaultRequest->GetRequestState();
 	}
 
-	deferState = lua_newthread(state); // don't pop it from stack unless the state was closed.
 	closing.store(0, std::memory_order_release);
 	UnLock();
 }
@@ -318,44 +316,30 @@ bool ZScriptLua::Request::Call(const AutoWrapperBase& defer, const IScript::Requ
 	int in = pos - initCount;
 	assert(in >= 0);
 	// lua_State* s = state->GetState();
-	if (defer.IsSync()) {
-		*this << g;
-		// printf("Type : %s\n", lua_typename(L, lua_typex(L, -1)));
-		if (!lua_isfunction(L, -1)) {
-			state->AfterCall();
-			return false;
-		}
+	assert(defer.IsSync()); // only support sync call
+	*this << g;
+	// printf("Type : %s\n", lua_typename(L, lua_typex(L, -1)));
+	if (!lua_isfunction(L, -1)) {
+		state->AfterCall();
+		return false;
+	}
 
-		lua_insert(L, initCount + 1);
-		assert(lua_isfunction(L, -in - 1));
-		// lua_KContext context = (lua_KContext)defer.Clone();
-		// dispatch deferred calls after the next sync call.
-		// int status = lua_pcallk(L, in, LUA_MULTRET, 0, nullptr, ContinueProxy);
-		int status = lua_pcall(L, in, LUA_MULTRET, 0);
+	lua_insert(L, initCount + 1);
+	assert(lua_isfunction(L, -in - 1));
+	// lua_KContext context = (lua_KContext)defer.Clone();
+	// dispatch deferred calls after the next sync call.
+	// int status = lua_pcallk(L, in, LUA_MULTRET, 0, nullptr, ContinueProxy);
+	int status = lua_pcall(L, in, LUA_MULTRET, 0);
 
-		if (status != LUA_OK && status != LUA_YIELD) {
-			HandleError(static_cast<ZScriptLua*>(GetScript()), L);
-			state->AfterCall();
-			return false;
-		} else {
-			assert(lua_gettop(L) >= initCount);
-			// important!
-			SetIndex(initCount + 1);
-			state->AfterCall();
-			return true;
-		}
-	} else {
-		// Invoke deferred call
-		lua_State* host = state->GetDeferState();
-		lua_pushinteger(host, state->GetInitDeferCount());
-		state->SetInitDeferCount(lua_gettop(host));
-		*this << g;
-		lua_xmove(L, host, 1);
-		if (in != 0) {
-			lua_xmove(L, host, in);
-		}
-
-		lua_pushlightuserdata(host, (void*)defer.Clone()); // as lightuserdata
+	if (status != LUA_OK && status != LUA_YIELD) {
+		HandleError(static_cast<ZScriptLua*>(GetScript()), L);
+		state->AfterCall();
+		return false;
+	}
+	else {
+		assert(lua_gettop(L) >= initCount);
+		// important!
+		SetIndex(initCount + 1);
 		state->AfterCall();
 		return true;
 	}
@@ -1131,18 +1115,6 @@ TObject<IReflect>& ZScriptLua::Request::operator () (IReflect& reflect) {
 	BaseClass::operator () (reflect);
 
 	return *this;
-}
-
-inline int ZScriptLua::GetInitDeferCount() const {
-	return initCountDefer;
-}
-
-void ZScriptLua::SetInitDeferCount(int count) {
-	initCountDefer = count;
-}
-
-lua_State* ZScriptLua::GetDeferState() const {
-	return deferState;
 }
 
 IScript* ZScriptLua::NewScript() const {

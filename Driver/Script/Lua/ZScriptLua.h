@@ -96,8 +96,6 @@ namespace PaintsNow {
 		IScript::Request* NewRequest(const String& entry) override;
 		const char* GetFileExt() const override;
 
-		int GetInitDeferCount() const;
-		void SetInitDeferCount(int count);
 		bool IsClosing() const override;
 		bool IsHosting() const override;
 
@@ -106,12 +104,10 @@ namespace PaintsNow {
 		void Clear();
 
 		lua_State* state;
-		lua_State* deferState;
 		lua_State* rawState;
 		ZScriptLua::Request* defaultRequest;
 		IThread::Event* runningEvent;
 
-		int initCountDefer;
 		std::atomic<uint32_t> closing;
 		uint32_t totalReference;
 		uint32_t callCounter;
