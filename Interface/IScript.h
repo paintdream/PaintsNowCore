@@ -1211,8 +1211,30 @@ namespace PaintsNow {
 					} \
 				} \
 			}
+
+#define CHECK_REFERENCES_LOCKED(d) \
+			const int MUST_CHECK_REFERENCE_ONCE = 0; \
+			{ \
+				static const String _methodName = __func__; \
+				IScript::Request::Ref refs[] = { d }; \
+				for (size_t i = 0; i < sizeof(refs) / sizeof(refs[0]); i++) { \
+					if (!refs[i]) { \
+						char digit[32]; \
+						sprintf(digit, "%d", (int)i); \
+						request.Error(_methodName + ": Invalid references " #d "[" + digit + "]"); \
+						for (size_t j = 0; j < sizeof(refs) / sizeof(refs[0]); j++) { \
+							if (refs[i]) { \
+								request.Dereference(refs[i]); \
+							} \
+						} \
+						assert(false); \
+					} \
+				} \
+			}
 #else
 #define CHECK_REFERENCES(d) \
+			const int MUST_CHECK_REFERENCE_ONCE = 0; 
+#define CHECK_REFERENCES_LOCKED(d) \
 			const int MUST_CHECK_REFERENCE_ONCE = 0; 
 #endif
 
@@ -1387,6 +1409,7 @@ namespace PaintsNow {
 
 	extern IScript::MetaLibrary ScriptLibrary;
 	extern IScript::MetaMethod ScriptMethod;
+	extern IScript::MetaMethod ScriptMethodLocked;
 	extern IScript::MetaVariable ScriptVariable;
 	extern IScript::Request::TableStart begintable;
 	extern IScript::Request::TableEnd endtable;

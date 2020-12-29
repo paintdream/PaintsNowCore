@@ -3,7 +3,8 @@
 
 namespace PaintsNow {
 	IScript::MetaLibrary ScriptLibrary;
-	IScript::MetaMethod ScriptMethod;
+	IScript::MetaMethod ScriptMethod("", false);
+	IScript::MetaMethod ScriptMethodLocked("", true);
 	IScript::MetaVariable ScriptVariable;
 	IScript::Request::TableStart begintable;
 	IScript::Request::TableEnd endtable;
@@ -499,7 +500,7 @@ IScript::MetaMethod::MetaMethod(const String& k, bool lock) : key(k), lockOnCall
 IScript::MetaMethod::~MetaMethod() {}
 
 IScript::MetaMethod IScript::MetaMethod::operator = (const String& key) {
-	return MetaMethod(key);
+	return MetaMethod(key, lockOnCall);
 }
 
 IScript::RequestPool::RequestPool(IScript& pscript, uint32_t psize) : PoolBase(psize), script(pscript){}
