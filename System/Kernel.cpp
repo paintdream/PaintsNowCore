@@ -1,4 +1,5 @@
 #include "Kernel.h"
+#include "../Driver/Profiler/Optick/optick.h"
 using namespace PaintsNow;
 
 void WarpTiny::SetWarpIndex(uint32_t warpIndex) {
@@ -257,11 +258,21 @@ void Kernel::SubTaskQueue::Flush(ThreadPool& threadPool) {
 	}
 }
 
+static const char* warpStrings[] = {
+	"Warp 0", "Warp 1", "Warp 2", "Warp 3",
+	"Warp 4", "Warp 5", "Warp 6", "Warp 7",
+	"Warp 8", "Warp 9", "Warp 10", "Warp 11",
+	"Warp 12", "Warp 13", "Warp 14", "Warp 15",
+};
+
 bool Kernel::SubTaskQueue::PreemptExecution() {
 	uint32_t* expected = nullptr;
 	uint32_t thisWarpIndex = safe_cast<uint32_t>(this - &kernel->taskQueueGrid[0]);
 
 	if (threadWarp.compare_exchange_strong(expected, &WarpIndex, std::memory_order_acquire)) {
+		const char* warpName = thisWarpIndex < sizeof(warpStrings) / sizeof(warpStrings[0]) ? warpStrings[thisWarpIndex] : "Warp X";
+		OPTICK_PUSH_DYNAMIC(warpName);
+
 		WarpIndex = thisWarpIndex;
 		return true;
 	} else {
@@ -272,6 +283,8 @@ bool Kernel::SubTaskQueue::PreemptExecution() {
 bool Kernel::SubTaskQueue::YieldExecution() {
 	uint32_t* exp = &WarpIndex;
 	if (threadWarp.compare_exchange_strong(exp, (uint32_t*)nullptr, std::memory_order_relaxed)) {
+		OPTICK_POP();
+
 		WarpIndex = ~(uint32_t)0;
 		if (queueing.exchange(0, std::memory_order_release) == 1) {
 			Flush(kernel->threadPool);

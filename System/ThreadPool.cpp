@@ -3,9 +3,11 @@
 
 #include "ThreadPool.h"
 #include "../Template/TProxy.h"
+#include "../Driver/Profiler/Optick/optick.h"
 #include <cassert>
 #include <ctime>
 #include <cstdlib>
+#include <sstream>
 
 using namespace PaintsNow;
 
@@ -287,6 +289,10 @@ bool ThreadPool::PollCompareExchange(std::atomic<uint32_t>& variable, uint32_t m
 }
 
 bool ThreadPool::Run(IThread::Thread* thread, size_t index) {
+	std::stringstream ss;
+	ss << "Worker " << index;
+	OPTICK_THREAD(ss.str().c_str());
+
 	// set thread local
 	localThreadIndex = safe_cast<uint32_t>(index);
 	// fetch one and execute
