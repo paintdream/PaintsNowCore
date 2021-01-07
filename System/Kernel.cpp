@@ -58,8 +58,8 @@ uint32_t Kernel::GetCurrentWarpIndex() const {
 	return WarpIndex;
 }
 
-
 bool Kernel::WaitWarp(uint32_t warpIndex) {
+	OPTICK_EVENT();
 	assert(WarpIndex == ~(uint32_t)0);
 	taskQueueGrid[warpIndex].YieldExecution();
 
@@ -79,6 +79,7 @@ bool Kernel::WaitWarp(uint32_t warpIndex) {
 }
 
 void Kernel::Clear() {
+	OPTICK_EVENT();
 	// Suspend all warps so we can take over tasks
 	for (uint32_t i = 0; i < GetWarpCount(); i++) {
 		SuspendWarp(i);
@@ -118,6 +119,7 @@ class ForwardRoutine : public TaskOnce {
 public:
 	ForwardRoutine(Kernel& k, WarpTiny* tn, ITask* tk) : kernel(k), tiny(tn), task(tk) {}
 	void Execute(void* context) override {
+		OPTICK_EVENT();
 		assert(next == nullptr);
 		assert(queued == 0);
 		// requeue it
@@ -128,6 +130,7 @@ public:
 	}
 
 	void Abort(void* context) override {
+		OPTICK_EVENT();
 		assert(next == nullptr);
 		assert(queued == 0);
 		// force
@@ -314,6 +317,7 @@ void Kernel::SubTaskQueue::Abort(void* context) {
 }
 
 bool Kernel::SubTaskQueue::InvokeOperation(std::pair<ITask*, void*>& task, void (ITask::*operation)(void*), void* context) {
+	OPTICK_EVENT();
 	uint32_t thisWarpIndex = safe_cast<uint32_t>(this - &kernel->taskQueueGrid[0]);
 	assert(operation == &ITask::Abort || WarpIndex == thisWarpIndex);
 

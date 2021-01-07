@@ -168,6 +168,7 @@ bool ThreadPool::Poll(uint32_t index) {
 		}
 	}
 
+	OPTICK_EVENT();
 #if USE_PRESERVED_LIST
 	int32_t expected = 0;
 	ITask* p = nullptr;
@@ -184,6 +185,7 @@ bool ThreadPool::Poll(uint32_t index) {
 #endif
 	// Has task?
 	if (p != nullptr) {
+		OPTICK_PUSH("Execute");
 #if USE_PRESERVED_LIST
 		p->next = nullptr;
 #else
@@ -221,6 +223,7 @@ bool ThreadPool::Poll(uint32_t index) {
 			p->Execute(context);
 		}
 
+		OPTICK_POP();
 		return true;
 	} else {
 		return false;
@@ -239,6 +242,7 @@ bool ThreadPool::PollDelay(uint32_t index, uint32_t delay) {
 			threadApi.DoLock(mutex);
 			++waitEventCounter;
 			std::atomic_thread_fence(std::memory_order_release);
+			// OPTICK_CATEGORY("Sleep", Optick::Category::Wait);
 			threadApi.Wait(eventPump, mutex, delay);
 			--waitEventCounter;
 			threadApi.UnLock(mutex);

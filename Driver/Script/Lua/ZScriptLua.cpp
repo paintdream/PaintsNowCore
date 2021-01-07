@@ -5,6 +5,7 @@
 #include "ZScriptLua.h"
 #include <cassert>
 #include <cstring>
+#include "../../../Driver/Profiler/Optick/optick.h"
 
 extern "C" {
 	#include "Core/lua.h"
@@ -60,6 +61,7 @@ static void HandleError(ZScriptLua* script, lua_State* L) {
 }
 
 static int FunctionProxy(lua_State* L) {
+	OPTICK_EVENT();
 	// const TProxy<void, IScript::Request&>* proxy = reinterpret_cast<TProxy<void, IScript::Request&>* const>(lua_touserdata(L, lua_upvalueindex(1)));
 	// IHost* handler = reinterpret_cast<IHost*>(lua_touserdata(L, lua_upvalueindex(2)));
 	const IScript::Request::AutoWrapperBase* wrapper = *reinterpret_cast<const IScript::Request::AutoWrapperBase**>(lua_touserdata(L, lua_upvalueindex(1)));
@@ -157,6 +159,7 @@ bool ZScriptLua::IsHosting() const {
 }
 
 void ZScriptLua::Clear() {
+	OPTICK_EVENT();
 	// Wait for all active routines finished.
 	DoLock();
 	closing.store(1, std::memory_order_release);
@@ -305,6 +308,8 @@ IScript::Request::TYPE ZScriptLua::Request::GetReferenceType(const IScript::Requ
 }
 
 bool ZScriptLua::Request::Call(const AutoWrapperBase& defer, const IScript::Request::Ref& g) {
+	OPTICK_EVENT();
+
 	assert(GetScript()->IsLocked());
 	assert(tableLevel == 0);
 	if (state->IsClosing()) return false;

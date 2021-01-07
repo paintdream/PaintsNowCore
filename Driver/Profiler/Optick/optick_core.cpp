@@ -406,9 +406,29 @@ void Tag::Attach(const EventDescription& description, const char* val, uint16_t 
 			storage->tagStringBuffer.Add(TagString(description, val, length));
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static OPTICK_INLINE std::string FilterNamespace(const char* name) {
+	std::string target = name;
+	size_t j = 0;
+	for (size_t i = 0; i < target.size(); i++)
+	{
+		if (i + 11 < target.size() && memcmp(target.c_str() + i, "PaintsNow::", 11) == 0)
+		{
+			i += 10;
+		}
+		else
+		{
+			target[j++] = target[i];
+		}
+	}
+
+	target[j] = '\0';
+	return target;
+}
+
 OutputDataStream & operator<<(OutputDataStream &stream, const EventDescription &ob)
 {
-	return stream << ob.name << ob.file << ob.line << ob.filter << ob.color << (float)0.0f << ob.flags;
+	return stream << FilterNamespace(ob.name).c_str() << ob.file << ob.line << ob.filter << ob.color << (float)0.0f << ob.flags;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 OutputDataStream& operator<<(OutputDataStream& stream, const EventTime& ob)
