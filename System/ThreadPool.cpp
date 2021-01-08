@@ -1,4 +1,4 @@
-#define MAX_YIELD_COUNT 8
+#define MAX_YIELD_COUNT 4
 #define MAX_WAIT_MILLISECONDS 200
 
 #include "ThreadPool.h"
@@ -159,16 +159,16 @@ bool ThreadPool::Push(ITask* task) {
 }
 
 bool ThreadPool::Poll(uint32_t index) {
+	OPTICK_EVENT();
 	// Wait for a moment
 	for (uint32_t k = 0; k < MAX_YIELD_COUNT; k++) {
 		if ((ITask*)taskHead.load(std::memory_order_acquire) == nullptr) {
-			YieldThread();
+			YieldThreadFast();
 		} else {
 			break;
 		}
 	}
 
-	OPTICK_EVENT();
 #if USE_PRESERVED_LIST
 	int32_t expected = 0;
 	ITask* p = nullptr;

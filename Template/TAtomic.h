@@ -5,42 +5,17 @@
 #include <stdexcept>
 #include <algorithm>
 
-#if defined(_MSC_VER) && _MSC_VER <= 1200
+#if defined(_MSC_VER)
+#include <emmintrin.h>
+
+#if _MSC_VER <= 1200
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x501
 #endif
 
-#include <windows.h>
-
-inline void YieldThread() {
-	if (!SwitchToThread()) {
-		for (int i = 0; i < 16; i++) {
-			YieldProcessor();
-		}
-	}
-}
-
-inline void YieldThreadFast() {
-	YieldProcessor();
-}
-
-#else
-#include <thread>
-inline void YieldThread() {
-	std::this_thread::yield();
-}
-
-inline void YieldThreadFast() {
-	std::this_thread::yield();
-}
-
-#endif
-
-#if defined(_MSC_VER) && _MSC_VER <= 1200
 #include "../Interface/IType.h"
 #include <windows.h>
 #include <winbase.h>
-#include <emmintrin.h>
 
 namespace std {
 	enum memory_order {
@@ -53,9 +28,42 @@ namespace std {
 	};
 }
 
+inline void YieldThread() {
+	if (!SwitchToThread()) {
+		for (int i = 0; i < 16; i++) {
+			_mm_pause();
+		}
+	}
+}
+
+#else
+
+#include <atomic>
+#include <thread>
+inline void YieldThread() {
+	std::this_thread::yield();
+}
+
+#endif
+
+inline void YieldThreadFast() {
+	_mm_pause();
+}
+
 #else
 #include <atomic>
 #include <thread>
+
+inline void YieldThread() {
+	std::this_thread::yield();
+}
+
+inline void YieldThreadFast() {
+	timespec spec;
+	spec.tv_sec = 0;
+	spec.tv_nsec = 1;
+	nanosleep(&spec, nullptr);
+}
 #endif
 
 #if defined(_MSC_VER) && _MSC_VER <= 1200

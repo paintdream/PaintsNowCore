@@ -309,10 +309,22 @@ namespace PaintsNow {
 				return Call(defer, ref);	
 			}
 
+			template <class A>
+			bool Call(const IScript::Request::Ref& ref, const A& a) {
+				*this << a;
+				return Call(Sync(), ref);	
+			}
+
 			template <class A, class B>
 			bool Call(const AutoWrapperBase& defer, const IScript::Request::Ref& ref, const A& a, const B& b) {
 				*this << a << b;
 				return Call(defer, ref);	
+			}
+
+			template <class A, class B>
+			bool Call(const IScript::Request::Ref& ref, const A& a, const B& b) {
+				*this << a << b;
+				return Call(Sync(), ref);	
 			}
 
 			template <class A, class B, class C>
@@ -321,10 +333,22 @@ namespace PaintsNow {
 				return Call(defer, ref);	
 			}
 
+			template <class A, class B, class C>
+			bool Call(const IScript::Request::Ref& ref, const A& a, const B& b, const C& c) {
+				*this << a << b << c;
+				return Call(Sync(), ref);
+			}
+
 			template <class A, class B, class C, class D>
 			bool Call(const AutoWrapperBase& defer, const IScript::Request::Ref& ref, const A& a, const B& b, const C& c, const D& d) {
 				*this << a << b << c << d;
 				return Call(defer, ref);	
+			}
+
+			template <class A, class B, class C, class D>
+			bool Call(const IScript::Request::Ref& ref, const A& a, const B& b, const C& c, const D& d) {
+				*this << a << b << c << d;
+				return Call(Sync(), ref);
 			}
 
 			template <class A, class B, class C, class D, class E>
@@ -333,10 +357,22 @@ namespace PaintsNow {
 				return Call(defer, ref);	
 			}
 
+			template <class A, class B, class C, class D, class E>
+			bool Call(const IScript::Request::Ref& ref, const A& a, const B& b, const C& c, const D& d, const E& e) {
+				*this << a << b << c << d << e;
+				return Call(Sync(), ref);
+			}
+
 			template <class A, class B, class C, class D, class E, class F>
 			bool Call(const AutoWrapperBase& defer, const IScript::Request::Ref& ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f) {
 				*this << a << b << c << d << e << f;
 				return Call(defer, ref);	
+			}
+
+			template <class A, class B, class C, class D, class E, class F>
+			bool Call(const IScript::Request::Ref& ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f) {
+				*this << a << b << c << d << e << f;
+				return Call(Sync(), ref);
 			}
 
 			template <class A, class B, class C, class D, class E, class F, class G>
@@ -345,10 +381,23 @@ namespace PaintsNow {
 				return Call(defer, ref);	
 			}
 
+			template <class A, class B, class C, class D, class E, class F, class G>
+			bool Call(const IScript::Request::Ref& ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g) {
+				*this << a << b << c << d << e << f << g;
+				return Call(Sync(), ref);
+			}
+
 			template <class A, class B, class C, class D, class E, class F, class G, class H>
 			bool Call(const AutoWrapperBase& defer, const IScript::Request::Ref& ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g, const H& h) {
 				*this << a << b << c << d << e << f << g << h;
 				return Call(defer, ref);	
+			}
+
+
+			template <class A, class B, class C, class D, class E, class F, class G, class H>
+			bool Call(const IScript::Request::Ref& ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g, const H& h) {
+				*this << a << b << c << d << e << f << g << h;
+				return Call(Sync(), ref);
 			}
 
 			template <class A, class B, class C, class D, class E, class F, class G, class H, class I>
@@ -357,10 +406,22 @@ namespace PaintsNow {
 				return Call(defer, ref);	
 			}
 
+			template <class A, class B, class C, class D, class E, class F, class G, class H, class I>
+			bool Call(const IScript::Request::Ref& ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g, const H& h, const I& i) {
+				*this << a << b << c << d << e << f << g << h << i;
+				return Call(Sync(), ref);
+			}
+
 			template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J>
 			bool Call(const AutoWrapperBase& defer, const IScript::Request::Ref& ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g, const H& h, const I& i, const J& j) {
 				*this << a << b << c << d << e << f << g << h << i << j;
 				return Call(defer, ref);	
+			}
+
+			template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J>
+			bool Call(const IScript::Request::Ref& ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g, const H& h, const I& i, const J& j) {
+				*this << a << b << c << d << e << f << g << h << i << j;
+				return Call(Sync(), ref);
 			}
 
 			template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K>
@@ -369,10 +430,22 @@ namespace PaintsNow {
 				return Call(defer, ref);	
 			}
 
+			template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K>
+			bool Call(const IScript::Request::Ref& ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g, const H& h, const I& i, const J& j, const K& k) {
+				*this << a << b << c << d << e << f << g << h << i << j << k;
+				return Call(Sync, ref);
+			}
+
 			template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L>
 			bool Call(const AutoWrapperBase& defer, const IScript::Request::Ref& ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g, const H& h, const I& i, const J& j, const K& k, const L& l) {
 				*this << a << b << c << d << e << f << g << h << i << j << k << l;
 				return Call(defer, ref);	
+			}
+
+			template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L>
+			bool Call(const IScript::Request::Ref& ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g, const H& h, const I& i, const J& j, const K& k, const L& l) {
+				*this << a << b << c << d << e << f << g << h << i << j << k << l;
+				return Call(Sync(), ref);
 			}
 
 			template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M>
@@ -381,10 +454,24 @@ namespace PaintsNow {
 				return Call(defer, ref);	
 			}
 
+
+			template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M>
+			bool Call(const IScript::Request::Ref& ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g, const H& h, const I& i, const J& j, const K& k, const L& l, const M& m) {
+				*this << a << b << c << d << e << f << g << h << i << j << k << l << m;
+				return Call(Sync(), ref);
+			}
+
 			template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N>
 			bool Call(const AutoWrapperBase& defer, const IScript::Request::Ref& ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g, const H& h, const I& i, const J& j, const K& k, const L& l, const M& m, const N& n) {
 				*this << a << b << c << d << e << f << g << h << i << j << k << l << m << n;
 				return Call(defer, ref);	
+			}
+
+
+			template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N>
+			bool Call(const IScript::Request::Ref& ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g, const H& h, const I& i, const J& j, const K& k, const L& l, const M& m, const N& n) {
+				*this << a << b << c << d << e << f << g << h << i << j << k << l << m << n;
+				return Call(Sync(), ref);
 			}
 
 			template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N, class O>
@@ -393,10 +480,24 @@ namespace PaintsNow {
 				return Call(defer, ref);	
 			}
 
+
+			template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N, class O>
+			bool Call(const IScript::Request::Ref& ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g, const H& h, const I& i, const J& j, const K& k, const L& l, const M& m, const N& n, const O& o) {
+				*this << a << b << c << d << e << f << g << h << i << j << k << l << m << n << o;
+				return Call(Sync(), ref);
+			}
+
 			template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N, class O, class AA>
 			bool Call(const AutoWrapperBase& defer, const IScript::Request::Ref& ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g, const H& h, const I& i, const J& j, const K& k, const L& l, const M& m, const N& n, const O& o, const AA& aa) {
 				*this << a << b << c << d << e << f << g << h << i << j << k << l << m << n << o << aa;
 				return Call(defer, ref);	
+			}
+
+
+			template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N, class O, class AA>
+			bool Call(const IScript::Request::Ref& ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g, const H& h, const I& i, const J& j, const K& k, const L& l, const M& m, const N& n, const O& o, const AA& aa) {
+				*this << a << b << c << d << e << f << g << h << i << j << k << l << m << n << o << aa;
+				return Call(Sync(), ref);
 			}
 
 #else
@@ -482,7 +583,17 @@ namespace PaintsNow {
 				*this << first;
 				return Call(defer, ref, std::forward<Args>(args)...);
 			}
+
+			template <typename First, typename... Args>
+			bool Call(const IScript::Request::Ref& ref, const First& first, Args&&... args) {
+				*this << first;
+				return Call(Sync(), ref, std::forward<Args>(args)...);
+			}
 #endif
+
+			inline bool Call(const Request::Ref& ref) {
+				return Call(Sync(), ref);
+			}
 
 			struct Nil {};
 			struct Global {};
@@ -1419,6 +1530,5 @@ namespace PaintsNow {
 	extern IScript::Request::Nil nil;
 	extern IScript::Request::Global global;
 	extern IScript::Request::Ref ref;
-	extern IScript::Request::Sync sync;
 }
 
