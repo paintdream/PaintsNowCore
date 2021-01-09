@@ -11,7 +11,7 @@
 #include <cmath>
 #include <algorithm>
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (defined(_M_AMD64) || defined(_M_IX86))
 #define USE_SSE
 #if _MSC_VER > 1200
 #define USE_SSE_LATEST

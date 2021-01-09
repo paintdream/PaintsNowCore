@@ -6,6 +6,7 @@
 #include <algorithm>
 
 #if defined(_MSC_VER)
+#if defined(_M_IX86) || defined(_M_AMD64)
 #include <emmintrin.h>
 
 #if _MSC_VER <= 1200
@@ -35,7 +36,6 @@ inline void YieldThread() {
 		}
 	}
 }
-
 #else
 
 #include <atomic>
@@ -50,6 +50,15 @@ inline void YieldThreadFast() {
 	_mm_pause();
 }
 
+#else
+inline void YieldThread() {
+	std::this_thread::yield();
+}
+
+inline void YieldThreadFast() {
+	std::this_thread::yield();
+}
+#endif
 #else
 #include <atomic>
 #include <thread>

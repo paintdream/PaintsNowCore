@@ -534,9 +534,10 @@ struct getboolean<std::true_type> { enum { value = true }; };
 #endif
 
 // seq from stackoverflow http://stackoverflow.com/questions/17424477/implementation-c14-make-integer-sequence By Xeo
+// For compatibility on C++ 11
 
-#if !(defined(_MSC_VER) && _MSC_VER < 1800)
-#ifdef _MSC_VER
+#if defined(_MSC_VER)
+#if _MSC_VER > 1200
 	template<unsigned...> struct seq{ typedef seq type; };
 	template<class S1, class S2> struct concat;
 	template<unsigned... I1, unsigned... I2>
@@ -547,6 +548,7 @@ struct getboolean<std::true_type> { enum { value = true }; };
 	struct gen_seq : public concat<typename gen_seq<N / 2>::type, typename gen_seq<N - N / 2>::type>::type{};
 	template<> struct gen_seq<0> : seq<>{};
 	template<> struct gen_seq<1> : seq<0>{};
+#endif
 #else
 	template< std::size_t ... i >
 	struct seq
@@ -605,6 +607,4 @@ struct getboolean<std::true_type> { enum { value = true }; };
 	struct gen_seq : make_seq_impl<N>::type {};
 
 #endif
-#endif
-
 

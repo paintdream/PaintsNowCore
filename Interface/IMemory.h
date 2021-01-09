@@ -9,7 +9,7 @@
 #include <malloc.h>
 #include <stdlib.h>
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && (defined(_M_AMD64) || defined(_M_IX86))
 #include <xmmintrin.h>
 #include <emmintrin.h>
 #endif
@@ -54,7 +54,9 @@ namespace PaintsNow {
 
 		static inline void PrefetchReadLocal(const void* address) {
 #ifdef _MSC_VER
+#if defined(_M_AMD64) || defined(_M_IX86)
 			_mm_prefetch(reinterpret_cast<const char*>(address), _MM_HINT_T0);
+#endif
 #else
 			__builtin_prefetch(address, 0, 3);
 #endif
@@ -62,7 +64,9 @@ namespace PaintsNow {
 
 		static inline void PrefetchWrite(void* address) {
 #ifdef _MSC_VER
+#if defined(_M_AMD64) || defined(_M_IX86)
 			_mm_prefetch(reinterpret_cast<char*>(address), _MM_HINT_NTA);
+#endif
 #else
 			__builtin_prefetch(address, 1, 0);
 #endif
@@ -70,7 +74,9 @@ namespace PaintsNow {
 
 		static inline void PrefetchWriteLocal(void* address) {
 #ifdef _MSC_VER
+#if defined(_M_AMD64) || defined(_M_IX86)
 			_mm_prefetch(reinterpret_cast<char*>(address), _MM_HINT_T0);
+#endif
 #else
 			__builtin_prefetch(address, 1, 3);
 #endif

@@ -8,7 +8,7 @@
 #include "TAlgorithm.h"
 
 namespace PaintsNow {
-#if defined(_MSC_VER) && _MSC_VER < 1800
+#if defined(_MSC_VER) && _MSC_VER <= 1200
 	template <class A = Void, class B = Void, class C = Void, class D = Void, class E = Void, class F = Void, class G = Void, class H = Void, class I = Void, class J = Void, class K = Void, class L = Void, class M = Void, class N = Void, class O = Void, class P = Void>
 	class TEvent {
 	public:

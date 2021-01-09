@@ -152,7 +152,7 @@ namespace PaintsNow {
 		inline uint32_t Log2(uint64_t value) {
 			assert(value != 0);
 #if defined(_MSC_VER)
-#if !_WIN64
+#if !defined(_M_AMD64)
 			/*
 			const uint32_t tab64[64] = {
 				63,  0, 58,  1, 59, 47, 53,  2,

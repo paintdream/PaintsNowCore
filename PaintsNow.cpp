@@ -4,11 +4,6 @@
 #include <malloc.h>
 #include <stdlib.h>
 
-#ifdef _MSC_VER
-#include <xmmintrin.h>
-#include <emmintrin.h>
-#endif
-
 #define DEFAULT_MEMORY_ALIGN 16
 
 void* operator new (size_t size) {
