@@ -1636,6 +1636,8 @@ void WinSymbolEngine::InitSystemModules()
 	ZwQuerySystemInformation(SystemModuleInformation, pModuleList, systemInformationLength, &returnLength);
 	systemInformationLength = returnLength;
 	pModuleList = (MODULE_LIST*)Memory::Alloc(systemInformationLength);
+	memset(pModuleList, 0, systemInformationLength);
+
 	DWORD status = ZwQuerySystemInformation(SystemModuleInformation, pModuleList, systemInformationLength, &returnLength);
 	if (status == ERROR_SUCCESS)
 	{
@@ -1653,20 +1655,23 @@ void WinSymbolEngine::InitSystemModules()
 		for (uint32_t i = 0; i < pModuleList->dwModules; ++i)
 		{
 			SYSTEM_MODULE_INFORMATION& module = pModuleList->pModulesInfo[i];
-
-			char path[MAXIMUM_FILENAME_LENGTH] = { 0 };
-
-			if (strstr(module.imageName, systemRootPattern) == module.imageName)
+			if (module.imageBase != nullptr)
 			{
-				strcpy_s(path, systemRootPath);
-				strcat_s(path, module.imageName + strlen(systemRootPattern));
-			}
-			else
-			{
-				strcpy_s(path, module.imageName);
-			}
+				char path[MAXIMUM_FILENAME_LENGTH] = { 0 };
 
-			modules.push_back(Module(path, (void*)module.imageBase, module.imageSize));
+				if (strstr(module.imageName, systemRootPattern) == module.imageName)
+				{
+					strncpy(path, systemRootPath, MAXIMUM_FILENAME_LENGTH);
+					strcat_s(path, module.imageName + strlen(systemRootPattern));
+				}
+				else
+				{
+					strncpy(path, module.imageName, MAXIMUM_FILENAME_LENGTH);
+					path[MAXIMUM_FILENAME_LENGTH - 1] = '\0';
+				}
+
+				modules.push_back(Module(path, (void*)module.imageBase, module.imageSize));
+			}
 		}
 	}
 	else

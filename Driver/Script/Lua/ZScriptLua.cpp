@@ -189,6 +189,28 @@ void ZScriptLua::Clear() {
 #endif
 }
 
+static void LuaHook(lua_State* L, lua_Debug* ar) {
+	static thread_local size_t recursiveCount = 0;
+	String name = "[Lua] ";
+
+	if (lua_getinfo(L, "nS", ar)) {
+		if (ar->name != nullptr) {
+			name += ar->name;
+		} else {
+			name += "function ()";
+		}
+	}
+
+	if (ar->event == LUA_HOOKCALL) {
+		assert(!name.empty());
+		OPTICK_PUSH_DYNAMIC(name.c_str());
+		recursiveCount++;
+	} else if (ar->event == LUA_HOOKRET && recursiveCount != 0) {
+		OPTICK_POP();
+		recursiveCount--;
+	}
+}
+
 void ZScriptLua::Init() {
 	DoLock();
 
@@ -267,6 +289,11 @@ void ZScriptLua::Init() {
 		state = defaultRequest->GetRequestState();
 	}
 
+	// Install hooks if needed
+#if USE_OPTICK
+	lua_sethook(state, LuaHook, LUA_MASKCALL | LUA_MASKRET, 0);
+#endif
+
 	closing.store(0, std::memory_order_release);
 	UnLock();
 }
@@ -340,8 +367,7 @@ bool ZScriptLua::Request::Call(const AutoWrapperBase& defer, const IScript::Requ
 		HandleError(static_cast<ZScriptLua*>(GetScript()), L);
 		state->AfterCall();
 		return false;
-	}
-	else {
+	} else {
 		assert(lua_gettop(L) >= initCount);
 		// important!
 		SetIndex(initCount + 1);
@@ -501,7 +527,6 @@ inline void wrapget(lua_State* L, const IScript::Request::AutoWrapperBase& wrapp
 
 	lua_rawgetp(L, LUA_REGISTRYINDEX, LUA_RIDX_WRAP_KEY);
 	lua_setmetatable(L, -2);
-
 	lua_pushcclosure(L, FunctionProxy, 1);
 }
 
