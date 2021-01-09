@@ -9,6 +9,7 @@
 #include "Tiny.h"
 #include "TaskQueue.h"
 #include "ThreadPool.h"
+#include "../Template/TAllocator.h"
 
 namespace PaintsNow {
 	// Tasks are scheduled by a Tiny with Warp Index.
@@ -101,6 +102,19 @@ namespace PaintsNow {
 
 		friend class SubTaskQueue;
 
+		class_aligned(64) ForwardRoutine : public TaskOnce {
+		public:
+			ForwardRoutine(Kernel& k, WarpTiny* tn, ITask* tk);
+
+			void Execute(void* context) override;
+			void Abort(void* context) override;
+
+		private:
+			Kernel& kernel;
+			WarpTiny* tiny;
+			ITask* task;
+		};
+
 		ThreadPool& threadPool;
 		std::vector<SubTaskQueue> taskQueueGrid;
 #ifdef _DEBUG
@@ -117,17 +131,18 @@ namespace PaintsNow {
 			assert(warp != ~(uint32_t)0);
 			kernel.SuspendWarp(warp);
 		}
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(request, true);
 			kernel.ResumeWarp(warp);
 
-			delete this;
+			ITask::Delete(this);
 		}
-		virtual void Abort(void* request) override {
+
+		void Abort(void* request) override {
 			callback(request, false);
 			kernel.ResumeWarp(warp);
 
-			delete this;
+			ITask::Delete(this);
 		}
 
 		Kernel& kernel;
@@ -137,7 +152,7 @@ namespace PaintsNow {
 
 	template <class T>
 	ITask* CreateCoTask(Kernel& k, T ref) {
-		return new CoTaskTemplate<T>(ref);
+		return new (ITask::Allocate(sizeof(CoTaskTemplate<T>))) CoTaskTemplate<T>(ref);
 	}
 
 	template <class T, class A>
@@ -151,15 +166,15 @@ namespace PaintsNow {
 			kernel.SuspendWarp(warp);
 		}
 
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(request, true, pa);
 			kernel.ResumeWarp(warp);
-			delete this;
+			ITask::Delete(this);
 		}
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			callback(request, false, pa);
 			kernel.ResumeWarp(warp);
-			delete this;
+			ITask::Delete(this);
 		}
 
 		Kernel& kernel;
@@ -170,7 +185,7 @@ namespace PaintsNow {
 
 	template <class T, class A>
 	ITask* CreateCoTask(Kernel& k, T ref, A a) {
-		return new CoTaskTemplateA<T, A>(k, ref, a);
+		return new (ITask::Allocate(sizeof(CoTaskTemplateA<T, A>))) CoTaskTemplateA<T, A>(k, ref, a);
 	}
 
 	template <class T, class A, class B>
@@ -183,15 +198,15 @@ namespace PaintsNow {
 			assert(warp != ~(uint32_t)0);
 			kernel.SuspendWarp(warp);
 		}
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(request, true, pa, pb);
 			kernel.ResumeWarp(warp);
-			delete this;
+			ITask::Delete(this);
 		}
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			callback(request, false, pa, pb);
 			kernel.ResumeWarp(warp);
-			delete this;
+			ITask::Delete(this);
 		}
 
 		Kernel& kernel;
@@ -203,7 +218,7 @@ namespace PaintsNow {
 
 	template <class T, class A, class B>
 	ITask* CreateCoTask(Kernel& k, T ref, A a, B b) {
-		return new CoTaskTemplateB<T, A, B>(k, ref, a, b);
+		return new (ITask::Allocate(sizeof(CoTaskTemplateB<T, A, B>))) CoTaskTemplateB<T, A, B>(k, ref, a, b);
 	}
 
 	template <class T, class A, class B, class C>
@@ -215,15 +230,15 @@ namespace PaintsNow {
 			assert(warp != ~(uint32_t)0);
 			kernel.SuspendWarp(warp);
 		}
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(request, true, pa, pb, pc);
 			kernel.ResumeWarp(warp);
-			delete this;
+			ITask::Delete(this);
 		}
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			callback(request, false, pa, pb, pc);
 			kernel.ResumeWarp(warp);
-			delete this;
+			ITask::Delete(this);
 		}
 
 		Kernel& kernel;
@@ -236,7 +251,7 @@ namespace PaintsNow {
 
 	template <class T, class A, class B, class C>
 	ITask* CreateCoTask(Kernel& k, T ref, A a, B b, C c) {
-		return new CoTaskTemplateC<T, A, B, C>(k, ref, a, b, c);
+		return new (ITask::Allocate(sizeof(CoTaskTemplateC<T, A, B, C>))) CoTaskTemplateC<T, A, B, C>(k, ref, a, b, c);
 	}
 
 	template <class T, class A, class B, class C, class D>
@@ -248,15 +263,15 @@ namespace PaintsNow {
 			assert(warp != ~(uint32_t)0);
 			kernel.SuspendWarp(warp);
 		}
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(request, true, pa, pb, pc, pd);
 			kernel.ResumeWarp(warp);
-			delete this;
+			ITask::Delete(this);
 		}
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			callback(request, false, pa, pb, pc, pd);
 			kernel.ResumeWarp(warp);
-			delete this;
+			ITask::Delete(this);
 		}
 
 		Kernel& kernel;
@@ -270,7 +285,7 @@ namespace PaintsNow {
 
 	template <class T, class A, class B, class C, class D>
 	ITask* CreateCoTask(Kernel& k, T ref, A a, B b, C c, D d) {
-		return new CoTaskTemplateD<T, A, B, C, D>(k, ref, a, b, c, d);
+		return new (ITask::Allocate(sizeof(CoTaskTemplateD<T, A, B, C, D>))) CoTaskTemplateD<T, A, B, C, D>(k, ref, a, b, c, d);
 	}
 
 	template <class T, class A, class B, class C, class D, class E>
@@ -282,15 +297,15 @@ namespace PaintsNow {
 			assert(warp != ~(uint32_t)0);
 			kernel.SuspendWarp(warp);
 		}
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(request, true, pa, pb, pc, pd, pe);
 			kernel.ResumeWarp(warp);
-			delete this;
+			ITask::Delete(this);
 		}
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			callback(request, false, pa, pb, pc, pd, pe);
 			kernel.ResumeWarp(warp);
-			delete this;
+			ITask::Delete(this);
 		}
 
 		Kernel& kernel;
@@ -305,7 +320,7 @@ namespace PaintsNow {
 
 	template <class T, class A, class B, class C, class D, class E>
 	ITask* CreateCoTask(Kernel& k, T ref, A a, B b, C c, D d, E e) {
-		return new CoTaskTemplateE<T, A, B, C, D, E>(k, ref, a, b, c, d, e);
+		return new (ITask::Allocate(sizeof(CoTaskTemplateE<T, A, B, C, D, E>))) CoTaskTemplateE<T, A, B, C, D, E>(k, ref, a, b, c, d, e);
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F>
@@ -317,15 +332,15 @@ namespace PaintsNow {
 			assert(warp != ~(uint32_t)0);
 			kernel.SuspendWarp(warp);
 		}
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(request, true, pa, pb, pc, pd, pe, pf);
 			kernel.ResumeWarp(warp);
-			delete this;
+			ITask::Delete(this);
 		}
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			callback(request, false, pa, pb, pc, pd, pe, pf);
 			kernel.ResumeWarp(warp);
-			delete this;
+			ITask::Delete(this);
 		}
 
 		Kernel& kernel;
@@ -341,7 +356,7 @@ namespace PaintsNow {
 
 	template <class T, class A, class B, class C, class D, class E, class F>
 	ITask* CreateCoTask(Kernel& k, T ref, A a, B b, C c, D d, E e, F f) {
-		return new CoTaskTemplateF<T, A, B, C, D, E, F>(k, ref, a, b, c, d, e, f);
+		return new (ITask::Allocate(sizeof(CoTaskTemplateF<T, A, B, C, D, E, F>))) CoTaskTemplateF<T, A, B, C, D, E, F>(k, ref, a, b, c, d, e, f);
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G>
@@ -353,15 +368,15 @@ namespace PaintsNow {
 			assert(warp != ~(uint32_t)0);
 			kernel.SuspendWarp(warp);
 		}
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(request, true, pa, pb, pc, pd, pe, pf, pg);
 			kernel.ResumeWarp(warp);
-			delete this;
+			ITask::Delete(this);
 		}
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			callback(request, false, pa, pb, pc, pd, pe, pf, pg);
 			kernel.ResumeWarp(warp);
-			delete this;
+			ITask::Delete(this);
 		}
 
 		Kernel& kernel;
@@ -378,7 +393,7 @@ namespace PaintsNow {
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G>
 	ITask* CreateCoTask(Kernel& k, T ref, A a, B b, C c, D d, E e, F f, G g) {
-		return new CoTaskTemplateG<T, A, B, C, D, E, F, G>(k, ref, a, b, c, d, e, f, g);
+		return new (ITask::Allocate(sizeof(CoTaskTemplateG<T, A, B, C, D, E, F, G>))) CoTaskTemplateG<T, A, B, C, D, E, F, G>(k, ref, a, b, c, d, e, f, g);
 	}
 
 	// ContextFree tasks
@@ -391,15 +406,15 @@ namespace PaintsNow {
 			assert(warp != ~(uint32_t)0);
 			kernel.SuspendWarp(warp);
 		}
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback();
 			Abort(request);
 		}
 
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			kernel.ResumeWarp(warp);
 
-			delete this;
+			ITask::Delete(this);
 		}
 
 		Kernel& kernel;
@@ -409,7 +424,7 @@ namespace PaintsNow {
 
 	template <class T>
 	ITask* CreateCoTaskContextFree(Kernel& k, T ref) {
-		return new ContextFreeCoTaskTemplate<T>(ref);
+		return new (ITask::Allocate(sizeof(ContextFreeCoTaskTemplate<T>))) ContextFreeCoTaskTemplate<T>(ref);
 	}
 
 	template <class T, class A>
@@ -421,14 +436,14 @@ namespace PaintsNow {
 			assert(warp != ~(uint32_t)0);
 			kernel.SuspendWarp(warp);
 		}
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(pa);
 			Abort(request);
 		}
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			kernel.ResumeWarp(warp);
 
-			delete this;
+			ITask::Delete(this);
 		}
 
 		Kernel& kernel;
@@ -439,7 +454,7 @@ namespace PaintsNow {
 
 	template <class T, class A>
 	ITask* CreateCoTaskContextFree(Kernel& k, T ref, A a) {
-		return new ContextFreeCoTaskTemplateA<T, A>(k, ref, a);
+		return new (ITask::Allocate(sizeof(ContextFreeCoTaskTemplateA<T, A>))) ContextFreeCoTaskTemplateA<T, A>(k, ref, a);
 	}
 
 	template <class T, class A, class B>
@@ -451,14 +466,14 @@ namespace PaintsNow {
 			assert(warp != ~(uint32_t)0);
 			kernel.SuspendWarp(warp);
 		}
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(pa, pb);
 			Abort(request);
 		}
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			kernel.ResumeWarp(warp);
 
-			delete this;
+			ITask::Delete(this);
 		}
 
 		Kernel& kernel;
@@ -470,7 +485,7 @@ namespace PaintsNow {
 
 	template <class T, class A, class B>
 	ITask* CreateCoTaskContextFree(Kernel& k, T ref, A a, B b) {
-		return new ContextFreeCoTaskTemplateB<T, A, B>(k, ref, a, b);
+		return new (ITask::Allocate(sizeof(ContextFreeCoTaskTemplateB<T, A, B>))) ContextFreeCoTaskTemplateB<T, A, B>(k, ref, a, b);
 	}
 
 	template <class T, class A, class B, class C>
@@ -482,14 +497,14 @@ namespace PaintsNow {
 			assert(warp != ~(uint32_t)0);
 			kernel.SuspendWarp(warp);
 		}
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(pa, pb, pc);
 			Abort(request);
 		}
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			kernel.ResumeWarp(warp);
 
-			delete this;
+			ITask::Delete(this);
 		}
 
 		Kernel& kernel;
@@ -502,7 +517,7 @@ namespace PaintsNow {
 
 	template <class T, class A, class B, class C>
 	ITask* CreateCoTaskContextFree(Kernel& k, T ref, A a, B b, C c) {
-		return new ContextFreeCoTaskTemplateC<T, A, B, C>(k, ref, a, b, c);
+		return new (ITask::Allocate(sizeof(ContextFreeCoTaskTemplateC<T, A, B, C>))) ContextFreeCoTaskTemplateC<T, A, B, C>(k, ref, a, b, c);
 	}
 
 	template <class T, class A, class B, class C, class D>
@@ -514,15 +529,15 @@ namespace PaintsNow {
 			assert(warp != ~(uint32_t)0);
 			kernel.SuspendWarp(warp);
 		}
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(pa, pb, pc, pd);
 			Abort(request);
 		}
 
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			kernel.ResumeWarp(warp);
 
-			delete this;
+			ITask::Delete(this);
 		}
 
 		Kernel& kernel;
@@ -536,7 +551,7 @@ namespace PaintsNow {
 
 	template <class T, class A, class B, class C, class D>
 	ITask* CreateCoTaskContextFree(Kernel& k, T ref, A a, B b, C c, D d) {
-		return new ContextFreeCoTaskTemplateD<T, A, B, C, D>(k, ref, a, b, c, d);
+		return new (ITask::Allocate(sizeof(ContextFreeCoTaskTemplateD<T, A, B, C, D>))) ContextFreeCoTaskTemplateD<T, A, B, C, D>(k, ref, a, b, c, d);
 	}
 
 	template <class T, class A, class B, class C, class D, class E>
@@ -548,15 +563,15 @@ namespace PaintsNow {
 			assert(warp != ~(uint32_t)0);
 			kernel.SuspendWarp(warp);
 		}
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(pa, pb, pc, pd, pe);
 			Abort(request);
 		}
 
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			kernel.ResumeWarp(warp);
 
-			delete this;
+			ITask::Delete(this);
 		}
 
 		Kernel& kernel;
@@ -571,7 +586,7 @@ namespace PaintsNow {
 
 	template <class T, class A, class B, class C, class D, class E>
 	ITask* CreateCoTaskContextFree(Kernel& k, T ref, A a, B b, C c, D d, E e) {
-		return new ContextFreeCoTaskTemplateE<T, A, B, C, D, E>(k, ref, a, b, c, d, e);
+		return new (ITask::Allocate(sizeof(ContextFreeCoTaskTemplateE<T, A, B, C, D, E>))) ContextFreeCoTaskTemplateE<T, A, B, C, D, E>(k, ref, a, b, c, d, e);
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F>
@@ -583,15 +598,15 @@ namespace PaintsNow {
 			assert(warp != ~(uint32_t)0);
 			kernel.SuspendWarp(warp);
 		}
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(pa, pb, pc, pd, pe, pf);
 			Abort(request);
 		}
 
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			kernel.ResumeWarp(warp);
 
-			delete this;
+			ITask::Delete(this);
 		}
 
 		Kernel& kernel;
@@ -607,7 +622,7 @@ namespace PaintsNow {
 
 	template <class T, class A, class B, class C, class D, class E, class F>
 	ITask* CreateCoTaskContextFree(Kernel& k, T ref, A a, B b, C c, D d, E e, F f) {
-		return new ContextFreeCoTaskTemplateF<T, A, B, C, D, E, F>(k, ref, a, b, c, d, e, f);
+		return new (ITask::Allocate(sizeof(ContextFreeCoTaskTemplateF<T, A, B, C, D, E, F>))) ContextFreeCoTaskTemplateF<T, A, B, C, D, E, F>(k, ref, a, b, c, d, e, f);
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G>
@@ -619,15 +634,15 @@ namespace PaintsNow {
 			assert(warp != ~(uint32_t)0);
 			kernel.SuspendWarp(warp);
 		}
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(pa, pb, pc, pd, pe, pf, pg);
 			Abort(request);
 		}
 
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			kernel.ResumeWarp(warp);
 
-			delete this;
+			ITask::Delete(this);
 		}
 
 		Kernel& kernel;
@@ -644,7 +659,7 @@ namespace PaintsNow {
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G>
 	ITask* CreateCoTaskContextFree(Kernel& k, T ref, A a, B b, C c, D d, E e, F f, G g) {
-		return new ContextFreeCoTaskTemplateG<T, A, B, C, D, E, F, G>(k, ref, a, b, c, d, e, f, g);
+		return new (ITask::Allocate(sizeof(ContextFreeCoTaskTemplateG<T, A, B, C, D, E, F, G>))) ContextFreeCoTaskTemplateG<T, A, B, C, D, E, F, G>(k, ref, a, b, c, d, e, f, g);
 	}
 #else
 	template <typename T, typename... Args>
@@ -665,12 +680,12 @@ namespace PaintsNow {
 
 		void Execute(void* request) override {
 			Apply(request, true, gen_seq<sizeof...(Args)>());
-			delete this;
+			ITask::Delete(this);
 		}
 
 		void Abort(void* request) override {
 			Apply(request, false, gen_seq<sizeof...(Args)>());
-			delete this;
+			ITask::Delete(this);
 		}
 
 		Kernel& kernel;
@@ -681,7 +696,8 @@ namespace PaintsNow {
 
 	template <typename T, typename... Args>
 	ITask* CreateCoTask(Kernel& kernel, T closure, Args&&... args) {
-		return new CoTaskTemplate<T, Args...>(kernel, closure, std::forward<Args>(args)...);
+		void* p = ITask::Allocate(sizeof(CoTaskTemplate<T, Args...>));
+		return new (p) CoTaskTemplate<T, Args...>(kernel, closure, std::forward<Args>(args)...);
 	}
 
 	template <typename T, typename... Args>
@@ -701,13 +717,13 @@ namespace PaintsNow {
 
 		void Execute(void* request) override {
 			Apply(gen_seq<sizeof...(Args)>());
-			Abort(request);
+			kernel.ResumeWarp(warp);
+			ITask::Delete(this);
 		}
 
 		void Abort(void* request) override {
 			kernel.ResumeWarp(warp);
-
-			delete this;
+			ITask::Delete(this);
 		}
 
 		Kernel& kernel;
@@ -718,7 +734,8 @@ namespace PaintsNow {
 
 	template <typename T, typename... Args>
 	ITask* CreateCoTaskContextFree(Kernel& kernel, T t, Args&&... args) {
-		return new ContextFreeCoTaskTemplate<T, Args...>(kernel, t, std::forward<Args>(args)...);
+		void* p = ITask::Allocate(sizeof(ContextFreeCoTaskTemplate<T, Args...>));
+		return new (p) ContextFreeCoTaskTemplate<T, Args...>(kernel, t, std::forward<Args>(args)...);
 	}
 #endif
 }

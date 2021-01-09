@@ -951,6 +951,7 @@ namespace PaintsNow {
 
 				void* pointer;
 				void* member;
+				bool lockOnCall;
 			};
 
 			template <class T, class D>

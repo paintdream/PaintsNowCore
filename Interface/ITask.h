@@ -19,6 +19,15 @@ namespace PaintsNow {
 		virtual void Abort(void* context) = 0;
 		virtual bool Continue() const = 0;
 
+		static void* Allocate(size_t taskMemorySize);
+		static void Deallocate(void* p, size_t taskMemorySize);
+
+		template <class T>
+		void Delete(T* t) {
+			t->~T();
+			ITask::Deallocate(t, sizeof(T));
+		}
+
 		ITask* next;
 		size_t queued;
 	};
@@ -46,13 +55,13 @@ namespace PaintsNow {
 	class TaskTemplate : public TaskOnce {
 	public:
 		TaskTemplate(T ref) : callback(ref) {}
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(request, true);
-			delete this;
+			ITask::Delete(this);
 		}
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			callback(request, false);
-			delete this;
+			ITask::Delete(this);
 		}
 
 		T callback;
@@ -60,20 +69,20 @@ namespace PaintsNow {
 
 	template <class T>
 	ITask* CreateTask(T ref) {
-		return new TaskTemplate<T>(ref);
+		return new (ITask::Allocate(sizeof(TaskTemplate<T>))) TaskTemplate<T>(ref);
 	}
 
 	template <class T, class A>
 	class TaskTemplateA : public TaskOnce {
 	public:
 		TaskTemplateA(T ref, const A& a) : callback(ref) { pa = const_cast<A&>(a); }
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(request, true, pa);
-			delete this;
+			ITask::Delete(this);
 		}
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			callback(request, false, pa);
-			delete this;
+			ITask::Delete(this);
 		}
 
 		T callback;
@@ -82,20 +91,20 @@ namespace PaintsNow {
 
 	template <class T, class A>
 	ITask* CreateTask(T ref, const A& a) {
-		return new TaskTemplateA<T, A>(ref, a);
+		return new (ITask::Allocate(sizeof(TaskTemplateA<T, A>))) TaskTemplateA<T, A>(ref, a);
 	}
 
 	template <class T, class A, class B>
 	class TaskTemplateB : public TaskOnce {
 	public:
 		TaskTemplateB(T ref, const A& a, const B& b) : callback(ref) { pa = const_cast<A&>(a); pb = const_cast<B&>(b); }
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(request, true, pa, pb);
-			delete this;
+			ITask::Delete(this);
 		}
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			callback(request, false, pa, pb);
-			delete this;
+			ITask::Delete(this);
 		}
 
 		T callback;
@@ -105,20 +114,20 @@ namespace PaintsNow {
 
 	template <class T, class A, class B>
 	ITask* CreateTask(T ref, const A& a, const B& b) {
-		return new TaskTemplateB<T, A, B>(ref, a, b);
+		return new (ITask::Allocate(sizeof(TaskTemplateB<T, A, B>))) TaskTemplateB<T, A, B>(ref, a, b);
 	}
 
 	template <class T, class A, class B, class C>
 	class TaskTemplateC : public TaskOnce {
 	public:
 		TaskTemplateC(T ref, const A& a, const B& b, const C& c) : callback(ref) { pa = const_cast<A&>(a); pb = const_cast<B&>(b); pc = const_cast<C&>(c); }
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(request, true, pa, pb, pc);
-			delete this;
+			ITask::Delete(this);
 		}
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			callback(request, false, pa, pb, pc);
-			delete this;
+			ITask::Delete(this);
 		}
 
 		T callback;
@@ -129,20 +138,20 @@ namespace PaintsNow {
 
 	template <class T, class A, class B, class C>
 	ITask* CreateTask(T ref, const A& a, const B& b, const C& c) {
-		return new TaskTemplateC<T, A, B, C>(ref, a, b, c);
+		return new (ITask::Allocate(sizeof(TaskTemplateC<T, A, B, C>))) TaskTemplateC<T, A, B, C>(ref, a, b, c);
 	}
 
 	template <class T, class A, class B, class C, class D>
 	class TaskTemplateD : public TaskOnce {
 	public:
 		TaskTemplateD(T ref, const A& a, const B& b, const C& c, const D& d) : callback(ref) { pa = const_cast<A&>(a); pb = const_cast<B&>(b); pc = const_cast<C&>(c); pd = const_cast<D&>(d); }
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(request, true, pa, pb, pc, pd);
-			delete this;
+			ITask::Delete(this);
 		}
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			callback(request, false, pa, pb, pc, pd);
-			delete this;
+			ITask::Delete(this);
 		}
 
 		T callback;
@@ -154,20 +163,20 @@ namespace PaintsNow {
 
 	template <class T, class A, class B, class C, class D>
 	ITask* CreateTask(T ref, const A& a, const B& b, const C& c, const D& d) {
-		return new TaskTemplateD<T, A, B, C, D>(ref, a, b, c, d);
+		return new (ITask::Allocate(sizeof(TaskTemplateD<T, A, B, C, D>))) TaskTemplateD<T, A, B, C, D>(ref, a, b, c, d);
 	}
 
 	template <class T, class A, class B, class C, class D, class E>
 	class TaskTemplateE : public TaskOnce {
 	public:
 		TaskTemplateE(T ref, const A& a, const B& b, const C& c, const D& d, const E& e) : callback(ref) { pa = const_cast<A&>(a); pb = const_cast<B&>(b); pc = const_cast<C&>(c); pd = const_cast<D&>(d); pe = const_cast<E&>(e); }
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(request, true, pa, pb, pc, pd, pe);
-			delete this;
+			ITask::Delete(this);
 		}
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			callback(request, false, pa, pb, pc, pd, pe);
-			delete this;
+			ITask::Delete(this);
 		}
 
 		T callback;
@@ -180,20 +189,20 @@ namespace PaintsNow {
 
 	template <class T, class A, class B, class C, class D, class E>
 	ITask* CreateTask(T ref, const A& a, const B& b, const C& c, const D& d, const E& e) {
-		return new TaskTemplateE<T, A, B, C, D, E>(ref, a, b, c, d, e);
+		return new (ITask::Allocate(sizeof(TaskTemplateE<T, A, B, C, D, E>))) TaskTemplateE<T, A, B, C, D, E>(ref, a, b, c, d, e);
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F>
 	class TaskTemplateF : public TaskOnce {
 	public:
 		TaskTemplateF(T ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f) : callback(ref) { pa = const_cast<A&>(a); pb = const_cast<B&>(b); pc = const_cast<C&>(c); pd = const_cast<D&>(d); pe = const_cast<E&>(e); pf = const_cast<F&>(f); }
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(request, true, pa, pb, pc, pd, pe, pf);
-			delete this;
+			ITask::Delete(this);
 		}
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			callback(request, false, pa, pb, pc, pd, pe, pf);
-			delete this;
+			ITask::Delete(this);
 		}
 
 		T callback;
@@ -207,20 +216,20 @@ namespace PaintsNow {
 
 	template <class T, class A, class B, class C, class D, class E, class F>
 	ITask* CreateTask(T ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f) {
-		return new TaskTemplateF<T, A, B, C, D, E, F>(ref, a, b, c, d, e, f);
+		return new (ITask::Allocate(sizeof(TaskTemplateF<T, A, B, C, D, E, F>))) TaskTemplateF<T, A, B, C, D, E, F>(ref, a, b, c, d, e, f);
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G>
 	class TaskTemplateG : public TaskOnce {
 	public:
 		TaskTemplateG(T ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g) : callback(ref) { pa = const_cast<A&>(a); pb = const_cast<B&>(b); pc = const_cast<C&>(c); pd = const_cast<D&>(d); pe = const_cast<E&>(e); pf = const_cast<F&>(f); pg = const_cast<G&>(g); }
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(request, true, pa, pb, pc, pd, pe, pf, pg);
-			delete this;
+			ITask::Delete(this);
 		}
-		virtual void Abort(void* request) override {
+		void Abort(void* request) override {
 			callback(request, false, pa, pb, pc, pd, pe, pf, pg);
-			delete this;
+			ITask::Delete(this);
 		}
 
 		T callback;
@@ -235,7 +244,7 @@ namespace PaintsNow {
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G>
 	ITask* CreateTask(T ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g) {
-		return new TaskTemplateG<T, A, B, C, D, E, F, G>(ref, a, b, c, d, e, f, g);
+		return new (ITask::Allocate(sizeof(TaskTemplateG<T, A, B, C, D, E, F, G>))) TaskTemplateG<T, A, B, C, D, E, F, G>(ref, a, b, c, d, e, f, g);
 	}
 
 	// ContextFree tasks
@@ -244,9 +253,13 @@ namespace PaintsNow {
 	class ContextFreeTaskTemplate : public TaskOnce {
 	public:
 		ContextFreeTaskTemplate(T ref) : callback(ref) {}
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback();
-			delete this;
+			ITask::Delete(this);
+		}
+
+		void Abort(void* request) override {
+			ITask::Delete(this);
 		}
 
 		T callback;
@@ -254,36 +267,42 @@ namespace PaintsNow {
 
 	template <class T>
 	ITask* CreateTaskContextFree(T ref) {
-		return new ContextFreeTaskTemplate<T>(ref);
+		return new (ITask::Allocate(sizeof(ContextFreeTaskTemplate<T>))) ContextFreeTaskTemplate<T>(ref);
 	}
 
 	template <class T, class A>
 	class ContextFreeTaskTemplateA : public TaskOnce {
 	public:
 		ContextFreeTaskTemplateA(T ref, const A& a) : callback(ref) { pa = const_cast<A&>(a); }
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(pa);
-			delete this;
+			ITask::Delete(this);
 		}
 
+		void Abort(void* request) override {
+			ITask::Delete(this);
+		}
 		T callback;
 		typename std::decay<A>::type pa;
 	};
 
 	template <class T, class A>
 	ITask* CreateTaskContextFree(T ref, const A& a) {
-		return new ContextFreeTaskTemplateA<T, A>(ref, a);
+		return new (ITask::Allocate(sizeof(ContextFreeTaskTemplateA<T, A>))) ContextFreeTaskTemplateA<T, A>(ref, a);
 	}
 
 	template <class T, class A, class B>
 	class ContextFreeTaskTemplateB : public TaskOnce {
 	public:
 		ContextFreeTaskTemplateB(T ref, const A& a, const B& b) : callback(ref) { pa = const_cast<A&>(a); pb = const_cast<B&>(b); }
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(pa, pb);
-			delete this;
+			ITask::Delete(this);
 		}
 
+		void Abort(void* request) override {
+			ITask::Delete(this);
+		}
 		T callback;
 		typename std::decay<A>::type pa;
 		typename std::decay<B>::type pb;
@@ -291,18 +310,21 @@ namespace PaintsNow {
 
 	template <class T, class A, class B>
 	ITask* CreateTaskContextFree(T ref, const A& a, const B& b) {
-		return new ContextFreeTaskTemplateB<T, A, B>(ref, a, b);
+		return new (ITask::Allocate(sizeof(ContextFreeTaskTemplateB<T, A, B>))) ContextFreeTaskTemplateB<T, A, B>(ref, a, b);
 	}
 
 	template <class T, class A, class B, class C>
 	class ContextFreeTaskTemplateC : public TaskOnce {
 	public:
 		ContextFreeTaskTemplateC(T ref, const A& a, const B& b, const C& c) : callback(ref) { pa = const_cast<A&>(a); pb = const_cast<B&>(b); pc = const_cast<C&>(c); }
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(pa, pb, pc);
-			delete this;
+			ITask::Delete(this);
 		}
 
+		void Abort(void* request) override {
+			ITask::Delete(this);
+		}
 		T callback;
 		typename std::decay<A>::type pa;
 		typename std::decay<B>::type pb;
@@ -311,18 +333,21 @@ namespace PaintsNow {
 
 	template <class T, class A, class B, class C>
 	ITask* CreateTaskContextFree(T ref, const A& a, const B& b, const C& c) {
-		return new ContextFreeTaskTemplateC<T, A, B, C>(ref, a, b, c);
+		return new (ITask::Allocate(sizeof(ContextFreeTaskTemplateC<T, A, B, C>))) ContextFreeTaskTemplateC<T, A, B, C>(ref, a, b, c);
 	}
 
 	template <class T, class A, class B, class C, class D>
 	class ContextFreeTaskTemplateD : public TaskOnce {
 	public:
 		ContextFreeTaskTemplateD(T ref, const A& a, const B& b, const C& c, const D& d) : callback(ref) { pa = const_cast<A&>(a); pb = const_cast<B&>(b); pc = const_cast<C&>(c); pd = const_cast<D&>(d); }
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(pa, pb, pc, pd);
-			delete this;
+			ITask::Delete(this);
 		}
 
+		void Abort(void* request) override {
+			ITask::Delete(this);
+		}
 		T callback;
 		typename std::decay<A>::type pa;
 		typename std::decay<B>::type pb;
@@ -332,18 +357,21 @@ namespace PaintsNow {
 
 	template <class T, class A, class B, class C, class D>
 	ITask* CreateTaskContextFree(T ref, const A& a, const B& b, const C& c, const D& d) {
-		return new ContextFreeTaskTemplateD<T, A, B, C, D>(ref, a, b, c, d);
+		return new (ITask::Allocate(sizeof(ContextFreeTaskTemplateD<T, A, B, C, D>))) ContextFreeTaskTemplateD<T, A, B, C, D>(ref, a, b, c, d);
 	}
 
 	template <class T, class A, class B, class C, class D, class E>
 	class ContextFreeTaskTemplateE : public TaskOnce {
 	public:
 		ContextFreeTaskTemplateE(T ref, const A& a, const B& b, const C& c, const D& d, const E& e) : callback(ref) { pa = const_cast<A&>(a); pb = const_cast<B&>(b); pc = const_cast<C&>(c); pd = const_cast<D&>(d); pe = const_cast<E&>(e); }
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(pa, pb, pc, pd, pe);
-			delete this;
+			ITask::Delete(this);
 		}
 
+		void Abort(void* request) override {
+			ITask::Delete(this);
+		}
 		T callback;
 		typename std::decay<A>::type pa;
 		typename std::decay<B>::type pb;
@@ -354,18 +382,21 @@ namespace PaintsNow {
 
 	template <class T, class A, class B, class C, class D, class E>
 	ITask* CreateTaskContextFree(T ref, const A& a, const B& b, const C& c, const D& d, const E& e) {
-		return new ContextFreeTaskTemplateE<T, A, B, C, D, E>(ref, a, b, c, d, e);
+		return new (ITask::Allocate(sizeof(ContextFreeTaskTemplateE<T, A, B, C, D, E>))) ContextFreeTaskTemplateE<T, A, B, C, D, E>(ref, a, b, c, d, e);
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F>
 	class ContextFreeTaskTemplateF : public TaskOnce {
 	public:
 		ContextFreeTaskTemplateF(T ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f) : callback(ref) { pa = const_cast<A&>(a); pb = const_cast<B&>(b); pc = const_cast<C&>(c); pd = const_cast<D&>(d); pe = const_cast<E&>(e); pf = const_cast<F&>(f); }
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(pa, pb, pc, pd, pe, pf);
-			delete this;
+			ITask::Delete(this);
 		}
 
+		void Abort(void* request) override {
+			ITask::Delete(this);
+		}
 		T callback;
 		typename std::decay<A>::type pa;
 		typename std::decay<B>::type pb;
@@ -377,18 +408,21 @@ namespace PaintsNow {
 
 	template <class T, class A, class B, class C, class D, class E, class F>
 	ITask* CreateTaskContextFree(T ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f) {
-		return new ContextFreeTaskTemplateF<T, A, B, C, D, E, F>(ref, a, b, c, d, e, f);
+		return new (ITask::Allocate(sizeof(ContextFreeTaskTemplateF<T, A, B, C, D, E, F>))) ContextFreeTaskTemplateF<T, A, B, C, D, E, F>(ref, a, b, c, d, e, f);
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G>
 	class ContextFreeTaskTemplateG : public TaskOnce {
 	public:
 		ContextFreeTaskTemplateG(T ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g) : callback(ref) { pa = const_cast<A&>(a); pb = const_cast<B&>(b); pc = const_cast<C&>(c); pd = const_cast<D&>(d); pe = const_cast<E&>(e); pf = const_cast<F&>(f); pg = const_cast<G&>(g); }
-		virtual void Execute(void* request) override {
+		void Execute(void* request) override {
 			callback(pa, pb, pc, pd, pe, pf, pg);
-			delete this;
+			ITask::Delete(this);
 		}
 
+		void Abort(void* request) override {
+			ITask::Delete(this);
+		}
 		T callback;
 		typename std::decay<A>::type pa;
 		typename std::decay<B>::type pb;
@@ -401,7 +435,7 @@ namespace PaintsNow {
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G>
 	ITask* CreateTaskContextFree(T ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g) {
-		return new ContextFreeTaskTemplateG<T, A, B, C, D, E, F, G>(ref, a, b, c, d, e, f, g);
+		return new (ITask::Allocate(sizeof(ContextFreeTaskTemplateG<T, A, B, C, D, E, F, G>))) ContextFreeTaskTemplateG<T, A, B, C, D, E, F, G>(ref, a, b, c, d, e, f, g);
 	}
 #else
 
@@ -418,12 +452,12 @@ namespace PaintsNow {
 
 		void Execute(void* request) override {
 			Apply(request, true, gen_seq<sizeof...(Args)>());
-			delete this;
+			ITask::Delete(this);
 		}
 
 		void Abort(void* request) override {
 			Apply(request, false, gen_seq<sizeof...(Args)>());
-			delete this;
+			ITask::Delete(this);
 		}
 
 		T callback;
@@ -432,7 +466,8 @@ namespace PaintsNow {
 
 	template <typename T, typename... Args>
 	ITask* CreateTask(T closure, Args&&... args) {
-		return new TaskTemplate<T, Args...>(closure, std::forward<Args>(args)...);
+		void* p = ITask::Allocate(sizeof(TaskTemplate<T, Args...>));
+		return new (p) TaskTemplate<T, Args...>(closure, std::forward<Args>(args)...);
 	}
 
 	template <typename T, typename... Args>
@@ -448,7 +483,11 @@ namespace PaintsNow {
 
 		void Execute(void* request) override {
 			Apply(gen_seq<sizeof...(Args)>());
-			delete this;
+			ITask::Delete(this);
+		}
+
+		void Abort(void* request) override {
+			ITask::Delete(this);
 		}
 
 		T callback;
@@ -457,7 +496,8 @@ namespace PaintsNow {
 
 	template <typename T, typename... Args>
 	ITask* CreateTaskContextFree(T t, Args&&... args) {
-		return new ContextFreeTaskTemplate<T, Args...>(t, std::forward<Args>(args)...);
+		void* p = ITask::Allocate(sizeof(ContextFreeTaskTemplate<T, Args...>));
+		return new (p) ContextFreeTaskTemplate<T, Args...>(t, std::forward<Args>(args)...);
 	}
 
 #endif

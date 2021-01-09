@@ -114,37 +114,31 @@ void Kernel::Clear() {
 #endif
 }
 
-// Make VC6 Happy.
-class ForwardRoutine : public TaskOnce {
-public:
-	ForwardRoutine(Kernel& k, WarpTiny* tn, ITask* tk) : kernel(k), tiny(tn), task(tk) {}
-	void Execute(void* context) override {
-		OPTICK_EVENT();
-		assert(next == nullptr);
-		assert(queued == 0);
-		// requeue it
-		uint32_t warpIndex = tiny->GetWarpIndex();
-		kernel.QueueRoutine(tiny, task);
-		tiny->ReleaseObject();
-		delete this;
-	}
+Kernel::ForwardRoutine::ForwardRoutine(Kernel& k, WarpTiny* tn, ITask* tk) : kernel(k), tiny(tn), task(tk) {}
 
-	void Abort(void* context) override {
-		OPTICK_EVENT();
-		assert(next == nullptr);
-		assert(queued == 0);
-		// force
-		WarpIndex = tiny->GetWarpIndex();
-		task->Abort(context);
-		tiny->ReleaseObject();
-		delete this;
-	}
+void Kernel::ForwardRoutine::Execute(void* context) {
+	OPTICK_EVENT();
+	assert(next == nullptr);
+	assert(queued == 0);
+	// requeue it
+	uint32_t warpIndex = tiny->GetWarpIndex();
+	kernel.QueueRoutine(tiny, task);
+	tiny->ReleaseObject();
 
-private:
-	Kernel& kernel;
-	WarpTiny* tiny;
-	ITask* task;
-};
+	ITask::Delete(this);
+}
+
+void Kernel::ForwardRoutine::Abort(void* context) {
+	OPTICK_EVENT();
+	assert(next == nullptr);
+	assert(queued == 0);
+	// force
+	WarpIndex = tiny->GetWarpIndex();
+	task->Abort(context);
+	tiny->ReleaseObject();
+
+	ITask::Delete(this);
+}
 
 inline void Kernel::QueueRoutineInternal(uint32_t toWarpIndex, uint32_t fromThreadIndex, WarpTiny* warpTiny, ITask* task) {
 	// Different warp-thread pair indicates different queue grid, so it's thread safe.
@@ -167,7 +161,7 @@ void Kernel::QueueRoutine(WarpTiny* warpTiny, ITask* task) {
 		assert(threadPool.IsLocked());
 		// forward to threadPool directly
 		warpTiny->ReferenceObject();
-		threadPool.Push(new ForwardRoutine(*this, warpTiny, task));
+		threadPool.Push(new (ITask::Allocate(sizeof(ForwardRoutine))) ForwardRoutine(*this, warpTiny, task));
 		threadPool.UnLock();
 	} else if (WarpIndex == toWarpIndex && (size_t)q.threadWarp.load(std::memory_order_acquire) == (size_t)&WarpIndex && q.suspendCount.load(std::memory_order_acquire) == 0) {
 		// Just the same warp? Execute at once.
@@ -351,3 +345,4 @@ void Kernel::SubTaskQueue::Push(uint32_t fromThreadIndex, ITask* task, WarpTiny*
 const std::vector<TaskQueue::RingBuffer>& Kernel::SubTaskQueue::GetRingBuffers() const {
 	return TaskQueue::GetRingBuffers();
 }
+
