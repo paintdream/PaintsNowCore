@@ -64,7 +64,7 @@ namespace Optick
 void* (*Memory::allocate)(size_t) = [](size_t size)->void* { return operator new(size); };
 void (*Memory::deallocate)(void* p) = [](void* p) { operator delete(p); };
 void (*Memory::initThread)(void) = nullptr;
-std::atomic<uint64_t> Memory::memAllocated;
+std::atomic<size_t> Memory::memAllocated;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 uint64_t MurmurHash64A(const void * key, int len, uint64_t seed)
 {
@@ -758,10 +758,10 @@ bool SwitchContextCollector::Serialize(OutputDataStream& stream)
 #if defined(OPTICK_MSVC)
 #include <intrin.h>
 #define CPUID(INFO, ID) __cpuid(INFO, ID)
-#elif defined(__ANDROID__)
+#elif defined(__ANDROID__) || defined(__arm__)
 // Nothing
 #elif defined(OPTICK_GCC)
-#include <cpuid.h>
+//#include <cpuid.h>
 #define CPUID(INFO, ID) __cpuid(ID, INFO[0], INFO[1], INFO[2], INFO[3])
 #else
 #error Platform is not supported!
@@ -769,7 +769,7 @@ bool SwitchContextCollector::Serialize(OutputDataStream& stream)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 string GetCPUName()
 {
-#if defined(__ANDROID__)
+#if defined(__ANDROID__) || defined(__arm__)
 	FILE * fp = popen("cat /proc/cpuinfo | grep -m1 'model name'","r");
     char res[128] = {0};
     fread(res, 1, sizeof(res)-1, fp);

@@ -48,7 +48,7 @@ namespace Optick
 			uint64_t size;
 		};
 
-		static std::atomic<uint64_t> memAllocated;
+		static std::atomic<size_t> memAllocated;
 
 		static void* (*allocate)(size_t);
 		static void  (*deallocate)(void*);
