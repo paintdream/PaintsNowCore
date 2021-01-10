@@ -2,16 +2,22 @@
 #include "../Template/TAllocator.h"
 using namespace PaintsNow;
 
-static TShared<TAllocator<64> > globalTaskAllocator64;
-static TShared<TAllocator<128> > globalTaskAllocator128;
-static TShared<TAllocator<256> > globalTaskAllocator256;
+static TAllocator<64>* globalTaskAllocator64;
+static TAllocator<128>* globalTaskAllocator128;
+static TAllocator<256>* globalTaskAllocator256;
 
 class TaskInitializer {
 public:
 	TaskInitializer() {
-		globalTaskAllocator64 = TShared<TAllocator<64> >::From(new TAllocator<64>());
-		globalTaskAllocator128 = TShared<TAllocator<128> >::From(new TAllocator<128>());
-		globalTaskAllocator256 = TShared<TAllocator<256> >::From(new TAllocator<256>());
+		globalTaskAllocator64 = new TAllocator<64>();
+		globalTaskAllocator64->GetRootAllocator().Pin(globalTaskAllocator64);
+		globalTaskAllocator64->ReleaseObject();
+		globalTaskAllocator128 = new TAllocator<128>();
+		globalTaskAllocator128->GetRootAllocator().Pin(globalTaskAllocator128);
+		globalTaskAllocator128->ReleaseObject();
+		globalTaskAllocator256 = new TAllocator<256>();
+		globalTaskAllocator256->GetRootAllocator().Pin(globalTaskAllocator256);
+		globalTaskAllocator256->ReleaseObject();
 	}
 };
 

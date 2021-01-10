@@ -636,7 +636,7 @@ namespace PaintsNow {
 
 	// +
 	template <class T, size_t n>
-	inline TVector<T, n> operator + (const TVector<T, n>& lhs, T rhs) {
+	inline TVector<T, n> operator + (const TVector<T, n>& lhs, const T& rhs) {
 		TVector<T, n> v = lhs;
 		for (size_t i = 0; i < n; i++) {
 			v[i] += rhs;
@@ -646,8 +646,14 @@ namespace PaintsNow {
 	}
 
 #ifdef USE_SSE
+#ifndef _MSC_VER
 	template <>
+#endif
+#if defined(_MSC_VER) && _MSC_VER <= 1200
 	inline TVector<float, 4> operator + (const TVector<float, 4>& lhs, float rhs) {
+#else
+	inline TVector<float, 4> operator + (const TVector<float, 4>& lhs, const float& rhs) {
+#endif
 		__m128 vv = _mm_set_ps1(rhs);
 		return StoreVector4f(_mm_add_ps(LoadVector4f(lhs), vv));
 	}
@@ -661,7 +667,9 @@ namespace PaintsNow {
 	}
 
 #ifdef USE_SSE
+#ifndef _MSC_VER
 	template <>
+#endif
 	inline TVector<float, 4> operator + (const TVector<float, 4>& lhs, const TVector<float, 4>& rhs) {
 		return StoreVector4f(_mm_add_ps(LoadVector4f(lhs), LoadVector4f(rhs)));
 	}
@@ -676,7 +684,9 @@ namespace PaintsNow {
 	}
 
 #ifdef USE_SSE
+#ifndef _MSC_VER
 	template <>
+#endif
 	inline TVector<float, 4>& operator += (TVector<float, 4>& lhs, float t) {
 		__m128 vv = _mm_set_ps1(t);
 		return lhs = StoreVector4f(_mm_add_ps(LoadVector4f(lhs), vv));
@@ -693,7 +703,9 @@ namespace PaintsNow {
 	}
 
 #ifdef USE_SSE
+#ifndef _MSC_VER
 	template <>
+#endif
 	inline TVector<float, 4>& operator += (TVector<float, 4>& lhs, const TVector<float, 4>& rhs) {
 		return lhs = StoreVector4f(_mm_add_ps(LoadVector4f(lhs), LoadVector4f(rhs)));
 	}
@@ -701,7 +713,7 @@ namespace PaintsNow {
 	
 	// -
 	template <class T, size_t n>
-	inline TVector<T, n> operator - (const TVector<T, n>& lhs, T rhs) {
+	inline TVector<T, n> operator - (const TVector<T, n>& lhs, const T& rhs) {
 		TVector<T, n> v = lhs;
 		for (size_t i = 0; i < n; i++) {
 			v[i] -= rhs;
@@ -711,8 +723,14 @@ namespace PaintsNow {
 	}
 
 #ifdef USE_SSE
+#ifndef _MSC_VER
 	template <>
+#endif
+#if defined(_MSC_VER) && _MSC_VER <= 1200
 	inline TVector<float, 4> operator - (const TVector<float, 4>& lhs, float rhs) {
+#else
+	inline TVector<float, 4> operator - (const TVector<float, 4>& lhs, const float& rhs) {
+#endif
 		__m128 vv = _mm_set_ps1(rhs);
 		return StoreVector4f(_mm_sub_ps(LoadVector4f(lhs), vv));
 	}
@@ -726,7 +744,9 @@ namespace PaintsNow {
 	}
 
 #ifdef USE_SSE
+#ifndef _MSC_VER
 	template <>
+#endif
 	inline TVector<float, 4> operator - (const TVector<float, 4>& lhs, const TVector<float, 4>& rhs) {
 		return StoreVector4f(_mm_sub_ps(LoadVector4f(lhs), LoadVector4f(rhs)));
 	}
@@ -741,7 +761,9 @@ namespace PaintsNow {
 	}
 
 #ifdef USE_SSE
+#ifndef _MSC_VER
 	template <>
+#endif
 	inline TVector<float, 4>& operator -= (TVector<float, 4>& lhs, float t) {
 		__m128 vv = _mm_set_ps1(t);
 		return lhs = StoreVector4f(_mm_sub_ps(LoadVector4f(lhs), vv));
@@ -758,7 +780,9 @@ namespace PaintsNow {
 	}
 
 #ifdef USE_SSE
+#ifndef _MSC_VER
 	template <>
+#endif
 	inline TVector<float, 4>& operator -= (TVector<float, 4>& lhs, const TVector<float, 4>& rhs) {
 		return lhs = StoreVector4f(_mm_sub_ps(LoadVector4f(lhs), LoadVector4f(rhs)));
 	}
@@ -766,7 +790,7 @@ namespace PaintsNow {
 
 	// *
 	template <class T, size_t n>
-	inline TVector<T, n> operator * (const TVector<T, n>& lhs, T rhs) {
+	inline TVector<T, n> operator * (const TVector<T, n>& lhs, const T& rhs) {
 		TVector<T, n> v = lhs;
 		for (size_t i = 0; i < n; i++) {
 			v[i] *= rhs;
@@ -776,8 +800,14 @@ namespace PaintsNow {
 	}
 
 #ifdef USE_SSE
+#ifndef _MSC_VER
 	template <>
+#endif
+#if defined(_MSC_VER) && _MSC_VER <= 1200
 	inline TVector<float, 4> operator * (const TVector<float, 4>& lhs, float rhs) {
+#else
+	inline TVector<float, 4> operator * (const TVector<float, 4>& lhs, const float& rhs) {
+#endif
 		__m128 vv = _mm_set_ps1(rhs);
 		return StoreVector4f(_mm_mul_ps(LoadVector4f(lhs), vv));
 	}
@@ -791,14 +821,16 @@ namespace PaintsNow {
 	}
 
 #ifdef USE_SSE
+#ifndef _MSC_VER
 	template <>
+#endif
 	inline TVector<float, 4> operator * (const TVector<float, 4>& lhs, const TVector<float, 4>& rhs) {
 		return StoreVector4f(_mm_mul_ps(LoadVector4f(lhs), LoadVector4f(rhs)));
 	}
 #endif
 
 	template <class T, size_t n>
-	inline TVector<T, n>& operator *= (TVector<T, n>& lhs, T t) {
+	inline TVector<T, n>& operator *= (TVector<T, n>& lhs, const T& t) {
 		for (size_t i = 0; i < n; i++) {
 			lhs[i] *= t;
 		}
@@ -806,8 +838,14 @@ namespace PaintsNow {
 	}
 
 #ifdef USE_SSE
+#ifndef _MSC_VER
 	template <>
+#endif
+#if defined(_MSC_VER) && _MSC_VER <= 1200
 	inline TVector<float, 4>& operator *= (TVector<float, 4>& lhs, float t) {
+#else
+	inline TVector<float, 4>& operator *= (TVector<float, 4>& lhs, const float& t) {
+#endif
 		__m128 vv = _mm_set_ps1(t);
 		return lhs = StoreVector4f(_mm_mul_ps(LoadVector4f(lhs), vv));
 	}
@@ -823,7 +861,9 @@ namespace PaintsNow {
 	}
 
 #ifdef USE_SSE
+#ifndef _MSC_VER
 	template <>
+#endif
 	inline TVector<float, 4>& operator *= (TVector<float, 4>& lhs, const TVector<float, 4>& rhs) {
 		return lhs = StoreVector4f(_mm_mul_ps(LoadVector4f(lhs), LoadVector4f(rhs)));
 	}
@@ -831,7 +871,7 @@ namespace PaintsNow {
 
 	// /
 	template <class T, size_t n>
-	inline TVector<T, n> operator / (const TVector<T, n>& lhs, T rhs) {
+	inline TVector<T, n> operator / (const TVector<T, n>& lhs, const T& rhs) {
 		TVector<T, n> v = lhs;
 		for (size_t i = 0; i < n; i++) {
 			v[i] /= rhs;
@@ -841,8 +881,14 @@ namespace PaintsNow {
 	}
 
 #ifdef USE_SSE
+#ifndef _MSC_VER
 	template <>
+#endif
+#if defined(_MSC_VER) && _MSC_VER <= 1200
 	inline TVector<float, 4> operator / (const TVector<float, 4>& lhs, float rhs) {
+#else
+	inline TVector<float, 4> operator / (const TVector<float, 4>& lhs, const float& rhs) {
+#endif
 		__m128 vv = _mm_set_ps1(rhs);
 		return StoreVector4f(_mm_div_ps(LoadVector4f(lhs), vv));
 	}
@@ -856,14 +902,16 @@ namespace PaintsNow {
 	}
 
 #ifdef USE_SSE
+#ifndef _MSC_VER
 	template <>
+#endif
 	inline TVector<float, 4> operator / (const TVector<float, 4>& lhs, const TVector<float, 4>& rhs) {
 		return StoreVector4f(_mm_div_ps(LoadVector4f(lhs), LoadVector4f(rhs)));
 	}
 #endif
 
 	template <class T, size_t n>
-	inline TVector<T, n>& operator /= (TVector<T, n>& lhs, T t) {
+	inline TVector<T, n>& operator /= (TVector<T, n>& lhs, const T& t) {
 		for (size_t i = 0; i < n; i++) {
 			lhs[i] /= t;
 		}
@@ -871,8 +919,14 @@ namespace PaintsNow {
 	}
 
 #ifdef USE_SSE
+#ifndef _MSC_VER
 	template <>
+#endif
+#if defined(_MSC_VER) && _MSC_VER <= 1200
 	inline TVector<float, 4>& operator /= (TVector<float, 4>& lhs, float t) {
+#else
+	inline TVector<float, 4>& operator /= (TVector<float, 4>& lhs, const float& t) {
+#endif
 		__m128 vv = _mm_set_ps1(t);
 		return lhs = StoreVector4f(_mm_div_ps(LoadVector4f(lhs), vv));
 	}
@@ -888,7 +942,9 @@ namespace PaintsNow {
 	}
 
 #ifdef USE_SSE
+#ifndef _MSC_VER
 	template <>
+#endif
 	inline TVector<float, 4>& operator /= (TVector<float, 4>& lhs, const TVector<float, 4>& rhs) {
 		return lhs = StoreVector4f(_mm_div_ps(LoadVector4f(lhs), LoadVector4f(rhs)));
 	}

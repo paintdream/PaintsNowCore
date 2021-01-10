@@ -17,6 +17,11 @@ namespace PaintsNow {
 	class TRootAllocator {
 	public:
 		TRootAllocator() { critical.store(0, std::memory_order_relaxed); }
+		~TRootAllocator() {
+			pinObjects.clear();
+			assert(blocks.empty());
+		}
+
 		void* Allocate() {
 			static_assert(K < sizeof(size_t) * 8, "K is too large for root allocators.");
 
@@ -86,6 +91,13 @@ namespace PaintsNow {
 			return allocator;
 		}
 
+		// Pin global static objects that must be destructed before me
+		void Pin(const TShared<SharedTiny>& rhs) {
+			SpinLock(critical);
+			pinObjects.emplace_back(rhs);
+			SpinUnLock(critical);
+		}
+
 	protected:
 		struct Block {
 			uint8_t* address;
@@ -95,12 +107,13 @@ namespace PaintsNow {
 	protected:
 		std::atomic<size_t> critical;
 		std::vector<Block> blocks;
+		std::vector<TShared<SharedTiny> > pinObjects;
 	};
 
 	// Local allocator, allocate memory with specified alignment requirements.
 	// K = element size, M = block size, R = max recycled block count, 0 for not limited
 	template <size_t K, size_t M = 8192, size_t R = 8, size_t S = sizeof(size_t) * 8 - 1>
-	class pure_interface TAllocator : public TReflected<TAllocator<K, M, R>, SharedTiny> {
+	class TAllocator : public TReflected<TAllocator<K, M, R>, SharedTiny> {
 	public:
 		typedef TReflected<TAllocator<K, M, R>, SharedTiny> BaseClass;
 		enum {
@@ -130,18 +143,23 @@ namespace PaintsNow {
 			controlBlock.store(nullptr, std::memory_order_release);
 		}
 
+		inline TRootAllocator<M, S>& GetRootAllocator() {
+			return TRootAllocator<M, S>::Get();
+		}
+
 		~TAllocator() override {
 			ControlBlock* p = (ControlBlock*)controlBlock.load(std::memory_order_acquire);
 
 			// deallocate all caches
-			TRootAllocator<M, S>& allocator = TRootAllocator<M, S>::Get();
+			TRootAllocator<M, S>& allocator = GetRootAllocator();
 			if (p != nullptr) {
 				allocator.Deallocate(p);
 			}
 
 			for (size_t i = 0; i < recycled.size(); i++) {
-				if (recycled[i] != p) {
-					allocator.Deallocate(recycled[i]);
+				ControlBlock* t = recycled[i];
+				if (t != p) {
+					allocator.Deallocate(t);
 				}
 			}
 		}
@@ -170,7 +188,7 @@ namespace PaintsNow {
 					}
 
 					if (p == nullptr) {
-						p = reinterpret_cast<ControlBlock*>(TRootAllocator<M, S>::Get().Allocate());
+						p = reinterpret_cast<ControlBlock*>(GetRootAllocator().Allocate());
 						memset(p, 0, sizeof(ControlBlock));
 						p->allocator = this;
 						p->refCount.store(1, std::memory_order_relaxed); // newly allocated one, just set it to 1
@@ -220,7 +238,7 @@ namespace PaintsNow {
 						p->recycled.store(0, std::memory_order_relaxed);
 						--(*(uint32_t*)&recycleCount);
 					} else {
-						p = reinterpret_cast<ControlBlock*>(TRootAllocator<M, S>::Get().Allocate());
+						p = reinterpret_cast<ControlBlock*>(GetRootAllocator().Allocate());
 						memset(p, 0, sizeof(ControlBlock));
 						p->allocator = this;
 						p->refCount.store(1, std::memory_order_relaxed); // newly allocated one, just set it to 1
@@ -275,7 +293,7 @@ namespace PaintsNow {
 			assert(p->refCount.load(std::memory_order_acquire) != 0);
 			if (p->refCount.fetch_sub(1, std::memory_order_release) == 1) {
 				assert(controlBlock.load(std::memory_order_acquire) != p);
-				TRootAllocator<M, S>::Get().Deallocate(p);
+				GetRootAllocator().Deallocate(p);
 			}
 		}
 
@@ -283,7 +301,7 @@ namespace PaintsNow {
 			assert(p->refCount.load(std::memory_order_relaxed) != 0);
 			if (--*(uint32_t*)&p->refCount == 0) {
 				assert(controlBlock.load(std::memory_order_relaxed) != p);
-				TRootAllocator<M, S>::Get().Deallocate(p);
+				GetRootAllocator().Deallocate(p);
 			}
 		}
 

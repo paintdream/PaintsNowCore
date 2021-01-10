@@ -761,7 +761,7 @@ bool SwitchContextCollector::Serialize(OutputDataStream& stream)
 #elif defined(__ANDROID__) || defined(__arm__)
 // Nothing
 #elif defined(OPTICK_GCC)
-//#include <cpuid.h>
+#include <cpuid.h>
 #define CPUID(INFO, ID) __cpuid(ID, INFO[0], INFO[1], INFO[2], INFO[3])
 #else
 #error Platform is not supported!

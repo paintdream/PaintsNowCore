@@ -62,7 +62,7 @@
 // GPU Counters																										  
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #if !defined(OPTICK_ENABLE_GPU)
-#define OPTICK_ENABLE_GPU (USE_OPTICK /*&& 0*/)
+#define OPTICK_ENABLE_GPU (0)
 #endif //OPTICK_ENABLE_GPU
 
 // D3D12
