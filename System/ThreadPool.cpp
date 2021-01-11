@@ -1,4 +1,4 @@
-#define MAX_YIELD_COUNT 4
+#define MAX_YIELD_COUNT 8
 #define MAX_WAIT_MILLISECONDS 200
 
 #include "ThreadPool.h"
@@ -141,9 +141,7 @@ bool ThreadPool::Push(ITask* task) {
 		SpinUnLock(critical); // release
 #else
 		task->next = taskHead.load(std::memory_order_acquire);
-		while (!taskHead.compare_exchange_weak(task->next, task, std::memory_order_release)) {
-			YieldThreadFast();
-		}
+		while (!taskHead.compare_exchange_weak(task->next, task, std::memory_order_release)) {}
 #endif
 
 		std::atomic_thread_fence(std::memory_order_acquire);
@@ -185,7 +183,6 @@ bool ThreadPool::Poll(uint32_t index) {
 #endif
 	// Has task?
 	if (p != nullptr) {
-		OPTICK_PUSH("Execute");
 #if USE_PRESERVED_LIST
 		p->next = nullptr;
 #else
@@ -193,19 +190,14 @@ bool ThreadPool::Poll(uint32_t index) {
 
 		if (next != nullptr) {
 			p->next = nullptr;
-
 			ITask* t = taskHead.exchange(next, std::memory_order_release);
 			// Someone has pushed some new tasks at the same time.
 			// So rechain remaining tasks proceeding to the current one to new task head atomically.
 			while (t != nullptr) {
 				ITask* q = t;
 				t = t->next;
-				assert(q != p);
-
 				q->next = taskHead.load(std::memory_order_acquire);
-				while (!taskHead.compare_exchange_weak(q->next, q, std::memory_order_release)) {
-					YieldThreadFast();
-				}
+				while (!taskHead.compare_exchange_weak(q->next, q, std::memory_order_release)) {}
 			}
 		}
 #endif
@@ -215,6 +207,8 @@ bool ThreadPool::Poll(uint32_t index) {
 
 		// OK. now we can execute the task
 		void* context = threadInfos[index].context;
+
+		OPTICK_PUSH("Execute");
 
 		// Exited?
 		if (runningToken.load(std::memory_order_relaxed) == 0) {
