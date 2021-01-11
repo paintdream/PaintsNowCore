@@ -48,6 +48,7 @@ namespace PaintsNow {
 		std::atomic<ITask*> taskHead;
 		std::atomic<int32_t> liveThreadCount;
 		std::atomic<int32_t> runningToken;
+		std::atomic<int32_t> temperature;
 		uint32_t waitEventCounter;
 		uint32_t threadCount;
 		IThread::Event* eventPump;

@@ -25,6 +25,7 @@ void ThreadPool::Initialize() {
 	// Initialize thread pool states.
 	taskHead.store(nullptr, std::memory_order_relaxed);
 	liveThreadCount.store(0, std::memory_order_relaxed);
+	temperature.store(0, std::memory_order_relaxed);
 	runningToken.store(1, std::memory_order_release);
 	waitEventCounter = 0;
 
@@ -159,8 +160,9 @@ bool ThreadPool::Push(ITask* task) {
 bool ThreadPool::Poll(uint32_t index) {
 	OPTICK_EVENT();
 	// Wait for a moment
+	ITask* probe = nullptr;
 	for (uint32_t k = 0; k < MAX_YIELD_COUNT; k++) {
-		if ((ITask*)taskHead.load(std::memory_order_acquire) == nullptr) {
+		if ((probe = (ITask*)taskHead.load(std::memory_order_acquire)) == nullptr) {
 			YieldThreadFast();
 		} else {
 			break;
@@ -183,6 +185,7 @@ bool ThreadPool::Poll(uint32_t index) {
 #endif
 	// Has task?
 	if (p != nullptr) {
+
 #if USE_PRESERVED_LIST
 		p->next = nullptr;
 #else
@@ -199,6 +202,8 @@ bool ThreadPool::Poll(uint32_t index) {
 				q->next = taskHead.load(std::memory_order_acquire);
 				while (!taskHead.compare_exchange_weak(q->next, q, std::memory_order_release)) {}
 			}
+
+			temperature.store(threadCount, std::memory_order_release);
 		}
 #endif
 		assert(p->next == nullptr);
@@ -220,7 +225,13 @@ bool ThreadPool::Poll(uint32_t index) {
 		OPTICK_POP();
 		return true;
 	} else {
-		return false;
+		if (probe != nullptr) {
+			return true;
+		} else if (temperature.load(std::memory_order_acquire) > 0) {
+			return temperature.fetch_sub(1, std::memory_order_relaxed) >= 1;
+		} else {
+			return false;
+		}
 	}
 }
 
