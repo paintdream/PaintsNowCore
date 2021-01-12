@@ -73,7 +73,7 @@ namespace Optick
 			{
 				uint8_t* basePtr = (uint8_t*)p - sizeof(Header);
 				Header* header = (Header*)basePtr;
-				memAllocated -= header->size;
+				memAllocated -= (size_t)header->size;
 				deallocate(basePtr);
 			}
 		}

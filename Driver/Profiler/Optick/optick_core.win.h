@@ -1662,6 +1662,7 @@ void WinSymbolEngine::InitSystemModules()
 				if (strstr(module.imageName, systemRootPattern) == module.imageName)
 				{
 					strncpy(path, systemRootPath, MAXIMUM_FILENAME_LENGTH);
+					path[MAXIMUM_FILENAME_LENGTH - 1] = '\0';
 					strcat_s(path, module.imageName + strlen(systemRootPattern));
 				}
 				else
