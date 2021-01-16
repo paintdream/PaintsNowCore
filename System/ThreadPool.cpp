@@ -126,11 +126,11 @@ ThreadPool::~ThreadPool() {
 
 bool ThreadPool::Push(ITask* task) {
 	assert(task != nullptr);
-	std::atomic<size_t>& queued = *reinterpret_cast<std::atomic<size_t>*>(&task->queued);
-	if (queued.exchange(1, std::memory_order_acquire) == 1) // already pushed
-		return true;
+	if (runningToken.load(std::memory_order_acquire) != 0) {
+		std::atomic<size_t>& queued = *reinterpret_cast<std::atomic<size_t>*>(&task->queued);
+		if (queued.exchange(1, std::memory_order_acquire) == 1) // already pushed
+			return true;
 
-	if (runningToken.load(std::memory_order_relaxed) != 0) {
 		// Chain task
 		assert(task != taskHead.load(std::memory_order_acquire));
 		assert(task->next == nullptr);
@@ -169,69 +169,72 @@ bool ThreadPool::Poll(uint32_t index) {
 		}
 	}
 
+	if (probe != nullptr) {
 #if USE_PRESERVED_LIST
-	int32_t expected = 0;
-	ITask* p = nullptr;
-	if (critical.compare_exchange_strong(expected, 1, std::memory_order_acquire)) {
-		p = taskHead.load(std::memory_order_acquire);
-		if (p != nullptr) {
-			taskHead.store(p->next, std::memory_order_relaxed);
-		}
-
-		critical.store(0, std::memory_order_release);
-	}
-#else
-	ITask* p = taskHead.exchange(nullptr, std::memory_order_acquire);
-#endif
-	// Has task?
-	if (p != nullptr) {
-
-#if USE_PRESERVED_LIST
-		p->next = nullptr;
-#else
-		ITask* next = p->next;
-
-		if (next != nullptr) {
-			p->next = nullptr;
-			ITask* t = taskHead.exchange(next, std::memory_order_release);
-			// Someone has pushed some new tasks at the same time.
-			// So rechain remaining tasks proceeding to the current one to new task head atomically.
-			while (t != nullptr) {
-				ITask* q = t;
-				t = t->next;
-				q->next = taskHead.load(std::memory_order_acquire);
-				while (!taskHead.compare_exchange_weak(q->next, q, std::memory_order_release)) {}
+		size_t expected = 0;
+		ITask* p = nullptr;
+		if (critical.compare_exchange_strong(expected, 1, std::memory_order_acquire)) {
+			p = taskHead.load(std::memory_order_acquire);
+			if (p != nullptr) {
+				taskHead.store(p->next, std::memory_order_relaxed);
 			}
 
-			temperature.store(threadCount, std::memory_order_release);
+			critical.store(0, std::memory_order_release);
 		}
+#else
+		ITask* p = taskHead.exchange(nullptr, std::memory_order_acquire);
 #endif
-		assert(p->next == nullptr);
-		std::atomic<size_t>& queued = *reinterpret_cast<std::atomic<size_t>*>(&p->queued);
-		queued.store(0, std::memory_order_release);
+		// Has task?
+		if (p != nullptr) {
 
-		// OK. now we can execute the task
-		void* context = threadInfos[index].context;
+#if USE_PRESERVED_LIST
+			p->next = nullptr;
+#else
+			ITask* next = p->next;
 
-		OPTICK_PUSH("Execute");
+			if (next != nullptr) {
+				p->next = nullptr;
+				ITask* t = taskHead.exchange(next, std::memory_order_release);
+				// Someone has pushed some new tasks at the same time.
+				// So rechain remaining tasks proceeding to the current one to new task head atomically.
+				while (t != nullptr) {
+					ITask* q = t;
+					assert(q->queued == 1);
+					t = t->next;
+					q->next = taskHead.load(std::memory_order_acquire);
+					while (!taskHead.compare_exchange_weak(q->next, q, std::memory_order_release)) {}
+				}
 
-		// Exited?
-		if (runningToken.load(std::memory_order_relaxed) == 0) {
-			p->Abort(context);
-		} else {
-			p->Execute(context);
-		}
+				temperature.store(threadCount, std::memory_order_release);
+			}
+#endif
+			assert(p->next == nullptr);
+			std::atomic<size_t>& queued = *reinterpret_cast<std::atomic<size_t>*>(&p->queued);
+			queued.store(0, std::memory_order_release);
 
-		OPTICK_POP();
-		return true;
-	} else {
-		if (probe != nullptr) {
+			// OK. now we can execute the task
+			void* context = threadInfos[index].context;
+
+			OPTICK_PUSH("Execute");
+
+			// Exited?
+			if (runningToken.load(std::memory_order_relaxed) == 0) {
+				p->Abort(context);
+			} else {
+				p->Execute(context);
+			}
+
+			OPTICK_POP();
 			return true;
-		} else if (temperature.load(std::memory_order_acquire) > 0) {
-			return temperature.fetch_sub(1, std::memory_order_relaxed) >= 1;
-		} else {
-			return false;
 		}
+
+		return true;
+#if !USE_PRESERVED_LIST
+	} else if ((long)temperature.load(std::memory_order_acquire) > 0) {
+		return (long)temperature.fetch_sub(1, std::memory_order_relaxed) >= 1;
+#endif
+	} else {
+		return false;
 	}
 }
 

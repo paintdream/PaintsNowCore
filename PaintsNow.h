@@ -145,6 +145,7 @@ using rvalue = T&&;
 #if defined(_MSC_VER) && _MSC_VER <= 1200
 #define class_aligned(f) __declspec(align(f)) class
 #define struct_aligned(f) __declspec(align(f)) struct
+#define alignas(f) __declspec(align(f))
 #else
 #define class_aligned(f) class alignas(f)
 #define struct_aligned(f) struct alignas(f)

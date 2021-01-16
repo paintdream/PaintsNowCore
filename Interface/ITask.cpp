@@ -23,6 +23,7 @@ public:
 
 ITask::ITask() : next(nullptr) {
 	queued = 0;
+	std::atomic_thread_fence(std::memory_order_release);
 }
 
 ITask::~ITask() {}
