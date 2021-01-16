@@ -459,12 +459,12 @@ namespace PaintsNow {
 	// Reflector
 	class pure_interface IReflect {
 	public:
-		IReflect(bool reflectProperty = true, bool reflectMethod = false, bool reflectInterface = true, bool reflectEnum = false);
+		IReflect(bool reflectProperty = true, bool reflectMethod = false, bool reflectClass = true, bool reflectEnum = false);
 		virtual ~IReflect();
 
 		bool IsReflectProperty() const;
 		bool IsReflectMethod() const;
-		bool IsReflectInterface() const;
+		bool IsReflectClass() const;
 		bool IsReflectEnum() const;
 
 		void RegisterBuiltinTypes(bool useStdintType = false);
@@ -592,7 +592,7 @@ namespace PaintsNow {
 	private:
 		bool isReflectProperty;
 		bool isReflectMethod;
-		bool isReflectInterface;
+		bool isReflectClass;
 		bool isReflectEnum;
 	};
 

@@ -46,7 +46,7 @@ const TObject<IReflect>& IReflectObject::operator () (IReflect& reflect) const {
 	return *this;
 }
 
-IReflect::IReflect(bool property, bool method, bool inter, bool e) : isReflectProperty(property), isReflectMethod(method), isReflectInterface(inter), isReflectEnum(e) {}
+IReflect::IReflect(bool property, bool method, bool inter, bool e) : isReflectProperty(property), isReflectMethod(method), isReflectClass(inter), isReflectEnum(e) {}
 
 IReflect::~IReflect() {}
 
@@ -58,8 +58,8 @@ bool IReflect::IsReflectMethod() const {
 	return isReflectMethod;
 }
 
-bool IReflect::IsReflectInterface() const {
-	return isReflectInterface;
+bool IReflect::IsReflectClass() const {
+	return isReflectClass;
 }
 
 bool IReflect::IsReflectEnum() const {

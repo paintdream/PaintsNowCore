@@ -747,6 +747,29 @@ IScript::Request& ZScriptLua::Request::operator >> (String& v) {
 	return *this;
 }
 
+inline void byteswrite(lua_State* L, const Bytes& v) {
+	lua_pushlstring(L, (const char*)v.GetData(), v.GetSize());
+}
+
+inline Bytes bytesget(lua_State* L, int index) {
+	size_t length;
+	const char* ptr = lua_tolstring(L, index, &length);
+	return Bytes((const uint8_t*)ptr, length);
+}
+
+IScript::Request& ZScriptLua::Request::operator << (const Bytes& v) {
+	assert(GetScript()->IsLocked());
+	Write(L, tableLevel, idx, key, byteswrite, v);
+	return *this;
+}
+
+IScript::Request& ZScriptLua::Request::operator >> (Bytes& v) {
+	assert(GetScript()->IsLocked());
+	Read(L, tableLevel, idx, key, bytesget, v);
+
+	return *this;
+}
+
 inline void uniquewrite(lua_State* L, Unique v) {
 	lua_rawgetp(L, LUA_REGISTRYINDEX, LUA_RIDX_STRING_KEY);
 	if (lua_rawgetp(L, -1, (void*)v.GetInfo()) == LUA_TNIL) {

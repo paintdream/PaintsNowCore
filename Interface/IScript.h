@@ -13,6 +13,7 @@
 #include "../Template/TMap.h"
 #include "../Template/TAlgorithm.h"
 #include "../Template/TPool.h"
+#include "../Template/TBuffer.h"
 #include "IThread.h"
 #include <vector>
 #include <list>
@@ -660,6 +661,8 @@ namespace PaintsNow {
 			virtual Request& operator >> (float& value);
 			virtual Request& operator << (const String& str) = 0;
 			virtual Request& operator >> (String& str) = 0;
+			virtual Request& operator << (const Bytes& bytes) = 0;
+			virtual Request& operator >> (Bytes& bytes) = 0;
 			virtual Request& operator << (const char* str) = 0;
 			virtual Request& operator >> (const char*& str) = 0;
 			virtual Request& operator << (bool value) = 0;
