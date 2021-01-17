@@ -1,5 +1,5 @@
 // ZArchiveDirent -- Basic file system management by dirent and standard c interfaces.
-// By PaintDream (paintdream@paintdream.com)
+// PaintDream (paintdream@paintdream.com)
 //
 
 #pragma once

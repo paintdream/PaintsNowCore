@@ -1,5 +1,5 @@
 // Kernel.h
-// By PaintDream (paintdream@paintdream.com)
+// PaintDream (paintdream@paintdream.com)
 // 2019-3-25
 // Grid-Based Task Schedule System
 //

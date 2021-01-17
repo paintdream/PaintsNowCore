@@ -1,5 +1,5 @@
 // IMemory -- Basic memory allocator interface
-// By PaintDream (paintdream@paintdream.com)
+// PaintDream (paintdream@paintdream.com)
 // 2014-12-3
 //
 

@@ -1,5 +1,5 @@
 // ZType.h -- Basic type instances
-// By PaintDream (paintdream@paintdream.com)
+// PaintDream (paintdream@paintdream.com)
 // 2014-11-30
 //
 
