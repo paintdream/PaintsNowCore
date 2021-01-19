@@ -136,9 +136,9 @@ namespace std {
 		}
 
 		T load(std::memory_order order = std::memory_order_acquire) const {
-			T m = (T)value;
+			T result = (T)value;
 			atomic_thread_fence(order);
-			return m;
+			return result;
 		}
 
 		void store(T v, std::memory_order order = std::memory_order_release) {
@@ -166,14 +166,19 @@ namespace std {
 			return (T)InterlockedExchange(&value, (int32_t)t);
 		}
 
-		bool compare_exchange_weak(T& old, T u, std::memory_order order = std::memory_order_seq_cst) {
-			T org = old;
-			return (old = (T)InterlockedCompareExchange((volatile long*)&value, (int32_t)u, (long)org)) == org;
-		}
-
 		bool compare_exchange_strong(T& old, T u, std::memory_order order = std::memory_order_seq_cst) {
 			T org = old;
-			return (old = (T)InterlockedCompareExchange((volatile long*)&value, (int32_t)u, (long)org)) == org;
+			T result = (T)InterlockedCompareExchange((volatile long*)&value, (int32_t)u, (long)org);
+			if (result == old) {
+				return true;
+			}
+
+			old = result;
+			return false;
+		}
+
+		bool compare_exchange_weak(T& old, T u, std::memory_order order = std::memory_order_seq_cst) {
+			return compare_exchange_strong(old, u, order);
 		}
 
 	private:

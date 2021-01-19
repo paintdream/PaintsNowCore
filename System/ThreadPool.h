@@ -45,7 +45,6 @@ namespace PaintsNow {
 		bool Run(IThread::Thread* thread, size_t threadID);
 
 	protected:
-		alignas(64) std::atomic<size_t> critical;
 		alignas(64) std::atomic<ITask*> taskHead;
 		alignas(64) std::atomic<size_t> liveThreadCount;
 		alignas(64) std::atomic<size_t> runningToken;
