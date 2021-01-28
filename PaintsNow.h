@@ -379,6 +379,7 @@ namespace std {
 	template <typename T>
 	struct is_rvalue {
 		typedef typename detail::remove_rvalue_impl_typeof<std::detail::is_rvalue_impl<T>::value>::template inner<T, remove_rvalue<T> >::selector type;
+		enum { value = std::detail::is_rvalue_impl<T>::value };
 	};
 
 	template <typename T>
@@ -388,9 +389,8 @@ namespace std {
 
 	template <typename T>
 	struct is_reference {
-		typedef typename detail::remove_reference_impl_typeof<std::detail::is_reference_impl<T>::value>::template inner<T, remove_reference<T> >::type S;
-		typedef typename remove_rvalue<S>::type T;
-		typedef typename T::selector type;
+		typedef typename detail::remove_reference_impl_typeof<std::detail::is_reference_impl<T>::value>::template inner<T, remove_reference<T> >::type type;
+		enum { value = std::detail::is_reference_impl<T>::value };
 	};
 
 	template <typename T>
@@ -401,6 +401,7 @@ namespace std {
 	template <typename T>
 	struct is_const {
 		typedef typename detail::remove_const_impl_typeof<std::detail::is_const_impl<T>::value>::template inner<T, remove_const<T> >::selector type;
+		enum { value = std::detail::is_const_impl<T>::value };
 	};
 
 	template <typename T>
@@ -411,6 +412,7 @@ namespace std {
 	template <typename T>
 	struct is_shared {
 		typedef typename detail::remove_shared_impl_typeof<std::detail::is_shared_impl<T>::value>::template inner<T, remove_shared<T> >::selector type;
+		enum { value = std::detail::is_shared_impl<T>::value };
 	};
 
 	template <typename T>
@@ -423,6 +425,7 @@ namespace std {
 	struct is_pointer {
 		typedef typename remove_shared<T>::type S;
 		typedef typename detail::remove_pointer_impl_typeof<std::detail::is_pointer_impl<S>::value>::template inner<S, remove_pointer<S> >::selector type;
+		enum { value = std::detail::is_pointer_impl<S>::value };
 	};
 
 	template <typename T>
@@ -433,6 +436,7 @@ namespace std {
 	template <typename T>
 	struct is_vector {
 		typedef typename detail::remove_vector_impl_typeof<std::detail::is_vector_impl<T>::value>::template inner<T,remove_vector<T> >::selector type;
+		enum { value = std::detail::is_vector_impl<T>::value };
 	};
 
 	template <typename T>

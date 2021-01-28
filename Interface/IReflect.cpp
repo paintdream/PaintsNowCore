@@ -394,6 +394,21 @@ TObject<IReflect>& MetaNote::operator () (IReflect& reflect) {
 	return *this;
 }
 
+MetaParameter::MetaParameter(const String& v) : value(v) {}
+
+MetaParameter MetaParameter::operator = (const String& value) {
+	return MetaParameter(value);
+}
+
+TObject<IReflect>& MetaParameter::operator () (IReflect& reflect) {
+	ReflectClass(MetaParameter);
+	if (reflect.IsReflectProperty()) {
+		ReflectProperty(value);
+	}
+
+	return *this;
+}
+
 TObject<IReflect>& MetaRuntime::operator () (IReflect& reflect) {
 	ReflectClass(MetaRuntime);
 	return *this;

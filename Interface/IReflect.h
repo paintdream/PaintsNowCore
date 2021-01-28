@@ -469,7 +469,7 @@ namespace PaintsNow {
 
 		void RegisterBuiltinTypes(bool useStdintType = false);
 		struct Param {
-			Param(Unique t = UniqueType<Void>::Get(), Unique d = UniqueType<Void>::Get()) : type(t), decayType(d) {}
+			Param(Unique t = UniqueType<Void>::Get(), Unique d = UniqueType<Void>::Get(), bool re = false) : type(t), decayType(d), isReference(re) {}
 			operator Unique () const {
 				return type;
 			}
@@ -477,6 +477,7 @@ namespace PaintsNow {
 			Unique type;
 			Unique decayType;
 			String name;
+			bool isReference;
 		};
 
 		// For enum reflection
@@ -551,10 +552,29 @@ namespace PaintsNow {
 				UniqueType<typename std::decay<P>::type>::Get()
 			};
 
+			static bool isReferences[] = {
+				std::is_reference<A>::value,
+				std::is_reference<B>::value,
+				std::is_reference<C>::value,
+				std::is_reference<D>::value,
+				std::is_reference<E>::value,
+				std::is_reference<F>::value,
+				std::is_reference<G>::value,
+				std::is_reference<H>::value,
+				std::is_reference<I>::value,
+				std::is_reference<J>::value,
+				std::is_reference<K>::value,
+				std::is_reference<L>::value,
+				std::is_reference<M>::value,
+				std::is_reference<N>::value,
+				std::is_reference<O>::value,
+				std::is_reference<P>::value,
+			};
+
 			static Param retValue(UniqueType<R>::Get(), UniqueType<typename std::decay<R>::type>::Get());
 			std::vector<Param> p;
 			for (size_t i = 0; i < sizeof(params) / sizeof(params[0]) && (!(params[i] == UniqueType<Void>::Get())); i++) {
-				p.emplace_back(Param(params[i], decayParams[i]));
+				p.emplace_back(Param(params[i], decayParams[i], isReferences[i]));
 			}
 
 			Method(name, reinterpret_cast<const TProxy<>*>(&t.GetProxy()), retValue, p, meta);
@@ -565,17 +585,17 @@ namespace PaintsNow {
 		inline void OnMethod(const TWrapper<R, Args...>& t, const char* name, const MetaChainBase* meta) {
 			std::vector<Param> params;
 			ParseParams(params, t);
-			singleton Unique u = UniqueType<R>::Get();
-			singleton Unique d = UniqueType<typename std::decay<R>::type>::Get();
-			static Param retValue(u, d);
+			Unique u = UniqueType<R>::Get();
+			Unique d = UniqueType<typename std::decay<R>::type>::Get();
+			Param retValue(u, d, std::is_reference<R>::value);
 			Method(name, reinterpret_cast<const TProxy<>*>(&t.GetProxy()), retValue, params, meta);
 		}
 
 		template <typename R, typename V, typename... Args>
 		inline void ParseParams(std::vector<Param>& params, const TWrapper<R, V, Args...>&) {
-			singleton Unique u = UniqueType<V>::Get();
-			singleton Unique d = UniqueType<typename std::decay<V>::type>::Get();
-			params.emplace_back(Param(u, d));
+			Unique u = UniqueType<V>::Get();
+			Unique d = UniqueType<typename std::decay<V>::type>::Get();
+			params.emplace_back(Param(u, d, std::is_reference<V>::value));
 			ParseParams(params, TWrapper<R, Args...>());
 		}
 
@@ -616,10 +636,33 @@ namespace PaintsNow {
 		typedef MetaNote Type;
 
 		TObject<IReflect>& operator () (IReflect& reflect) override;
-		const String& value;
+		String value;
 	};
 
 	extern MetaNote Note;
+
+	class MetaParameter : public MetaNodeBase {
+	public:
+		MetaParameter(const String& v);
+		MetaParameter operator = (const String& value);
+
+		template <class T, class D>
+		inline const MetaParameter& FilterField(T* t, D* d) const {
+			return *this; // do nothing
+		}
+
+		template <class T, class D>
+		struct RealType {
+			typedef MetaParameter Type;
+		};
+
+		typedef MetaParameter Type;
+
+		TObject<IReflect>& operator () (IReflect& reflect) override;
+		String value;
+	};
+
+	extern MetaParameter Parameter;
 
 	template <class T, class D>
 	class WriterBase : public MetaChainBase {
