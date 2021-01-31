@@ -469,7 +469,7 @@ namespace PaintsNow {
 
 		void RegisterBuiltinTypes(bool useStdintType = false);
 		struct Param {
-			Param(Unique t = UniqueType<Void>::Get(), Unique d = UniqueType<Void>::Get(), bool re = false) : type(t), decayType(d), isReference(re) {}
+			Param(Unique t = UniqueType<Void>::Get(), Unique d = UniqueType<Void>::Get(), bool re = false, bool co = false) : type(t), decayType(d), isReference(re), isConst(co) {}
 			operator Unique () const {
 				return type;
 			}
@@ -478,6 +478,7 @@ namespace PaintsNow {
 			Unique decayType;
 			String name;
 			bool isReference;
+			bool isConst;
 		};
 
 		// For enum reflection
@@ -571,10 +572,29 @@ namespace PaintsNow {
 				std::is_reference<P>::value,
 			};
 
-			static Param retValue(UniqueType<R>::Get(), UniqueType<typename std::decay<R>::type>::Get());
+			static bool isConsts[] = {
+				std::is_const<std::remove_reference<A>::type>::value,
+				std::is_const<std::remove_reference<B>::type>::value,
+				std::is_const<std::remove_reference<C>::type>::value,
+				std::is_const<std::remove_reference<D>::type>::value,
+				std::is_const<std::remove_reference<E>::type>::value,
+				std::is_const<std::remove_reference<F>::type>::value,
+				std::is_const<std::remove_reference<G>::type>::value,
+				std::is_const<std::remove_reference<H>::type>::value,
+				std::is_const<std::remove_reference<I>::type>::value,
+				std::is_const<std::remove_reference<J>::type>::value,
+				std::is_const<std::remove_reference<K>::type>::value,
+				std::is_const<std::remove_reference<L>::type>::value,
+				std::is_const<std::remove_reference<M>::type>::value,
+				std::is_const<std::remove_reference<N>::type>::value,
+				std::is_const<std::remove_reference<O>::type>::value,
+				std::is_const<std::remove_reference<P>::type>::value,
+			};
+
+			static Param retValue(UniqueType<R>::Get(), UniqueType<typename std::decay<R>::type>::Get(), std::is_reference<R>::value, std::is_const<std::remove_reference<R>::type>::value);
 			std::vector<Param> p;
 			for (size_t i = 0; i < sizeof(params) / sizeof(params[0]) && (!(params[i] == UniqueType<Void>::Get())); i++) {
-				p.emplace_back(Param(params[i], decayParams[i], isReferences[i]));
+				p.emplace_back(Param(params[i], decayParams[i], isReferences[i], isConsts[i]));
 			}
 
 			Method(name, reinterpret_cast<const TProxy<>*>(&t.GetProxy()), retValue, p, meta);
@@ -587,7 +607,7 @@ namespace PaintsNow {
 			ParseParams(params, t);
 			Unique u = UniqueType<R>::Get();
 			Unique d = UniqueType<typename std::decay<R>::type>::Get();
-			Param retValue(u, d, std::is_reference<R>::value);
+			Param retValue(u, d, std::is_reference<R>::value, std::is_const<typename std::remove_reference<R>::type>::value);
 			Method(name, reinterpret_cast<const TProxy<>*>(&t.GetProxy()), retValue, params, meta);
 		}
 
@@ -595,7 +615,7 @@ namespace PaintsNow {
 		inline void ParseParams(std::vector<Param>& params, const TWrapper<R, V, Args...>&) {
 			Unique u = UniqueType<V>::Get();
 			Unique d = UniqueType<typename std::decay<V>::type>::Get();
-			params.emplace_back(Param(u, d, std::is_reference<V>::value));
+			params.emplace_back(Param(u, d, std::is_reference<V>::value, std::is_const<typename std::remove_reference<V>::type>::value));
 			ParseParams(params, TWrapper<R, Args...>());
 		}
 

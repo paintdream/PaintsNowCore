@@ -378,7 +378,6 @@ namespace std {
 
 	template <typename T>
 	struct is_rvalue {
-		typedef typename detail::remove_rvalue_impl_typeof<std::detail::is_rvalue_impl<T>::value>::template inner<T, remove_rvalue<T> >::selector type;
 		enum { value = std::detail::is_rvalue_impl<T>::value };
 	};
 
@@ -389,7 +388,6 @@ namespace std {
 
 	template <typename T>
 	struct is_reference {
-		typedef typename detail::remove_reference_impl_typeof<std::detail::is_reference_impl<T>::value>::template inner<T, remove_reference<T> >::type type;
 		enum { value = std::detail::is_reference_impl<T>::value };
 	};
 
@@ -400,7 +398,6 @@ namespace std {
 
 	template <typename T>
 	struct is_const {
-		typedef typename detail::remove_const_impl_typeof<std::detail::is_const_impl<T>::value>::template inner<T, remove_const<T> >::selector type;
 		enum { value = std::detail::is_const_impl<T>::value };
 	};
 
@@ -411,7 +408,6 @@ namespace std {
 
 	template <typename T>
 	struct is_shared {
-		typedef typename detail::remove_shared_impl_typeof<std::detail::is_shared_impl<T>::value>::template inner<T, remove_shared<T> >::selector type;
 		enum { value = std::detail::is_shared_impl<T>::value };
 	};
 
