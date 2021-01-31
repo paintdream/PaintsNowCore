@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "../PaintsNow.h"
 #include <xmemory>
 
 #ifdef  _MSC_VER
@@ -35,6 +36,10 @@ public:
 			reverse_iterator;
 	explicit basic_string_mt(const _A& _Al = _A())
 		: allocator(_Al) {_Tidy(); }
+	explicit basic_string_mt(const rvalue<_Myt>& rv) {
+		_Tidy();
+		swap((_Myt&)rv);
+	}
 	basic_string_mt(const _Myt& _X)
 		: allocator(_X.allocator)
 		{_Tidy(), assign(_X, 0, npos); }
@@ -56,6 +61,9 @@ public:
 	typedef _Tr traits_type;
 	typedef _A allocator_type;
 	static const size_type npos;
+	_Myt& operator=(const rvalue<_Myt>& _X) {
+		return (assign(_X));
+	}
 	_Myt& operator=(const _Myt& _X)
 		{return (assign(_X)); }
 	_Myt& operator=(const _E *_S)
@@ -102,6 +110,10 @@ public:
 		return (*this); }
 	_Myt& append(_It _F, _It _L)
 		{return (replace(end(), end(), _F, _L)); }
+	_Myt& assign(const rvalue<_Myt>& _X) {
+		swap((_Myt&)_X);
+		return *this;
+	}
 	_Myt& assign(const _Myt& _X)
 		{return (assign(_X, 0, npos)); }
 	_Myt& assign(const _Myt& _X, size_type _P, size_type _M)
