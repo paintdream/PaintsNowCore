@@ -573,25 +573,25 @@ namespace PaintsNow {
 			};
 
 			static bool isConsts[] = {
-				std::is_const<std::remove_reference<A>::type>::value,
-				std::is_const<std::remove_reference<B>::type>::value,
-				std::is_const<std::remove_reference<C>::type>::value,
-				std::is_const<std::remove_reference<D>::type>::value,
-				std::is_const<std::remove_reference<E>::type>::value,
-				std::is_const<std::remove_reference<F>::type>::value,
-				std::is_const<std::remove_reference<G>::type>::value,
-				std::is_const<std::remove_reference<H>::type>::value,
-				std::is_const<std::remove_reference<I>::type>::value,
-				std::is_const<std::remove_reference<J>::type>::value,
-				std::is_const<std::remove_reference<K>::type>::value,
-				std::is_const<std::remove_reference<L>::type>::value,
-				std::is_const<std::remove_reference<M>::type>::value,
-				std::is_const<std::remove_reference<N>::type>::value,
-				std::is_const<std::remove_reference<O>::type>::value,
-				std::is_const<std::remove_reference<P>::type>::value,
+				std::is_const<A>::value,
+				std::is_const<B>::value,
+				std::is_const<C>::value,
+				std::is_const<D>::value,
+				std::is_const<E>::value,
+				std::is_const<F>::value,
+				std::is_const<G>::value,
+				std::is_const<H>::value,
+				std::is_const<I>::value,
+				std::is_const<J>::value,
+				std::is_const<K>::value,
+				std::is_const<L>::value,
+				std::is_const<M>::value,
+				std::is_const<N>::value,
+				std::is_const<O>::value,
+				std::is_const<P>::value,
 			};
 
-			static Param retValue(UniqueType<R>::Get(), UniqueType<typename std::decay<R>::type>::Get(), std::is_reference<R>::value, std::is_const<std::remove_reference<R>::type>::value);
+			static Param retValue(UniqueType<R>::Get(), UniqueType<typename std::decay<R>::type>::Get(), std::is_reference<R>::value, std::is_const<R>::value);
 			std::vector<Param> p;
 			for (size_t i = 0; i < sizeof(params) / sizeof(params[0]) && (!(params[i] == UniqueType<Void>::Get())); i++) {
 				p.emplace_back(Param(params[i], decayParams[i], isReferences[i], isConsts[i]));

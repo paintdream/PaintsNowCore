@@ -398,7 +398,7 @@ namespace std {
 
 	template <typename T>
 	struct is_const {
-		enum { value = std::detail::is_const_impl<T>::value };
+		enum { value = std::detail::is_const_impl<std::remove_reference<T>::type>::value };
 	};
 
 	template <typename T>
