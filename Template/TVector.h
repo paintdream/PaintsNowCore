@@ -235,6 +235,7 @@ namespace PaintsNow {
 		TType2(const std::pair<TVector<T, 1>, TVector<T, 1> >& p) : TVector<T, 2>(p) {}
 		TType2(const TVector<T, 2>& v) : TVector<T, 2>(v) {}
 		TType2(T xx, T yy) { x() = xx; y() = yy; }
+		TType2(T xx) { x() = xx; y() = xx; }
 
 		EXPLICIT operator float() const {
 			return x();
@@ -285,6 +286,7 @@ namespace PaintsNow {
 	struct TType3 : public TVector<T, 3> {
 		TType3() {}
 		TType3(const TVector<T, 3>& v) : TVector<T, 3>(v) {}
+		TType3(T xx) { x() = xx; y() = xx; z() = xx; }
 		TType3(T xx, T yy, T zz) { x() = xx; y() = yy; z() = zz; }
 
 		EXPLICIT operator float() const {
@@ -479,6 +481,7 @@ namespace PaintsNow {
 		// TType4(const std::pair<TVector<T, 2>, TVector<T, 2> >& p) : TVector<T, 4>(p) {}
 		TType4(const TVector<T, 4>& v) : TVector<T, 4>(v) {}
 		TType4(T xx, T yy, T zz, T ww) { x() = xx; y() = yy; z() = zz; w() = ww; }
+		TType4(T xx) { x() = xx; y() = xx; z() = xx; w() = xx; }
 
 		EXPLICIT operator float() const {
 			return x();

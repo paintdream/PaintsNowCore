@@ -394,7 +394,7 @@ TObject<IReflect>& MetaNote::operator () (IReflect& reflect) {
 	return *this;
 }
 
-MetaParameter::MetaParameter(const String& v) : value(v) {}
+MetaParameter::MetaParameter(const String& v, void* p) : value(v), prototype(p) {}
 
 MetaParameter MetaParameter::operator = (const String& value) {
 	return MetaParameter(value);

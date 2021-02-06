@@ -663,7 +663,7 @@ namespace PaintsNow {
 
 	class MetaParameter : public MetaNodeBase {
 	public:
-		MetaParameter(const String& v);
+		MetaParameter(const String& v, void* proto = nullptr);
 		MetaParameter operator = (const String& value);
 
 		template <class T, class D>
@@ -680,6 +680,7 @@ namespace PaintsNow {
 
 		TObject<IReflect>& operator () (IReflect& reflect) override;
 		String value;
+		void* prototype;
 	};
 
 	extern MetaParameter Parameter;
