@@ -112,9 +112,7 @@ namespace PaintsNow {
 						t = t->next;
 						q->next = (T*)h.load(std::memory_order_acquire);
 
-						while (!h.compare_exchange_weak(q->next, q, std::memory_order_release)) {
-							YieldThreadFast();
-						}
+						while (!h.compare_exchange_weak(q->next, q, std::memory_order_release)) {}
 					}
 				}
 
@@ -145,9 +143,7 @@ namespace PaintsNow {
 				std::atomic<T*>& h = *reinterpret_cast<std::atomic<T*>*>(&head);
 				item->next = h.load(std::memory_order_acquire);
 
-				while (!h.compare_exchange_weak(item->next, item, std::memory_order_release)) {
-					YieldThreadFast();
-				}
+				while (!h.compare_exchange_weak(item->next, item, std::memory_order_release)) {}
 
 				std::atomic<uint32_t>& count = *reinterpret_cast<std::atomic<uint32_t>*>(&currentCount);
 				count.fetch_add(1, std::memory_order_release);
