@@ -503,23 +503,29 @@ IScript::MetaMethod IScript::MetaMethod::operator = (const String& key) {
 	return MetaMethod(key, lockOnCall);
 }
 
-IScript::RequestPool::RequestPool(IScript& pscript, uint32_t psize) : PoolBase(psize), script(pscript){}
+IScript::RequestPool::RequestPool(IScript& pscript, uint32_t psize) : requestPool(*this, psize), script(pscript) {}
 
-IScript& IScript::RequestPool::GetScript() {
-	return script;
-}
-
-IScript::Request* IScript::RequestPool::New() {
+IScript::Request* IScript::RequestPool::allocate(size_t n) {
+	assert(n == 1);
 	script.DoLock();
 	IScript::Request* request = script.NewRequest();
 	request->SetRequestPool(this);
 	script.UnLock();
+
 	return request;
 }
 
-void IScript::RequestPool::Delete(IScript::Request* request) {
+void IScript::RequestPool::construct(IScript::Request* request) {}
+void IScript::RequestPool::destroy(IScript::Request* request) {}
+
+void IScript::RequestPool::deallocate(IScript::Request* request, size_t n) {
+	assert(n == 1);
 	script.DoLock();
 	assert(request->GetRequestPool() == this);
 	request->Destroy();
 	script.UnLock();
+}
+
+IScript& IScript::RequestPool::GetScript() {
+	return script;
 }

@@ -101,25 +101,29 @@ namespace PaintsNow {
 #endif
 
 		template <class M>
-		bool operator == (const M& rhs) const noexcept {
+		bool operator == (const M& rhs) const {
 			return allocator == rhs.allocator;
 		}
 
 		template <class M>
-		bool operator != (const M& rhs) const noexcept {
+		bool operator != (const M& rhs) const {
 			return allocator != rhs.allocator;
 		}
 
-		pointer address(reference x) const noexcept {
+		pointer address(reference x) const {
 			return &x;
 		};
 
-		const_pointer address(const_reference x) const noexcept {
+		const_pointer address(const_reference x) const {
 			return &x;
 		}
 
-		size_type max_size() const noexcept {
+		size_type max_size() const {
 			return ~(size_type)0 / sizeof(T);
+		}
+		
+		void construct(pointer p) {
+			new ((void*)p) T();
 		}
 
 		void construct(pointer p, const_reference val) {

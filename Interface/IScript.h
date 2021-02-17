@@ -1422,12 +1422,15 @@ namespace PaintsNow {
 		// virtual void DoLock();
 		// virtual void UnLock();
 
-		class RequestPool : public TRefPool<RequestPool, Request> {
+		class RequestPool {
 		public:
 			RequestPool(IScript& script, uint32_t size);
-			Request* New();
-			void Delete(Request* request);
+			Request* allocate(size_t n);
+			void construct(Request* req);
+			void destroy(Request* req);
+			void deallocate(Request* request, size_t n);
 			IScript& GetScript();
+			TPool<Request, RequestPool> requestPool;
 
 		protected:
 			IScript& script;

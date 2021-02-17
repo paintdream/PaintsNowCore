@@ -1,6 +1,6 @@
 // TPool.h
-// Object Pool
 // PaintDream (paintdream@paintdream.com)
+// 2021-2-17
 //
 
 #pragma once
@@ -8,82 +8,18 @@
 #include <stack>
 
 namespace PaintsNow {
-	// Simple object pool
-	template <class D, class T>
+	template <class T, class Allocator>
 	class TPool {
 	public:
 		typedef TPool PoolBase;
-		TPool(size_t count) : maxCount(count) {
-			critical.store(0, std::memory_order_release);
-		}
+		TPool(Allocator& alloc, uint32_t count) : allocator(alloc), maxCount(count), currentCount(0), head(nullptr) {}
 
 		~TPool() {
 			Clear();
 		}
 
-		T Acquire() {
-			if (!freeItems.empty()) {
-				T item = freeItems.back();
-				freeItems.pop_back();
-				return item;
-			} else {
-				return (static_cast<D*>(this))->New();
-			}
-		}
-
-		T AcquireSafe() {
-			SpinLock(critical);
-			if (!freeItems.empty()) {
-				T item = freeItems.back();
-				freeItems.pop_back();
-				return item;
-			}
-			SpinUnLock(critical);
-
-			return (static_cast<D*>(this))->New();
-		}
-
-		void Release(T item) {
-			if (freeItems.size() >= maxCount) {
-				(static_cast<D*>(this))->Delete(item);
-			} else {
-				freeItems.emplace_back(item);
-			}
-		}
-
-		void ReleaseSafe(T item) {
-			SpinLock(critical);
-			if (freeItems.size() >= maxCount) {
-				SpinUnLock(critical);
-				(static_cast<D*>(this))->Delete(item);
-			} else {
-				freeItems.emplace_back(item);
-				SpinUnLock(critical);
-			}
-		}
-
-		void Clear() {
-			for (size_t i = 0; i < freeItems.size(); i++) {
-				(static_cast<D*>(this))->Delete(freeItems[i]);
-			}
-
-			freeItems.clear();
-		}
-
-	protected:
-		size_t maxCount;
-		std::atomic<size_t> critical;
-		std::vector<T> freeItems;
-	};
-
-	template <class D, class T>
-	class TRefPool {
-	public:
-		typedef TRefPool PoolBase;
-		TRefPool(uint32_t count) : maxCount(count), currentCount(0), head(nullptr) {}
-
-		~TRefPool() {
-			Clear();
+		TPool(rvalue<TPool> rhs) : allocator(((TPool&)rhs).allocator), maxCount(((TPool&)rhs).maxCount), currentCount(((TPool&)rhs).currentCount), head(((TPool&)rhs).head) {
+			rhs.head = nullptr;
 		}
 
 		T* Acquire() {
@@ -93,7 +29,9 @@ namespace PaintsNow {
 				currentCount--;
 				return p;
 			} else {
-				return (static_cast<D*>(this))->New();
+				T* p = allocator.allocate(1);
+				allocator.construct(p);
+				return p;
 			}
 		}
 
@@ -120,7 +58,9 @@ namespace PaintsNow {
 				count.fetch_sub(1, std::memory_order_release);
 				return p;
 			} else {
-				return (static_cast<D*>(this))->New();
+				T* p = allocator.allocate(1);
+				allocator.construct(p);
+				return p;
 			}
 		}
 
@@ -132,7 +72,8 @@ namespace PaintsNow {
 
 				currentCount++;
 			} else {
-				(static_cast<D*>(this))->Delete(item);
+				allocator.destroy(item);
+				allocator.deallocate(item, 1);
 			}
 		}
 
@@ -148,7 +89,8 @@ namespace PaintsNow {
 				std::atomic<uint32_t>& count = *reinterpret_cast<std::atomic<uint32_t>*>(&currentCount);
 				count.fetch_add(1, std::memory_order_release);
 			} else {
-				(static_cast<D*>(this))->Delete(item);
+				allocator.destroy(item);
+				allocator.deallocate(item, 1);
 			}
 		}
 
@@ -156,7 +98,8 @@ namespace PaintsNow {
 			T* p = head, *q = head;
 			while (p != nullptr) {
 				p = p->next;
-				(static_cast<D*>(this))->Delete(q);
+				allocator.destroy(q);
+				allocator.deallocate(q, 1);
 				q = p;
 			}
 
@@ -165,11 +108,45 @@ namespace PaintsNow {
 		}
 
 	protected:
-		TRefPool& operator = (const TRefPool& rhs);
-
+		TPool& operator = (const TPool& rhs);
+		Allocator& allocator;
 		uint32_t maxCount;
 		uint32_t currentCount;
 		T* head;
+	};
+
+	template <class T, class H, bool lock = true>
+	class TLocalPool : public TPool<T, TLocalPool<T, H, lock> > {
+	public:
+		TLocalPool(H& h, uint32_t count) : TPool<T, TLocalPool<T, H, lock> >(*this, count), host(h) {}
+
+		T* allocate(size_t n) {
+			assert(n == 1);
+			if (lock) {
+				return host.AcquireSafe();
+			} else {
+				return host.Acquire();
+			}
+		}
+
+		void construct(T*) {}
+		void destroy(T*) {}
+
+		void deallocate(T* p, size_t n) {
+			assert(n == 1);
+			if (lock) {
+				host.ReleaseSafe(p);
+			} else {
+				host.Release(p);
+			}
+		}
+
+	private:
+		void ReleaseSafe(T* item);
+		T* AcquireSafe();
+
+	protected:
+		H& host;
 	};
 }
 
