@@ -442,8 +442,8 @@ namespace PaintsNow {
 	template <typename T, typename... Args>
 	class TaskTemplate : public TaskOnce {
 	public:
-		template <typename... Params>
-		TaskTemplate(T c, Params&&... params) : callback(c), arguments(std::forward<Params>(params)...) {}
+		template <typename C, typename... Params>
+		TaskTemplate(C&& c, Params&&... params) : callback(std::forward<C>(c)), arguments(std::forward<Params>(params)...) {}
 
 		template <size_t... S>
 		void Apply(void* context, bool run, seq<S...>) {
@@ -465,16 +465,16 @@ namespace PaintsNow {
 	};
 
 	template <typename T, typename... Args>
-	ITask* CreateTask(T closure, Args&&... args) {
-		void* p = ITask::Allocate(sizeof(TaskTemplate<T, Args...>));
-		return new (p) TaskTemplate<T, Args...>(closure, std::forward<Args>(args)...);
+	ITask* CreateTask(T&& closure, Args&&... args) {
+		void* p = ITask::Allocate(sizeof(TaskTemplate<typename std::decay<T>::type, Args...>));
+		return new (p) TaskTemplate<typename std::decay<T>::type, Args...>(std::forward<T>(closure), std::forward<Args>(args)...);
 	}
 
 	template <typename T, typename... Args>
 	class ContextFreeTaskTemplate : public TaskOnce {
 	public:
-		template <typename... Params>
-		ContextFreeTaskTemplate(T t, Params&&... params) : callback(t), arguments(std::forward<Params>(params)...) {}
+		template <typename C, typename... Params>
+		ContextFreeTaskTemplate(C&& c, Params&&... params) : callback(std::forward<C>(c)), arguments(std::forward<Params>(params)...) {}
 
 		template <size_t... S>
 		void Apply(seq<S...>) {
@@ -495,11 +495,10 @@ namespace PaintsNow {
 	};
 
 	template <typename T, typename... Args>
-	ITask* CreateTaskContextFree(T t, Args&&... args) {
-		void* p = ITask::Allocate(sizeof(ContextFreeTaskTemplate<T, Args...>));
-		return new (p) ContextFreeTaskTemplate<T, Args...>(t, std::forward<Args>(args)...);
+	ITask* CreateTaskContextFree(T&& t, Args&&... args) {
+		void* p = ITask::Allocate(sizeof(ContextFreeTaskTemplate<typename std::decay<T>::type, Args...>));
+		return new (p) ContextFreeTaskTemplate<typename std::decay<T>::type, Args...>(std::forward<T>(t), std::forward<Args>(args)...);
 	}
-
 #endif
 }
 
