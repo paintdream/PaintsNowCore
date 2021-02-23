@@ -43,12 +43,6 @@ namespace PaintsNow {
 			virtual void ScriptUninitialize(Request& request);
 		};
 
-		template <class T>
-		class Remote {
-		public:
-			typedef T Prototype;
-		};
-
 		class Library : public Object {
 		public:
 			Library();
@@ -119,7 +113,7 @@ namespace PaintsNow {
 		protected:
 			RequestPool* requestPool;
 		public:
-			Request* next;
+			Request* next; // for request pooling
 
 		public:
 			Request();
@@ -130,12 +124,16 @@ namespace PaintsNow {
 			virtual RequestPool* GetRequestPool();
 			virtual void SetRequestPool(RequestPool* pool);
 
+			// For variadic arguments
 			struct Arguments {
 				Arguments() : count(0) {}
-				int count;
+				size_t count;
 			};
 
+			// Script internal types
 			enum TYPE { NIL, BOOLEAN, NUMBER, INTEGER, STRING, TABLE, ARRAY, FUNCTION, OBJECT, ANY };
+
+			// Reference handler for script objects
 			struct Ref {
 				Ref(size_t i = 0);
 				operator bool () const {
@@ -145,6 +143,7 @@ namespace PaintsNow {
 				size_t value;
 			};
 
+			// Callable objects
 			class AutoWrapperBase {
 			public:
 				virtual ~AutoWrapperBase() {}
@@ -153,6 +152,7 @@ namespace PaintsNow {
 				virtual AutoWrapperBase* Clone() const = 0;
 			};
 
+			// Call signature
 			class Sync : public AutoWrapperBase {
 			public:
 				bool IsSync() const override;
@@ -596,6 +596,7 @@ namespace PaintsNow {
 				return Call(Sync(), ref);
 			}
 
+			// Mark types
 			struct Nil {};
 			struct Global {};
 			struct ArrayStart { size_t count; };
@@ -898,6 +899,7 @@ namespace PaintsNow {
 			}
 		};
 
+		// Reflection meta for modules (libraries)
 		class MetaLibrary : public TReflected<MetaLibrary, MetaNodeBase> {
 		public:
 			MetaLibrary(const String& name = "");
@@ -919,6 +921,7 @@ namespace PaintsNow {
 			const String& name;
 		};
 
+		// Reflection meta for methods
 		class MetaMethod : public TReflected<MetaMethod, MetaNodeBase> {
 		public:
 			MetaMethod(const String& key = "", bool locked = false);
@@ -1005,6 +1008,7 @@ namespace PaintsNow {
 			bool lockOnCall;
 		};
 
+		// Reflection meta for variables
 		class MetaVariable : public TReflected<MetaVariable, MetaNodeBase> {
 		public:
 			MetaVariable(const String& key = "");
@@ -1100,6 +1104,7 @@ namespace PaintsNow {
 			int callIndex;
 		};
 
+		// Reflection meta for remote entries
 		template <class X>
 		class MetaRemoteEntry : public MetaRemoteEntryBase {
 		public:
@@ -1422,6 +1427,7 @@ namespace PaintsNow {
 		// virtual void DoLock();
 		// virtual void UnLock();
 
+		// Request pool for optimizing frequently creation and deletions.
 		class RequestPool {
 		public:
 			RequestPool(IScript& script, uint32_t size);

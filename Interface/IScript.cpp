@@ -142,7 +142,7 @@ void IScript::Library::Register(IScript::Request& request) {
 
 void IScript::Library::Require(IScript::Request& request) {
 	request << begintable;
-	request << key("__delegate__") << this;
+	request << key("__delegate__") << this; // holding this.
 	Register(request);
 	request << endtable;
 }

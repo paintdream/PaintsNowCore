@@ -12,8 +12,17 @@ void TaskGraph::TaskNode::Execute(void* context) {
 
 		// can be executed?
 		if (refCount.fetch_sub(1, std::memory_order_relaxed) == 1) {
-			taskGraph->kernel.QueueRoutine(host, node);
+			if (node->host == nullptr) {
+				taskGraph->kernel.GetThreadPool().Push(node);
+			} else {
+				taskGraph->kernel.QueueRoutine(node->host, node);
+			}
 		}
+	}
+
+	if (host != nullptr) {
+		host->ReleaseObject();
+		host = nullptr;
 	}
 
 	taskGraph->Complete();
@@ -38,6 +47,11 @@ void TaskGraph::TaskNode::Abort(void* context) {
 		}
 	}
 
+	if (host != nullptr) {
+		host->ReleaseObject();
+		host = nullptr;
+	}
+
 	taskGraph->Complete();
 }
 
@@ -46,10 +60,17 @@ bool TaskGraph::TaskNode::Continue() const {
 }
 
 TaskGraph::TaskGraph(Kernel& k) : kernel(k) {
-	completedCount.store(0, std::memory_order_relaxed);
+	completedCount.store(0, std::memory_order_release);
 }
 
-TaskGraph::~TaskGraph() {}
+TaskGraph::~TaskGraph() {
+	for (size_t i = 0; i < taskNodes.size(); i++) {
+		WarpTiny* host = taskNodes[i].host;
+		if (host != nullptr) {
+			host->ReleaseObject();
+		}
+	}
+}
 
 void TaskGraph::Complete() {
 	// all tasks finished
@@ -69,8 +90,12 @@ size_t TaskGraph::Insert(WarpTiny* host, ITask* task) {
 	node.task = task;
 	node.refCount = 0;
 
+	if (host != nullptr) {
+		host->ReferenceObject();
+	}
+
 	size_t id = safe_cast<size_t>(taskNodes.size());
-	taskNodes.emplace_back(node);
+	taskNodes.emplace_back(std::move(node));
 	return id;
 }
 
@@ -90,7 +115,12 @@ bool TaskGraph::Commit(const TWrapper<void>& w) {
 	for (size_t i = 0; i < taskNodes.size(); i++) {
 		TaskNode& node = taskNodes[i];
 		if (node.refCount == 0) {
-			kernel.QueueRoutine(node.host, &node);
+			if (node.host == nullptr) {
+				kernel.GetThreadPool().Push(&node);
+			} else {
+				kernel.QueueRoutine(node.host, &node);
+			}
+
 			committed = true;
 		}
 	}
