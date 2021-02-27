@@ -37,6 +37,7 @@ namespace PaintsNow {
 		virtual void Wait(Event* event, Lock* lock) = 0;
 		virtual void Wait(Event* event, Lock* lock, size_t timeout) = 0;
 		virtual void DeleteEvent(Event* event) = 0;
+		virtual void Sleep(size_t milliseconds) = 0;
 	};
 
 	class LockGuard {

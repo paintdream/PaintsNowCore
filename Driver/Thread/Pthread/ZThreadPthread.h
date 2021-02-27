@@ -28,6 +28,7 @@ namespace PaintsNow {
 		void Wait(Event* event, Lock* lock) override;
 		void Wait(Event* event, Lock* lock, size_t timeout) override;
 		void DeleteEvent(Event* event) override;
+		void Sleep(size_t milliseconds) override;
 	};
 }
 

@@ -9,6 +9,7 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <chrono>
 #else
 #include <windows.h>
 #include <process.h>
@@ -312,3 +313,12 @@ void ZThreadPthread::DeleteEvent(Event* event) {
 
 	delete ev;
 }
+
+void ZThreadPthread::Sleep(size_t milliseconds) {
+#ifdef USE_STD_THREAD
+	std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+#else
+	::Sleep((DWORD)milliseconds);
+#endif
+}
+
