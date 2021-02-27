@@ -169,7 +169,7 @@ namespace std {
 		bool compare_exchange_strong(T& old, T u, std::memory_order order = std::memory_order_seq_cst) {
 			T org = old;
 			T result = (T)InterlockedCompareExchange((volatile long*)&value, (int32_t)u, (long)org);
-			if (result == old) {
+			if (result == org) {
 				return true;
 			}
 

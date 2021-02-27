@@ -13,7 +13,6 @@ using namespace PaintsNow;
 
 ThreadPool::ThreadPool(IThread& t, uint32_t tc) : ISyncObject(t), threadCount(tc) {
 	eventPump = threadApi.NewEvent();
-	critical.store(0, std::memory_order_relaxed);
 	Initialize();
 }
 
@@ -115,15 +114,6 @@ ThreadPool::~ThreadPool() {
 	threadApi.DeleteEvent(eventPump);
 }
 
-#if defined(_MSC_VER) && _MSC_VER <= 1200
-#define USE_PRESERVED_LIST 1
-#else
-#define USE_PRESERVED_LIST 0
-#endif
-
-// #undef assert
-// #define assert(f) if (!(f)) { printf("AT LINE: %d\n", __LINE__); _asm { int 3} }
-
 bool ThreadPool::Push(ITask* task) {
 	assert(task != nullptr);
 	if (runningToken.load(std::memory_order_acquire) != 0) {
@@ -134,16 +124,8 @@ bool ThreadPool::Push(ITask* task) {
 		// Chain task
 		assert(task != taskHead.load(std::memory_order_acquire));
 		assert(task->next == nullptr);
-
-#if USE_PRESERVED_LIST
-		SpinLock(critical);
-		task->next = taskHead.load(std::memory_order_acquire);
-		taskHead.store(task, std::memory_order_relaxed);
-		SpinUnLock(critical); // release
-#else
 		task->next = taskHead.load(std::memory_order_acquire);
 		while (!taskHead.compare_exchange_weak(task->next, task, std::memory_order_release)) {}
-#endif
 
 		std::atomic_thread_fence(std::memory_order_acquire);
 		if (waitEventCounter != 0) {
@@ -170,26 +152,10 @@ bool ThreadPool::Poll(uint32_t index) {
 	}
 
 	if (probe != nullptr) {
-#if USE_PRESERVED_LIST
-		size_t expected = 0;
-		ITask* p = nullptr;
-		if (critical.compare_exchange_strong(expected, 1, std::memory_order_acquire)) {
-			p = taskHead.load(std::memory_order_acquire);
-			if (p != nullptr) {
-				taskHead.store(p->next, std::memory_order_relaxed);
-			}
-
-			critical.store(0, std::memory_order_release);
-		}
-#else
 		ITask* p = taskHead.exchange(nullptr, std::memory_order_acquire);
-#endif
+
 		// Has task?
 		if (p != nullptr) {
-
-#if USE_PRESERVED_LIST
-			p->next = nullptr;
-#else
 			ITask* next = p->next;
 
 			if (next != nullptr) {
@@ -207,7 +173,7 @@ bool ThreadPool::Poll(uint32_t index) {
 
 				temperature.store(threadCount, std::memory_order_release);
 			}
-#endif
+
 			assert(p->next == nullptr);
 			std::atomic<size_t>& queued = *reinterpret_cast<std::atomic<size_t>*>(&p->queued);
 			queued.store(0, std::memory_order_release);
@@ -229,10 +195,8 @@ bool ThreadPool::Poll(uint32_t index) {
 		}
 
 		return true;
-#if !USE_PRESERVED_LIST
 	} else if ((long)temperature.load(std::memory_order_acquire) > 0) {
 		return (long)temperature.fetch_sub(1, std::memory_order_relaxed) >= 1;
-#endif
 	} else {
 		return false;
 	}
