@@ -296,7 +296,7 @@ namespace PaintsNow {
 #endif
 		}
 
-		virtual bool IsElementBasicObject() const override {
+		bool IsElementBasicObject() const override {
 #if defined(_MSC_VER) && _MSC_VER <= 1200
 			const value_type t = value_type();
 			const IReflectObject& obj = TransformReflectObject(t);
@@ -307,7 +307,7 @@ namespace PaintsNow {
 #endif
 		}
 
-		virtual const IReflectObject& GetElementPrototype() const override {
+		const IReflectObject& GetElementPrototype() const override {
 			assert(!IsElementBasicObject());
 			static const value_type t = value_type();
 #if defined(_MSC_VER) && _MSC_VER <= 1200

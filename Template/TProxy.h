@@ -108,14 +108,13 @@ namespace PaintsNow {
 		static void CopyImplManaged(TMethod& output, const TMethod& input) {
 			output.~TMethod();
 			output.tablePointer = input.tablePointer;
-			output.host = reinterpret_cast<IHost*>(new T(*reinterpret_cast<T*>(input.host)));
+			output.host = input.host == nullptr ? nullptr : reinterpret_cast<IHost*>(new T(*reinterpret_cast<T*>(input.host)));
 			output.p = input.p;
 		}
 
 		static void DestroyImplManaged(TMethod& input) {
-			if (input.host != nullptr) {
-				delete reinterpret_cast<T*>(input.host);
-			}
+			assert(input.host != nullptr);
+			delete reinterpret_cast<T*>(input.host);
 		}
 
 		static void DestroyImpl(TMethod& input) {}
@@ -139,7 +138,9 @@ namespace PaintsNow {
 		}
 
 		~TMethod() {
-			tablePointer->destructor(*this);
+			if (host != nullptr) {
+				tablePointer->destructor(*this);
+			}
 		}
 
 		TMethod(const TMethod& rhs) {
@@ -148,8 +149,32 @@ namespace PaintsNow {
 			*this = rhs;
 		}
 
+		TMethod(rvalue<TMethod> value) {
+			TMethod& rhs = value;
+
+			tablePointer = rhs.tablePointer;
+			host = rhs.host;
+			p = rhs.p;
+
+			rhs.host = nullptr; // clear destructor info.
+			rhs.p = nullptr;
+		}
+
 		TMethod& operator = (const TMethod& rhs) {
 			rhs.tablePointer->duplicator(*this, rhs);
+			return *this;
+		}
+
+		TMethod& operator = (rvalue<TMethod> value) {
+			TMethod& rhs = value;
+			this->~TMethod();
+
+			tablePointer = rhs.tablePointer;
+			host = rhs.host;
+			p = rhs.p;
+
+			rhs.host = nullptr; // clear destructor info.
+			rhs.p = nullptr;
 			return *this;
 		}
 
@@ -249,6 +274,7 @@ namespace PaintsNow {
 				ZN pn;
 				ZO po;
 				ZP pp;
+				void* _alignment[2];
 			};
 
 			Dispatch(IHost* h, ZZ f) : host(h), p(f) {}
@@ -342,6 +368,7 @@ namespace PaintsNow {
 				ZN pn;
 				ZO po;
 				ZP pp;
+				void* _alignment[2];
 			};
 
 			Dispatch<void>(IHost* h, ZZ f) : host(h), p(f) {}
@@ -605,6 +632,7 @@ namespace PaintsNow {
 			ZN pn;
 			ZO po;
 			ZP pp;
+			void* _alignment[2];
 		};
 	};
 
@@ -673,7 +701,9 @@ namespace PaintsNow {
 		}
 
 		~TFunction() {
-			tablePointer->destructor(*this);
+			if (host != nullptr) {
+				tablePointer->destructor(*this);
+			}
 		}
 
 		TFunction(const TFunction& rhs) {
@@ -683,8 +713,33 @@ namespace PaintsNow {
 			*this = rhs;
 		}
 
+		TFunction(rvalue<TFunction> value) {
+			TFunction& rhs = value;
+
+			tablePointer = rhs.tablePointer;
+			host = rhs.host;
+			p = rhs.p;
+
+			rhs.host = nullptr; // clear destructor info.
+			rhs.p = nullptr;
+		}
+
 		TFunction& operator = (const TFunction& rhs) {
 			rhs.tablePointer->duplicator(*this, rhs);
+			return *this;
+		}
+
+		TFunction& operator = (rvalue<TFunction> rhs) {
+			this->~TFunction();
+
+			TFunction& rhs = value;
+
+			tablePointer = rhs.tablePointer;
+			host = rhs.host;
+			p = rhs.p;
+
+			rhs.host = nullptr; // clear destructor info.
+			rhs.p = nullptr;
 			return *this;
 		}
 
@@ -692,70 +747,87 @@ namespace PaintsNow {
 			static Table tab = CreateTable(&TFunction::InvokerZ);
 			tablePointer = &tab;
 		}
+
 		TFunction(ZZ func) : host(nullptr), p(func) {
 			static Table tab = CreateTable(&TFunction::InvokerZ);
 			tablePointer = &tab;
 		}
+
 		TFunction(ZA func) : host(nullptr), pa(func) {
 			static Table tab = CreateTable(&TFunction::InvokerA);
 			tablePointer = &tab;
 		}
+
 		TFunction(ZB func) : host(nullptr), pb(func) {
 			static Table tab = CreateTable(&TFunction::InvokerB);
 			tablePointer = &tab;
 		}
+
 		TFunction(ZC func) : host(nullptr), pc(func) {
 			static Table tab = CreateTable(&TFunction::InvokerC);
 			tablePointer = &tab;
 		}
+
 		TFunction(ZD func) : host(nullptr), pd(func) {
 			static Table tab = CreateTable(&TFunction::InvokerD);
 			tablePointer = &tab;
 		}
+
 		TFunction(ZE func) : host(nullptr), pe(func) {
 			static Table tab = CreateTable(&TFunction::InvokerE);
 			tablePointer = &tab;
 		}
+
 		TFunction(ZF func) : host(nullptr), pf(func) {
 			static Table tab = CreateTable(&TFunction::InvokerF);
 			tablePointer = &tab;
 		}
+
 		TFunction(ZG func) : host(nullptr), pg(func) {
 			static Table tab = CreateTable(&TFunction::InvokerG);
 			tablePointer = &tab;
 		}
+
 		TFunction(ZH func) : host(nullptr), ph(func) {
 			static Table tab = CreateTable(&TFunction::InvokerH);
 			tablePointer = &tab;
 		}
+
 		TFunction(ZI func) : host(nullptr), pi(func) {
 			static Table tab = CreateTable(&TFunction::InvokerI);
 			tablePointer = &tab;
 		}
+
 		TFunction(ZJ func) : host(nullptr), pj(func) {
 			static Table tab = CreateTable(&TFunction::InvokerJ);
 			tablePointer = &tab;
 		}
+
 		TFunction(ZK func) : host(nullptr), pk(func) {
 			static Table tab = CreateTable(&TFunction::InvokerK);
 			tablePointer = &tab;
 		}
+
 		TFunction(ZL func) : host(nullptr), pl(func) {
 			static Table tab = CreateTable(&TFunction::InvokerL);
 			tablePointer = &tab;
 		}
+
 		TFunction(ZM func) : host(nullptr), pm(func) {
 			static Table tab = CreateTable(&TFunction::InvokerM);
 			tablePointer = &tab;
 		}
+
 		TFunction(ZN func) : host(nullptr), pn(func) {
 			static Table tab = CreateTable(&TFunction::InvokerN);
 			tablePointer = &tab;
 		}
+
 		TFunction(ZO func) : host(nullptr), po(func) {
 			static Table tab = CreateTable(&TFunction::InvokerO);
 			tablePointer = &tab;
 		}
+
 		TFunction(ZP func) : host(nullptr), pp(func) {
 			static Table tab = CreateTable(&TFunction::InvokerP);
 			tablePointer = &tab;
@@ -782,6 +854,7 @@ namespace PaintsNow {
 				ZN pn;
 				ZO po;
 				ZP pp;
+				void* _alignment[2];
 			};
 
 			Dispatch(IHost* h, ZZ f) : host(h), p(f) {}
@@ -875,6 +948,7 @@ namespace PaintsNow {
 				ZN pn;
 				ZO po;
 				ZP pp;
+				void* _alignment[2];
 			};
 
 			Dispatch<void>(IHost* h, ZZ f) : host(h), p(f) {}
@@ -1138,6 +1212,7 @@ namespace PaintsNow {
 			ZN pn;
 			ZO po;
 			ZP pp;
+			void* _alignment[2];
 		};
 	};
 
@@ -1855,12 +1930,18 @@ namespace PaintsNow {
 		}
 
 		TMethod(TMethod&& rhs) {
-			InitTablePointer();
-			*this = std::move(rhs);
+			tablePointer = rhs.tablePointer;
+			host = rhs.host;
+			p = rhs.p;
+
+			rhs.host = nullptr; // clear destructor info.	
+			rhs.p = nullptr;
 		}
 
 		~TMethod() {
-			tablePointer->destructor(*this);
+			if (host != nullptr) {
+				tablePointer->destructor(*this);
+			}
 		}
 
 		// Copy with none-hosted
@@ -1893,10 +1974,9 @@ namespace PaintsNow {
 		// Destroy with hosted
 		template <bool host>
 		static typename std::enable_if<host>::type DestroyImpl(TMethod& input) {
-			if (input.host != nullptr) {
-				// holding the host instance?
-				delete reinterpret_cast<T*>(input.host);
-			}
+			assert(input.host != nullptr);
+			// holding the host instance?
+			delete reinterpret_cast<T*>(input.host);
 		}
 
 		static void Destroy(TMethod& input) {
@@ -1919,17 +1999,23 @@ namespace PaintsNow {
 		}
 
 		TMethod& operator = (TMethod&& rhs) {
+			this->~TMethod();
+
 			tablePointer = rhs.tablePointer;
 			host = rhs.host;
 			p = rhs.p;
 
 			rhs.host = nullptr; // clear destructor info.
+			rhs.p = nullptr;
 			return *this;
 		}
 
 		Table* tablePointer;
 		IHost* host;
-		FUNC p;
+		union {
+			FUNC p;
+			void* _alignment[2];
+		};
 	};
 
 	// Wraps C-functions, strictly memory overridden of TWrapper<>
@@ -1980,7 +2066,10 @@ namespace PaintsNow {
 
 		Table* tablePointer;
 		IHost* host;
-		FUNC p;
+		union {
+			FUNC p;
+			void* _alignment[2];
+		};
 	};
 
 	// Generic Wrapper structure, accepts both TMethod and TFunction
@@ -1997,11 +2086,15 @@ namespace PaintsNow {
 			proxy = std::move(rhs.proxy);
 		}
 
-		TWrapper(const TProxy<R, Args...>& t) {
-			proxy = static_cast<const TMethod<false, Void, R, Args...>&>(t);
+		template <bool v, class T>
+		TWrapper(TMethod<v, T, R, Args...>&& t) {
+			static_assert(sizeof(t) == sizeof(proxy), "Must be the same size.");
+			proxy = std::move(reinterpret_cast<TMethod<false, Void, R, Args...>&>(t));
 		}
-		TWrapper(TProxy<R, Args...>&& t) {
-			proxy = static_cast<TMethod<false, Void, R, Args...>&&>(t);
+
+		TWrapper(TFunction<R, Args...>&& t) {
+			static_assert(sizeof(t) == sizeof(proxy), "Must be the same size.");
+			proxy = std::move(reinterpret_cast<TMethod<false, Void, R, Args...>&>(t));
 		}
 
 		TWrapper(R(*d)(Args...)) : TWrapper(TFunction<R, Args...>(d)) {}
@@ -2031,7 +2124,6 @@ namespace PaintsNow {
 		void Clear() {
 			proxy.~TMethod<false, Void, R, Args...>();
 			proxy.host = nullptr;
-			proxy.p = nullptr;
 		}
 
 		operator bool() const {
