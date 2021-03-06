@@ -1597,190 +1597,190 @@ namespace PaintsNow {
 
 	// closure
 	template <class T, class R>
-	TWrapper<R> WrapClosure(T* t, R(T::*d)()) {
-		return TWrapper<R>(TMethod<std::true_type, T, R>(new T(*t), d));
+	TWrapper<R> WrapClosure(rvalue<T> t, R(T::*d)()) {
+		return TWrapper<R>(TMethod<std::true_type, T, R>(new T(t), d));
 	}
 
 	template <class T, class R, class A>
-	TWrapper<R, A> WrapClosure(T* t, R(T::*d)(A a)) {
-		return TWrapper<R, A>(TMethod<std::true_type, T, R, A>(new T(*t), d));
+	TWrapper<R, A> WrapClosure(rvalue<T> t, R(T::*d)(A a)) {
+		return TWrapper<R, A>(TMethod<std::true_type, T, R, A>(new T(t), d));
 	}
 
 	template <class T, class R, class A, class B>
-	TWrapper<R, A, B> WrapClosure(T* t, R(T::*d)(A a, B b)) {
-		return TWrapper<R, A, B>(TMethod<std::true_type, T, R, A, B>(new T(*t), d));
+	TWrapper<R, A, B> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b)) {
+		return TWrapper<R, A, B>(TMethod<std::true_type, T, R, A, B>(new T(t), d));
 	}
 
 	template <class T, class R, class A, class B, class C>
-	TWrapper<R, A, B, C> WrapClosure(T* t, R(T::*d)(A a, B b, C c)) {
-		return TWrapper<R, A, B, C>(TMethod<std::true_type, T, R, A, B, C>(new T(*t), d));
+	TWrapper<R, A, B, C> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c)) {
+		return TWrapper<R, A, B, C>(TMethod<std::true_type, T, R, A, B, C>(new T(t), d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D>
-	TWrapper<R, A, B, C, D> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d)) {
-		return TWrapper<R, A, B, C, D>(TMethod<std::true_type, T, R, A, B, C, D>(new T(*t), d));
+	TWrapper<R, A, B, C, D> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d)) {
+		return TWrapper<R, A, B, C, D>(TMethod<std::true_type, T, R, A, B, C, D>(new T(t), d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D, class E>
-	TWrapper<R, A, B, C, D, E> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d, E e)) {
-		return TWrapper<R, A, B, C, D, E>(TMethod<std::true_type, T, R, A, B, C, D, E>(new T(*t), d));
+	TWrapper<R, A, B, C, D, E> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d, E e)) {
+		return TWrapper<R, A, B, C, D, E>(TMethod<std::true_type, T, R, A, B, C, D, E>(new T(t), d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D, class E, class F>
-	TWrapper<R, A, B, C, D, E, F> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d, E e, F f)) {
-		return TWrapper<R, A, B, C, D, E, F>(TMethod<std::true_type, T, R, A, B, C, D, E, F>(new T(*t), d));
+	TWrapper<R, A, B, C, D, E, F> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d, E e, F f)) {
+		return TWrapper<R, A, B, C, D, E, F>(TMethod<std::true_type, T, R, A, B, C, D, E, F>(new T(t), d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D, class E, class F, class G>
-	TWrapper<R, A, B, C, D, E, F, G> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g)) {
-		return TWrapper<R, A, B, C, D, E, F, G>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G>(new T(*t), d));
+	TWrapper<R, A, B, C, D, E, F, G> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g)) {
+		return TWrapper<R, A, B, C, D, E, F, G>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G>(new T(t), d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D, class E, class F, class G, class H>
-	TWrapper<R, A, B, C, D, E, F, G, H> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h)) {
-		return TWrapper<R, A, B, C, D, E, F, G, H>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H>(new T(*t), d));
+	TWrapper<R, A, B, C, D, E, F, G, H> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h)) {
+		return TWrapper<R, A, B, C, D, E, F, G, H>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H>(new T(t), d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D, class E, class F, class G, class H, class I>
-	TWrapper<R, A, B, C, D, E, F, G, H, I> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i)) {
-		return TWrapper<R, A, B, C, D, E, F, G, H, I>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I>(new T(*t), d));
+	TWrapper<R, A, B, C, D, E, F, G, H, I> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i)) {
+		return TWrapper<R, A, B, C, D, E, F, G, H, I>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I>(new T(t), d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J>
-	TWrapper<R, A, B, C, D, E, F, G, H, I, J> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j)) {
-		return TWrapper<R, A, B, C, D, E, F, G, H, I, J>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J>(new T(*t), d));
+	TWrapper<R, A, B, C, D, E, F, G, H, I, J> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j)) {
+		return TWrapper<R, A, B, C, D, E, F, G, H, I, J>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J>(new T(t), d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K>
-	TWrapper<R, A, B, C, D, E, F, G, H, I, J, K> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k)) {
-		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J, K>(new T(*t), d));
+	TWrapper<R, A, B, C, D, E, F, G, H, I, J, K> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k)) {
+		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J, K>(new T(t), d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L>
-	TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l)) {
-		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J, K, L>(new T(*t), d));
+	TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l)) {
+		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J, K, L>(new T(t), d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M>
-	TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m)) {
-		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J, K, L, M>(new T(*t), d));
+	TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m)) {
+		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J, K, L, M>(new T(t), d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N>
-	TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n)) {
-		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J, K, L, M, N>(new T(*t), d));
+	TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n)) {
+		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J, K, L, M, N>(new T(t), d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N, class O>
-	TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n, O o)) {
-		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(new T(*t), d));
+	TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n, O o)) {
+		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(new T(t), d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N, class O, class P>
-	TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n, O o, P p)) {
-		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>(new T(*t), d));
+	TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n, O o, P p)) {
+		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>(new T(t), d));
 	}
 
 	template <class T, class R>
-	TWrapper<R> WrapClosure(T* t, R(T::*d)() const) {
+	TWrapper<R> WrapClosure(rvalue<T> t, R(T::*d)() const) {
 		typedef R(T::*org)();
-		return TWrapper<R>(TMethod<std::true_type, T, R>(new T(*t), (org)d));
+		return TWrapper<R>(TMethod<std::true_type, T, R>(new T(t), (org)d));
 	}
 
 	template <class T, class R, class A>
-	TWrapper<R, A> WrapClosure(T* t, R(T::*d)(A a) const) {
+	TWrapper<R, A> WrapClosure(rvalue<T> t, R(T::*d)(A a) const) {
 		typedef R(T::*org)(A);
-		return TWrapper<R, A>(TMethod<std::true_type, T, R, A>(new T(*t), (org)d));
+		return TWrapper<R, A>(TMethod<std::true_type, T, R, A>(new T(t), (org)d));
 	}
 
 	template <class T, class R, class A, class B>
-	TWrapper<R, A, B> WrapClosure(T* t, R(T::*d)(A a, B b) const) {
+	TWrapper<R, A, B> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b) const) {
 		typedef R(T::*org)(A, B);
-		return TWrapper<R, A, B>(TMethod<std::true_type, T, R, A, B>(new T(*t), (org)d));
+		return TWrapper<R, A, B>(TMethod<std::true_type, T, R, A, B>(new T(t), (org)d));
 	}
 
 	template <class T, class R, class A, class B, class C>
-	TWrapper<R, A, B, C> WrapClosure(T* t, R(T::*d)(A a, B b, C c) const) {
+	TWrapper<R, A, B, C> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c) const) {
 		typedef R(T::*org)(A, B, C);
-		return TWrapper<R, A, B, C>(TMethod<std::true_type, T, R, A, B, C>(new T(*t), (org)d));
+		return TWrapper<R, A, B, C>(TMethod<std::true_type, T, R, A, B, C>(new T(t), (org)d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D>
-	TWrapper<R, A, B, C, D> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d) const) {
+	TWrapper<R, A, B, C, D> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d) const) {
 		typedef R(T::*org)(A, B, C, D);
-		return TWrapper<R, A, B, C, D>(TMethod<std::true_type, T, R, A, B, C, D>(new T(*t), (org)d));
+		return TWrapper<R, A, B, C, D>(TMethod<std::true_type, T, R, A, B, C, D>(new T(t), (org)d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D, class E>
-	TWrapper<R, A, B, C, D, E> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d, E e) const) {
+	TWrapper<R, A, B, C, D, E> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d, E e) const) {
 		typedef R(T::*org)(A, B, C, D, E);
-		return TWrapper<R, A, B, C, D, E>(TMethod<std::true_type, T, R, A, B, C, D, E>(new T(*t), (org)d));
+		return TWrapper<R, A, B, C, D, E>(TMethod<std::true_type, T, R, A, B, C, D, E>(new T(t), (org)d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D, class E, class F>
-	TWrapper<R, A, B, C, D, E, F> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d, E e, F f) const) {
+	TWrapper<R, A, B, C, D, E, F> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d, E e, F f) const) {
 		typedef R(T::*org)(A, B, C, D, E, F);
-		return TWrapper<R, A, B, C, D, E, F>(TMethod<std::true_type, T, R, A, B, C, D, E, F>(new T(*t), (org)d));
+		return TWrapper<R, A, B, C, D, E, F>(TMethod<std::true_type, T, R, A, B, C, D, E, F>(new T(t), (org)d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D, class E, class F, class G>
-	TWrapper<R, A, B, C, D, E, F, G> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g) const) {
+	TWrapper<R, A, B, C, D, E, F, G> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g) const) {
 		typedef R(T::*org)(A, B, C, D, E, F, G);
-		return TWrapper<R, A, B, C, D, E, F, G>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G>(new T(*t), (org)d));
+		return TWrapper<R, A, B, C, D, E, F, G>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G>(new T(t), (org)d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D, class E, class F, class G, class H>
-	TWrapper<R, A, B, C, D, E, F, G, H> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h) const) {
+	TWrapper<R, A, B, C, D, E, F, G, H> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h) const) {
 		typedef R(T::*org)(A, B, C, D, E, F, G, H);
-		return TWrapper<R, A, B, C, D, E, F, G, H>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H>(new T(*t), (org)d));
+		return TWrapper<R, A, B, C, D, E, F, G, H>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H>(new T(t), (org)d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D, class E, class F, class G, class H, class I>
-	TWrapper<R, A, B, C, D, E, F, G, H, I> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i) const) {
+	TWrapper<R, A, B, C, D, E, F, G, H, I> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i) const) {
 		typedef R(T::*org)(A, B, C, D, E, F, G, H, I);
-		return TWrapper<R, A, B, C, D, E, F, G, H, I>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I>(new T(*t), (org)d));
+		return TWrapper<R, A, B, C, D, E, F, G, H, I>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I>(new T(t), (org)d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J>
-	TWrapper<R, A, B, C, D, E, F, G, H, I, J> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j) const) {
+	TWrapper<R, A, B, C, D, E, F, G, H, I, J> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j) const) {
 		typedef R(T::*org)(A, B, C, D, E, F, G, H, I, J);
-		return TWrapper<R, A, B, C, D, E, F, G, H, I, J>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J>(new T(*t), (org)d));
+		return TWrapper<R, A, B, C, D, E, F, G, H, I, J>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J>(new T(t), (org)d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K>
-	TWrapper<R, A, B, C, D, E, F, G, H, I, J, K> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k) const) {
+	TWrapper<R, A, B, C, D, E, F, G, H, I, J, K> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k) const) {
 		typedef R(T::*org)(A, B, C, D, E, F, G, H, I, J, K);
-		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J, K>(new T(*t), (org)d));
+		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J, K>(new T(t), (org)d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L>
-	TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l) const) {
+	TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l) const) {
 		typedef R(T::*org)(A, B, C, D, E, F, G, H, I, J, K, L);
-		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J, K, L>(new T(*t), (org)d));
+		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J, K, L>(new T(t), (org)d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M>
-	TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m) const) {
+	TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m) const) {
 		typedef R(T::*org)(A, B, C, D, E, F, G, H, I, J, K, L, M);
-		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J, K, L, M>(new T(*t), (org)d));
+		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J, K, L, M>(new T(t), (org)d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N>
-	TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n) const) {
+	TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n) const) {
 		typedef R(T::*org)(A, B, C, D, E, F, G, H, I, J, K, L, M, N);
-		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J, K, L, M, N>(new T(*t), (org)d));
+		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J, K, L, M, N>(new T(t), (org)d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N, class O>
-	TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n, O o) const) {
+	TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n, O o) const) {
 		typedef R(T::*org)(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O);
-		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(new T(*t), (org)d));
+		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(new T(t), (org)d));
 	}
 
 	template <class T, class R, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N, class O, class P>
-	TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P> WrapClosure(T* t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n, O o, P p) const) {
+	TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P> WrapClosure(rvalue<T> t, R(T::*d)(A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n, O o, P p) const) {
 		typedef R(T::*org)(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P);
-		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>(new T(*t), (org)d));
+		return TWrapper<R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>(TMethod<std::true_type, T, R, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>(new T(t), (org)d));
 	}
 
 	// function
@@ -2168,21 +2168,22 @@ namespace PaintsNow {
 	}
 
 	template <typename T, typename R, typename... Args>
-	TWrapper<R, Args...> WrapClosure(const T* t, R(T::*d)(Args...)) {
+	TWrapper<R, Args...> WrapClosure(T&& t, R(std::decay<T>::type::*d)(Args...)) {
 		typedef R(T::*org)(Args...);
-		return TWrapper<R, Args...>(TMethod<true, T, R, Args...>(new T(*t), (org)d));
+		return TWrapper<R, Args...>(TMethod<true, T, R, Args...>(new T(t), (org)d));
 	}
 
 	template <typename T, typename R, typename... Args>
-	TWrapper<R, Args...> WrapClosure(const T* t, R(T::*d)(Args...) const) {
+	TWrapper<R, Args...> WrapClosure(T&& t, R(std::decay<T>::type::*d)(Args...) const) {
 		typedef R(T::*org)(Args...);
-		return TWrapper<R, Args...>(TMethod<true, T, R, Args...>(new T(*t), (org)d));
+		typedef typename std::decay<T>::type TT;
+		return TWrapper<R, Args...>(TMethod<true, TT, R, Args...>(new TT(std::forward<T>(t)), (org)d));
 	}
 
 	// Wraps lambdas. Be aware of object's life-scope !!!
 	template <typename T>
-	auto WrapClosure(const T& object) -> decltype(WrapClosure(&object, &T::operator())) {
-		return WrapClosure(&object, &T::operator());
+	auto WrapClosure(T&& object) -> decltype(WrapClosure(std::forward<T>(object), &T::operator())) {
+		return WrapClosure(std::forward<T>(object), &T::operator());
 	}
 #endif
 
@@ -2385,113 +2386,97 @@ namespace PaintsNow {
 	template <class T, class A>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a) {
 		TWrapper<T*, A> wrapper = Wrap(&_New1<T, A>::Invoke);
-		TBinder<T*, A> binder(wrapper, a);
-		return WrapClosure(&binder, &TBinder<T*, A>::operator ());
+		return TWrapper<T*>(TMethod<std::true_type, TBinder<T*, A>, T*>(new TBinder<T*, A>(wrapper, a), &TBinder<T*, A>::operator ()));
 	}
 
 	template <class T, class A, class B>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b) {
 		TWrapper<T*, A, B> wrapper = Wrap(&_New2<T, A, B>::Invoke);
-		TBinder<T*, A, B> binder(wrapper, a, b);
-		return WrapClosure(&binder, &TBinder<T*, A, B>::operator ());
+		return TWrapper<T*>(TMethod<std::true_type, TBinder<T*, A, B>, T*>(new TBinder<T*, A, B>(wrapper, a, b), &TBinder<T*, A, B>::operator ()));
 	}
 
 	template <class T, class A, class B, class C>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c) {
 		TWrapper<T*, A, B, C> wrapper = Wrap(&_New3<T, A, B, C>::Invoke);
-		TBinder<T*, A, B, C> binder(wrapper, a, b, c);
-		return WrapClosure(&binder, &TBinder<T*, A, B, C>::operator ());
+		return TWrapper<T*>(TMethod<std::true_type, TBinder<T*, A, B, C>, T*>(new TBinder<T*, A, B, C>(wrapper, a, b, c), &TBinder<T*, A, B, C>::operator ()));
 	}
 
 	template <class T, class A, class B, class C, class D>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d) {
 		TWrapper<T*, A, B, C, D> wrapper = Wrap(&_New4<T, A, B, C, D>::Invoke);
-		TBinder<T*, A, B, C, D> binder(wrapper, a, b, c, d);
-		return WrapClosure(&binder, &TBinder<T*, A, B, C, D>::operator ());
+		return TWrapper<T*>(TMethod<std::true_type, TBinder<T*, A, B, C, D>, T*>(new TBinder<T*, A, B, C, D>(wrapper, a, b, c, d), &TBinder<T*, A, B, C, D>::operator ()));
 	}
 
 	template <class T, class A, class B, class C, class D, class E>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d, E e) {
 		TWrapper<T*, A, B, C, D, E> wrapper = Wrap(&_New5<T, A, B, C, D, E>::Invoke);
-		TBinder<T*, A, B, C, D, E> binder(wrapper, a, b, c, d, e);
-		return WrapClosure(&binder, &TBinder<T*, A, B, C, D, E>::operator ());
+		return TWrapper<T*>(TMethod<std::true_type, TBinder<T*, A, B, C, D, E>, T*>(new TBinder<T*, A, B, C, D, E>(wrapper, a, b, c, d, e), &TBinder<T*, A, B, C, D, E>::operator ()));
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d, E e, F f) {
 		TWrapper<T*, A, B, C, D, E, F> wrapper = Wrap(&_New6<T, A, B, C, D, E, F>::Invoke);
-		TBinder<T*, A, B, C, D, E, F> binder(wrapper, a, b, c, d, e, f);
-		return WrapClosure(&binder, &TBinder<T*, A, B, C, D, E, F>::operator ());
+		return TWrapper<T*>(TMethod<std::true_type, TBinder<T*, A, B, C, D, E, F>, T*>(new TBinder<T*, A, B, C, D, E, F>(wrapper, a, b, c, d, e, f), &TBinder<T*, A, B, C, D, E, F>::operator ()));
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d, E e, F f, G g) {
 		TWrapper<T*, A, B, C, D, E, F, G> wrapper = Wrap(&_New7<T, A, B, C, D, E, F, G>::Invoke);
-		TBinder<T*, A, B, C, D, E, F, G> binder(wrapper, a, b, c, d, e, f, g);
-		return WrapClosure(&binder, &TBinder<T*, A, B, C, D, E, F, G>::operator ());
+		return TWrapper<T*>(TMethod<std::true_type, TBinder<T*, A, B, C, D, E, F, G>, T*>(new TBinder<T*, A, B, C, D, E, F, G>(wrapper, a, b, c, d, e, f, g), &TBinder<T*, A, B, C, D, E, F, G>::operator ()));
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G, class H>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d, E e, F f, G g, H h) {
 		TWrapper<T*, A, B, C, D, E, F, G, H> wrapper = Wrap(&_New8<T, A, B, C, D, E, F, G, H>::Invoke);
-		TBinder<T*, A, B, C, D, E, F, G, H> binder(wrapper, a, b, c, d, e, f, g, h);
-		return WrapClosure(&binder, &TBinder<T*, A, B, C, D, E, F, G, H>::operator ());
+		return TWrapper<T*>(TMethod<std::true_type, TBinder<T*, A, B, C, D, E, F, G, H>, T*>(new TBinder<T*, A, B, C, D, E, F, G, H>(wrapper, a, b, c, d, e, f, g, h), &TBinder<T*, A, B, C, D, E, F, G, H>::operator ()));
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G, class H, class I>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d, E e, F f, G g, H h, I i) {
 		TWrapper<T*, A, B, C, D, E, F, G, H, I> wrapper = Wrap(&_New9<T, A, B, C, D, E, F, G, H, I>::Invoke);
-		TBinder<T*, A, B, C, D, E, F, G, H, I> binder(wrapper, a, b, c, d, e, f, g, h, i);
-		return WrapClosure(&binder, &TBinder<T*, A, B, C, D, E, F, G, H, I>::operator ());
+		return TWrapper<T*>(TMethod<std::true_type, TBinder<T*, A, B, C, D, E, F, G, H, I>, T*>(new TBinder<T*, A, B, C, D, E, F, G, H, I>(wrapper, a, b, c, d, e, f, g, h, i), &TBinder<T*, A, B, C, D, E, F, G, H, I>::operator ()));
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d, E e, F f, G g, H h, I i, J j) {
 		TWrapper<T*, A, B, C, D, E, F, G, H, I, J> wrapper = Wrap(&_New10<T, A, B, C, D, E, F, G, H, I, J>::Invoke);
-		TBinder<T*, A, B, C, D, E, F, G, H, I, J> binder(wrapper, a, b, c, d, e, f, g, h, i, j);
-		return WrapClosure(&binder, &TBinder<T*, A, B, C, D, E, F, G, H, I, J>::operator ());
+		return TWrapper<T*>(TMethod<std::true_type, TBinder<T*, A, B, C, D, E, F, G, H, I, J>, T*>(new TBinder<T*, A, B, C, D, E, F, G, H, I, J>(wrapper, a, b, c, d, e, f, g, h, i, j), &TBinder<T*, A, B, C, D, E, F, G, H, I, J>::operator ()));
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k) {
 		TWrapper<T*, A, B, C, D, E, F, G, H, I, J, K> wrapper = Wrap(&_New11<T, A, B, C, D, E, F, G, H, I, J, K>::Invoke);
-		TBinder<T*, A, B, C, D, E, F, G, H, I, J, K> binder(wrapper, a, b, c, d, e, f, g, h, i, j, k);
-		return WrapClosure(&binder, &TBinder<T*, A, B, C, D, E, F, G, H, I, J, K>::operator ());
+		return TWrapper<T*>(TMethod<std::true_type, TBinder<T*, A, B, C, D, E, F, G, H, I, J, K>, T*>(new TBinder<T*, A, B, C, D, E, F, G, H, I, J, K>(wrapper, a, b, c, d, e, f, g, h, i, j, k), &TBinder<T*, A, B, C, D, E, F, G, H, I, J, K>::operator ()));
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l) {
 		TWrapper<T*, A, B, C, D, E, F, G, H, I, J, K, L> wrapper = Wrap(&_New12<T, A, B, C, D, E, F, G, H, I, J, K, L>::Invoke);
-		TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L> binder(wrapper, a, b, c, d, e, f, g, h, i, j, k, l);
-		return WrapClosure(&binder, &TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L>::operator ());
+		return TWrapper<T*>(TMethod<std::true_type, TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L>, T*>(new TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L>(wrapper, a, b, c, d, e, f, g, h, i, j, k, l), &TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L>::operator ()));
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m) {
 		TWrapper<T*, A, B, C, D, E, F, G, H, I, J, K, L, M> wrapper = Wrap(&_New13<T, A, B, C, D, E, F, G, H, I, J, K, L, M>::Invoke);
-		TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M> binder(wrapper, a, b, c, d, e, f, g, h, i, j, k, l, m);
-		return WrapClosure(&binder, &TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M>::operator ());
+		return TWrapper<T*>(TMethod<std::true_type, TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M>, T*>(new TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M>(wrapper, a, b, c, d, e, f, g, h, i, j, k, l, m), &TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M>::operator ()));
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n) {
 		TWrapper<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N> wrapper = Wrap(&_New14<T, A, B, C, D, E, F, G, H, I, J, K, L, M, N>::Invoke);
-		TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N> binder(wrapper, a, b, c, d, e, f, g, h, i, j, k, l, m, n);
-		return WrapClosure(&binder, &TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N>::operator ());
+		return TWrapper<T*>(TMethod<std::true_type, TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N>, T*>(new TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N>(wrapper, a, b, c, d, e, f, g, h, i, j, k, l, m, n), &TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N>::operator ()));
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N, class O>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n, O o) {
 		TWrapper<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> wrapper = Wrap(&_New15<T, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>::Invoke);
-		TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> binder(wrapper, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o);
-		return WrapClosure(&binder, &TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>::operator ());
+		return TWrapper<T*>(TMethod<std::true_type, TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>, T*>(new TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(wrapper, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o), &TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>::operator ()));
 	}
 
 	template <class T, class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N, class O, class P>
 	TWrapper<T*> WrapFactory(TypeParam<T>, A a, B b, C c, D d, E e, F f, G g, H h, I i, J j, K k, L l, M m, N n, O o, P p) {
 		TWrapper<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P> wrapper = Wrap(&_New16<T, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>::Invoke);
-		TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P> binder(wrapper, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p);
-		return WrapClosure(&binder, &TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>::operator ());
+		return TWrapper<T*>(TMethod<std::true_type, TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>, T*>(new TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>(wrapper, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p), &TBinder<T*, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>::operator ()));
 	}
 #else
 
@@ -2525,7 +2510,7 @@ namespace PaintsNow {
 	
 	template <typename T, typename... Params>
 	static TWrapper<T*> WrapFactory(TypeParam<T>, Params&&... params) {
-		return WrapClosure(TBinder<T*, Params...>(Wrap(&_New<T, Params...>), std::forward<Params>(params)...));
+		return TWrapper<T*>(TMethod<true, TBinder<T*, Params...>, T*>(new TBinder<T*, Params...>(Wrap(&_New<T, Params...>), std::forward<Params>(params)...), &TBinder<T*, Params...>::operator ()));
 	}
 
 #endif
