@@ -5,6 +5,7 @@ using namespace PaintsNow;
 static TAllocator<64>* globalTaskAllocator64;
 static TAllocator<128>* globalTaskAllocator128;
 static TAllocator<256>* globalTaskAllocator256;
+static TAllocator<512>* globalTaskAllocator512;
 
 class TaskInitializer {
 public:
@@ -18,6 +19,9 @@ public:
 		globalTaskAllocator256 = new TAllocator<256>();
 		globalTaskAllocator256->GetRootAllocator().Pin(globalTaskAllocator256);
 		globalTaskAllocator256->ReleaseObject();
+		globalTaskAllocator512 = new TAllocator<512>();
+		globalTaskAllocator512->GetRootAllocator().Pin(globalTaskAllocator512);
+		globalTaskAllocator512->ReleaseObject();
 	}
 };
 
@@ -42,6 +46,11 @@ void* ITask::Allocate(size_t size) {
 	case 3:
 	case 4:
 		return globalTaskAllocator256->Allocate();
+	case 5:
+	case 6:
+	case 7:
+	case 8:
+		return globalTaskAllocator512->Allocate();
 	default:
 		return ::operator new (size);
 	}
@@ -60,6 +69,12 @@ void ITask::Deallocate(void* p, size_t size) {
 	case 3:
 	case 4:
 		globalTaskAllocator256->Deallocate(p);
+		break;
+	case 5:
+	case 6:
+	case 7:
+	case 8:
+		globalTaskAllocator512->Deallocate(p);
 		break;
 	default:
 		::operator delete (p);
