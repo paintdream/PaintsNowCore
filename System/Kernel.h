@@ -65,7 +65,7 @@ namespace PaintsNow {
 		void QueueRoutineInternal(uint32_t toWarpIndex, uint32_t fromThreadIndex, WarpTiny* warpTiny, ITask* task);
 
 		// Do not touch it unless you know what you are doing.
-		class_aligned(64) SubTaskQueue : protected TaskQueue {
+		class_aligned(CPU_CACHELINE_SIZE) SubTaskQueue : protected TaskQueue {
 		public:
 			SubTaskQueue(Kernel* kernel, uint32_t idCount);
 			SubTaskQueue(const SubTaskQueue& rhs);
@@ -102,7 +102,7 @@ namespace PaintsNow {
 
 		friend class SubTaskQueue;
 
-		class_aligned(64) ForwardRoutine : public TaskOnce {
+		class_aligned(CPU_CACHELINE_SIZE) ForwardRoutine : public TaskOnce {
 		public:
 			ForwardRoutine(Kernel& k, WarpTiny* tn, ITask* tk);
 

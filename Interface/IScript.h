@@ -394,7 +394,6 @@ namespace PaintsNow {
 				return Call(defer, ref);	
 			}
 
-
 			template <class A, class B, class C, class D, class E, class F, class G, class H>
 			bool Call(const IScript::Request::Ref& ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g, const H& h) {
 				*this << a << b << c << d << e << f << g << h;
@@ -455,7 +454,6 @@ namespace PaintsNow {
 				return Call(defer, ref);	
 			}
 
-
 			template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M>
 			bool Call(const IScript::Request::Ref& ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g, const H& h, const I& i, const J& j, const K& k, const L& l, const M& m) {
 				*this << a << b << c << d << e << f << g << h << i << j << k << l << m;
@@ -467,7 +465,6 @@ namespace PaintsNow {
 				*this << a << b << c << d << e << f << g << h << i << j << k << l << m << n;
 				return Call(defer, ref);	
 			}
-
 
 			template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N>
 			bool Call(const IScript::Request::Ref& ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g, const H& h, const I& i, const J& j, const K& k, const L& l, const M& m, const N& n) {
@@ -481,7 +478,6 @@ namespace PaintsNow {
 				return Call(defer, ref);	
 			}
 
-
 			template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N, class O>
 			bool Call(const IScript::Request::Ref& ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g, const H& h, const I& i, const J& j, const K& k, const L& l, const M& m, const N& n, const O& o) {
 				*this << a << b << c << d << e << f << g << h << i << j << k << l << m << n << o;
@@ -493,7 +489,6 @@ namespace PaintsNow {
 				*this << a << b << c << d << e << f << g << h << i << j << k << l << m << n << o << aa;
 				return Call(defer, ref);	
 			}
-
 
 			template <class A, class B, class C, class D, class E, class F, class G, class H, class I, class J, class K, class L, class M, class N, class O, class AA>
 			bool Call(const IScript::Request::Ref& ref, const A& a, const B& b, const C& c, const D& d, const E& e, const F& f, const G& g, const H& h, const I& i, const J& j, const K& k, const L& l, const M& m, const N& n, const O& o, const AA& aa) {

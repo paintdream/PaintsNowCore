@@ -23,7 +23,9 @@ namespace PaintsNow {
 		void Next(size_t from, size_t to);
 
 		// commit all tasks
-		bool Commit(const TWrapper<void>& completion = TWrapper<void>());
+		bool Dispatch(const TWrapper<void>& completion = TWrapper<void>());
+
+		bool IsRunning() const;
 
 	protected:
 		class TaskNode : public ITask {
@@ -38,16 +40,18 @@ namespace PaintsNow {
 			WarpTiny* host;
 			ITask* task;
 			size_t refCount;
+			size_t totalRefCount;
 			std::vector<TaskNode*> nextNodes;
 		};
 
 		friend class TaskNode;
 		void Complete();
 
-		Kernel& kernel;
-		std::vector<TaskNode> taskNodes;
-		std::atomic<size_t> completedCount;
-		TWrapper<void> completion;
+		alignas(CPU_CACHELINE_SIZE) Kernel& kernel;
+		alignas(CPU_CACHELINE_SIZE) std::vector<TaskNode> taskNodes;
+		alignas(CPU_CACHELINE_SIZE) std::atomic<size_t> completedCount;
+		alignas(CPU_CACHELINE_SIZE) std::atomic<size_t> running;
+		alignas(CPU_CACHELINE_SIZE) TWrapper<void> completion;
 	};
 }
 

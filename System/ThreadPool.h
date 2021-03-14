@@ -45,11 +45,11 @@ namespace PaintsNow {
 		bool Run(IThread::Thread* thread, size_t threadID);
 
 	protected:
-		alignas(64) std::atomic<ITask*> taskHead;
-		alignas(64) std::atomic<size_t> liveThreadCount;
-		alignas(64) std::atomic<size_t> runningToken;
-		alignas(64) std::atomic<size_t> temperature;
-		alignas(64) size_t waitEventCounter;
+		alignas(CPU_CACHELINE_SIZE) std::atomic<ITask*> taskHead;
+		alignas(CPU_CACHELINE_SIZE) std::atomic<size_t> liveThreadCount;
+		alignas(CPU_CACHELINE_SIZE) std::atomic<size_t> runningToken;
+		alignas(CPU_CACHELINE_SIZE) std::atomic<size_t> temperature;
+		alignas(CPU_CACHELINE_SIZE) size_t waitEventCounter;
 
 		uint32_t threadCount;
 		IThread::Event* eventPump;

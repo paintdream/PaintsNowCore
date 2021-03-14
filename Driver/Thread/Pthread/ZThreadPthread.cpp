@@ -88,14 +88,12 @@ _ThreadProc(void* param)
 #endif
 }
 
-
 ZThreadPthread::ZThreadPthread() {
 
 }
 
 ZThreadPthread::~ZThreadPthread() {
 }
-
 
 void ZThreadPthread::Wait(Thread* th) {
 	ThreadImpl* t = static_cast<ThreadImpl*>(th);

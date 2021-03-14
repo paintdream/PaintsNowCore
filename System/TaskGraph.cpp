@@ -72,6 +72,10 @@ TaskGraph::~TaskGraph() {
 	}
 }
 
+bool TaskGraph::IsRunning() const {
+	return running.load(std::memory_order_acquire) != 0;
+}
+
 void TaskGraph::Complete() {
 	// all tasks finished
 	if (completedCount.fetch_add(1, std::memory_order_relaxed) + 1 == taskNodes.size()) {
@@ -79,16 +83,22 @@ void TaskGraph::Complete() {
 			completion();
 		}
 
+		// reset completed count for next dispatch (if exists)
+		completedCount.store(0, std::memory_order_relaxed);
+		size_t r = running.exchange(0, std::memory_order_release);
+		assert(r != 0);
 		ReleaseObject();
 	}
 }
 
 size_t TaskGraph::Insert(WarpTiny* host, ITask* task) {
+	assert(running.load(std::memory_order_acquire) == 0);
 	TaskNode node;
 	node.taskGraph = this;
 	node.host = host;
 	node.task = task;
 	node.refCount = 0;
+	node.totalRefCount = 0;
 
 	if (host != nullptr) {
 		host->ReferenceObject();
@@ -100,20 +110,24 @@ size_t TaskGraph::Insert(WarpTiny* host, ITask* task) {
 }
 
 void TaskGraph::Next(size_t from, size_t to) {
+	assert(running.load(std::memory_order_acquire) == 0);
 	assert(from < taskNodes.size());
 	assert(to < taskNodes.size());
 
 	TaskNode* nextTask = &taskNodes[to];
 	taskNodes[from].nextNodes.emplace_back(nextTask);
-	nextTask->refCount++;
+	nextTask->totalRefCount++;
 }
 
-bool TaskGraph::Commit(const TWrapper<void>& w) {
+bool TaskGraph::Dispatch(const TWrapper<void>& w) {
+	size_t r = running.exchange(1, std::memory_order_acq_rel);
+	assert(r == 0);
 	completion = w;
 
 	bool committed = false;
 	for (size_t i = 0; i < taskNodes.size(); i++) {
 		TaskNode& node = taskNodes[i];
+		node.refCount = node.totalRefCount;
 		if (node.refCount == 0) {
 			if (node.host == nullptr) {
 				kernel.GetThreadPool().Push(&node);

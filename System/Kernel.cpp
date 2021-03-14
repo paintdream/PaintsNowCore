@@ -40,7 +40,6 @@ Kernel::Kernel(ThreadPool& tp, uint32_t warpCount) : threadPool(tp) {
 #endif
 }
 
-
 Kernel::~Kernel() { Clear(); }
 
 uint32_t Kernel::GetWarpCount() const {
@@ -255,20 +254,24 @@ void Kernel::SubTaskQueue::Flush(ThreadPool& threadPool) {
 	}
 }
 
+#if USE_OPTICK
 static const char* warpStrings[] = {
 	"Warp 0", "Warp 1", "Warp 2", "Warp 3",
 	"Warp 4", "Warp 5", "Warp 6", "Warp 7",
 	"Warp 8", "Warp 9", "Warp 10", "Warp 11",
 	"Warp 12", "Warp 13", "Warp 14", "Warp 15",
 };
+#endif
 
 bool Kernel::SubTaskQueue::PreemptExecution() {
 	uint32_t* expected = nullptr;
 	uint32_t thisWarpIndex = safe_cast<uint32_t>(this - &kernel->taskQueueGrid[0]);
 
 	if (threadWarp.compare_exchange_strong(expected, &WarpIndex, std::memory_order_acquire)) {
+#if USE_OPTICK
 		const char* warpName = thisWarpIndex < sizeof(warpStrings) / sizeof(warpStrings[0]) ? warpStrings[thisWarpIndex] : "Warp X";
 		OPTICK_PUSH_DYNAMIC(warpName);
+#endif
 
 		WarpIndex = thisWarpIndex;
 		return true;

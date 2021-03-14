@@ -43,5 +43,3 @@ struct hash<bool> {
 #else
 #include <unordered_map>
 #endif
-
-

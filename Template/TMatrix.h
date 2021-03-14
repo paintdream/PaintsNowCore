@@ -136,7 +136,6 @@ namespace PaintsNow {
 		}
 	};
 
-
 #if defined(_MSC_VER) && _MSC_VER <= 1200
 	template <class T, size_t m, size_t n>
 	TMatrix<T, m, m> operator * (const TMatrix<T, m, n>& lhs, const TMatrix<T, n, m>& rhs) {
@@ -349,7 +348,6 @@ namespace PaintsNow {
 			return minv;
 		}
 
-
 		template <class T>
 		TMatrix<T, 4, 4> Inverse(const TMatrix<T, 4, 4>& m) {
 			T det
@@ -438,7 +436,6 @@ namespace PaintsNow {
 				__m128 Mul01 = _mm_mul_ps(Swp02, Swp03);
 				Fac1 = _mm_sub_ps(Mul00, Mul01);
 			}
-
 
 			__m128 Fac2;
 			{

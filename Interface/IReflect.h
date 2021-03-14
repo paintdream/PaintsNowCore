@@ -26,7 +26,6 @@
 #include <cxxabi.h>
 #endif
 
-
 #ifdef _MSC_VER
 #pragma warning(disable:4172)
 #endif
@@ -107,7 +106,7 @@ namespace PaintsNow {
 
 	// Generic UniqueType<> for template induction
 	template <class T>
-	struct UniqueType : public TypeParam<T> {
+	struct UniqueType : public TypeTrait<T> {
 		static String Demangle(const char* name) {
 			String className;
 #ifdef __GNUG__
@@ -1080,6 +1079,5 @@ namespace std {
 	};
 #if !defined(_MSC_VER) || _MSC_VER > 1200
 }
+
 #endif
-
-

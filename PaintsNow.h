@@ -3,19 +3,18 @@
 // PaintDream (paintdream@paintdream.com)
 // 
 
-// 3rd party libraries:
+// Third party libraries:
 //		LZMA			OpenGL			GLEW
 //		OpenAL			FreeImage		GLFW
-//		Freetype		Lame			Pthread
-//		Dirent			Libiconv		LibNoise
+//		Freetype		Lame			LibNoise
 //		LibEvent2		Sqlite3			Lua5.4
-//		TypedLua		Lpeg			JsonCPP
+//		Teal			JsonCPP
 // Platforms:
-//		Linux (i386/amd64/arm) with OpenGL 3.3.3+ supported
-//		Windows (i386/amd64) with OpenGL 3.3.3+ supported
+//		Linux (i386/amd64/arm) with OpenGL 3.3+ supported
+//		Windows (i386/amd64) with OpenGL 3.3+ supported
 // Compilers:
-//		GCC (with C++ 11)
-//		MSVC6 | MSVC14
+//		GCC/clang (with C++ 11)
+//		MSVC6 | MSVC12+
 //
 
 #pragma once
@@ -91,6 +90,8 @@ namespace PaintsNow {
 	class One {};
 	class Void : public One, public Zero {};
 }
+
+#define CPU_CACHELINE_SIZE 64
 
 #ifdef _MSC_VER
 #if _MSC_VER <= 1200
@@ -562,7 +563,6 @@ struct getboolean<std::true_type> { enum { value = true }; };
 			return sizeof ... (i);
 		}
 	};
-
 
 	// this structure doubles seq elements.
 	// s- is number of template arguments in IS.
