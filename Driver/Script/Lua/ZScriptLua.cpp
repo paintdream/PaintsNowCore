@@ -1140,6 +1140,10 @@ void ZScriptLua::Request::SetRequestPool(IScript::RequestPool* p) {
 	lua_pop(L, 1);
 }
 
+void* ZScriptLua::Request::GetNativeScript() {
+	return L;
+}
+
 IScript::RequestPool* ZScriptLua::Request::GetRequestPool() {
 	assert(GetScript()->IsLocked());
 

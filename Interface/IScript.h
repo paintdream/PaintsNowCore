@@ -123,6 +123,7 @@ namespace PaintsNow {
 
 			virtual RequestPool* GetRequestPool();
 			virtual void SetRequestPool(RequestPool* pool);
+			virtual void* GetNativeScript();
 
 			// For variadic arguments
 			struct Arguments {

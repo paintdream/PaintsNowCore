@@ -237,6 +237,10 @@ IScript::RequestPool* IScript::Request::GetRequestPool() {
 	return requestPool;
 }
 
+void* IScript::Request::GetNativeScript() {
+	return nullptr;
+}
+
 IScript::Request::~Request() {}
 
 void IScript::Request::DoLock() {

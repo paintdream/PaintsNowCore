@@ -29,6 +29,7 @@ namespace PaintsNow {
 			TObject<IReflect>& operator () (IReflect& reflect) override;
 			IScript* GetScript() override;
 			IScript::RequestPool* GetRequestPool() override;
+			void* GetNativeScript() override;
 			void SetRequestPool(IScript::RequestPool* requestPool) override;
 			bool Call(const AutoWrapperBase& defer, const Request::Ref& g) override;
 			std::vector<Key> Enumerate() override;
